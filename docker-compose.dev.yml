@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: projet_mobile_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: secureapp
+      POSTGRES_PASSWORD: secureapp_dev_password
+      POSTGRES_DB: secureapp
+    ports:
+      - "5432:5432"
+    volumes:
+      - projet_mobile_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U secureapp -d secureapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  projet_mobile_pgdata:

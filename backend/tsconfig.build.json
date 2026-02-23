@@ -1,0 +1,8 @@
+// Role : Configuration TypeScript pour la build.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "sourceMap": false
+  },
+  "include": ["src/**/*"]
+}

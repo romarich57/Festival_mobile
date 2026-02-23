@@ -1,0 +1,32 @@
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET, JWT_EXPIRATION, REFRESH_EXPIRATION, } from '../config/env.js';
+// Role : Creer un access token signe.
+// Preconditions : user contient les champs attendus du TokenPayload.
+// Postconditions : Retourne un JWT avec expiration courte.
+export function createAccessToken(user) {
+    return jwt.sign(user, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+}
+// Role : Creer un refresh token signe.
+// Preconditions : user contient les champs attendus du TokenPayload.
+// Postconditions : Retourne un JWT avec expiration longue.
+export function createRefreshToken(user) {
+    return jwt.sign(user, JWT_SECRET, { expiresIn: REFRESH_EXPIRATION });
+}
+// Role : Verifier l'access token et alimenter req.user.
+// Preconditions : Le cookie access_token est present.
+// Postconditions : Passe au middleware suivant ou renvoie 401/403.
+export function verifyToken(req, res, next) {
+    const token = req.cookies?.access_token;
+    if (!token) {
+        return res.status(401).json({ error: 'Token manquant' });
+    }
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
+    }
+    catch {
+        res.status(403).json({ error: 'Token invalide ou expiré' });
+    }
+}
+//# sourceMappingURL=token-management.js.map

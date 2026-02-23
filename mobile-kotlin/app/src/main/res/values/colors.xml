@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="header_purple">#2c3248</color>
+    <color name="background_gradient_start">#e8edf5</color>
+    <color name="background_gradient_end">#f1f5f9</color>
+    <color name="white">#FFFFFF</color>
+    <color name="text_primary">#1a1d29</color>
+    <color name="text_link">#3474d4</color>
+    <color name="button_primary">#759be0</color>
+    <color name="input_border">#d1d5db</color>
+    <color name="error_color">#d32f2f</color>
+</resources>

@@ -1,0 +1,457 @@
+// Role : Exposer les routes de gestion des festivals et des allocations.
+import { Router } from 'express';
+import pool from '../db/database.js';
+import { verifyToken } from '../middleware/token-management.js';
+import { requireRole } from '../middleware/require-role.js';
+const router = Router();
+const BACKOFFICE_ROLES = ['admin', 'super-organizer', 'organizer'];
+const requireBackoffice = [verifyToken, requireRole(BACKOFFICE_ROLES)];
+const FESTIVAL_DELETE_ROLES = ['admin', 'super-organizer'];
+// Role : Recuperer l'identifiant de reservation pour un festival et un reservant.
+// Preconditions : festivalId et reservantId sont des nombres valides, client est un Pool/PoolClient.
+// Postconditions : Retourne l'id de reservation ou null si introuvable.
+async function findReservationId(festivalId, reservantId, client = pool) {
+    const { rows } = await client.query('SELECT id FROM reservation WHERE festival_id = $1 AND reservant_id = $2', [festivalId, reservantId]);
+    return rows.length > 0 ? rows[0].id : null;
+}
+// Role : Valider et normaliser le payload d'allocation.
+// Preconditions : body est l'objet recu par la route.
+// Postconditions : Retourne les erreurs et un payload normalise.
+function validateAllocationPayload(body) {
+    const errors = [];
+    const payload = {};
+    const gameId = Number(body?.game_id);
+    const nbExemplaires = Number(body?.nb_exemplaires);
+    const nbTablesOccupees = Number(body?.nb_tables_occupees);
+    const zonePlanIdRaw = body?.zone_plan_id;
+    const zonePlanId = zonePlanIdRaw === undefined || zonePlanIdRaw === null || zonePlanIdRaw === ''
+        ? null
+        : Number(zonePlanIdRaw);
+    const tailleTable = typeof body?.taille_table_requise === 'string'
+        ? body.taille_table_requise
+        : undefined;
+    if (!Number.isFinite(gameId))
+        errors.push('game_id est requis');
+    if (!Number.isFinite(nbExemplaires) || nbExemplaires <= 0)
+        errors.push('nb_exemplaires doit être positif');
+    if (!Number.isFinite(nbTablesOccupees) || nbTablesOccupees <= 0)
+        errors.push('nb_tables_occupees doit être positif');
+    if (zonePlanId !== null) {
+        if (!Number.isFinite(zonePlanId) || zonePlanId <= 0) {
+            errors.push('zone_plan_id invalide');
+        }
+    }
+    if (tailleTable && !['standard', 'grande', 'mairie', 'aucun'].includes(tailleTable)) {
+        errors.push('taille_table_requise invalide');
+    }
+    payload.game_id = gameId;
+    payload.nb_exemplaires = nbExemplaires;
+    payload.nb_tables_occupees = nbTablesOccupees;
+    payload.zone_plan_id = zonePlanId;
+    payload.taille_table_requise = tailleTable ?? 'standard';
+    return { errors, payload };
+}
+// Role : Lister les festivals.
+// Preconditions : Aucune.
+// Postconditions : Retourne la liste des festivals.
+router.get('/', async (req, res) => {
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
+    let query = 'SELECT id, name, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises, start_date, end_date FROM festival ORDER BY start_date DESC';
+    if (limit && limit > 0) {
+        query += ` LIMIT ${limit}`;
+    }
+    const { rows } = await pool.query(query);
+    res.json(rows);
+});
+// Role : Obtenir les details d'un festival.
+// Preconditions : id valide.
+// Postconditions : Retourne le festival ou 404.
+router.get('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { rows } = await pool.query('SELECT id, name, start_date, end_date, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises FROM festival WHERE id = $1', [id]);
+    if (rows.length === 0) {
+        return res.status(404).json({ error: 'Festival non trouvé' });
+    }
+    res.json(rows[0]); // Renvoi du festival trouvé
+});
+// Role : Recuperer le stock des tables par type pour un festival.
+// Preconditions : Utilisateur authentifie avec un role backoffice, id valide.
+// Postconditions : Retourne les stocks et occupations.
+router.get('/:id/stock-tables', requireBackoffice, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Récupérer le stock du festival
+        const festivalResult = await pool.query('SELECT stock_tables_standard, stock_tables_grande, stock_tables_mairie FROM festival WHERE id = $1', [id]);
+        if (festivalResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Festival non trouvé' });
+        }
+        const festival = festivalResult.rows[0];
+        // Calculer les tables occupées par type pour ce festival
+        const occupiedResult = await pool.query(`SELECT 
+                ja.taille_table_requise AS table_type,
+                COALESCE(SUM(ja.nb_tables_occupees), 0) AS nb_tables_occupees
+             FROM jeux_alloues ja
+             JOIN reservation r ON r.id = ja.reservation_id
+             WHERE r.festival_id = $1 AND ja.zone_plan_id IS NOT NULL
+               AND ja.taille_table_requise != 'aucun'
+             GROUP BY ja.taille_table_requise`, [id]);
+        const occupiedByType = {};
+        for (const row of occupiedResult.rows) {
+            occupiedByType[row.table_type] = Number(row.nb_tables_occupees);
+        }
+        // Construire le résultat
+        const stock = [
+            {
+                table_type: 'standard',
+                total: Number(festival.stock_tables_standard),
+                occupees: occupiedByType['standard'] || 0,
+                restantes: Number(festival.stock_tables_standard) - (occupiedByType['standard'] || 0)
+            },
+            {
+                table_type: 'grande',
+                total: Number(festival.stock_tables_grande),
+                occupees: occupiedByType['grande'] || 0,
+                restantes: Number(festival.stock_tables_grande) - (occupiedByType['grande'] || 0)
+            },
+            {
+                table_type: 'mairie',
+                total: Number(festival.stock_tables_mairie),
+                occupees: occupiedByType['mairie'] || 0,
+                restantes: Number(festival.stock_tables_mairie) - (occupiedByType['mairie'] || 0)
+            }
+        ];
+        res.json({ festival_id: Number(id), stock });
+    }
+    catch (err) {
+        console.error('Erreur lors de la récupération du stock de tables:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+// Role : Creer un festival.
+// Preconditions : Utilisateur authentifie avec un role backoffice, champs requis fournis.
+// Postconditions : Cree le festival ou retourne une erreur.
+router.post('/', requireBackoffice, async (req, res) => {
+    const { name, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises, start_date, end_date } = req.body;
+    if (!name || !start_date || !end_date) {
+        return res.status(400).json({ error: 'Champs obligatoires manquants' });
+    }
+    try {
+        const { rows } = await pool.query(`INSERT INTO festival (
+                name,
+                stock_tables_standard,
+                stock_tables_grande,
+                stock_tables_mairie,
+                stock_chaises,
+                stock_chaises_available,
+                prix_prises,
+                start_date,
+                end_date
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             RETURNING id, name, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises, start_date, end_date`, [
+            name,
+            stock_tables_standard || 0,
+            stock_tables_grande || 0,
+            stock_tables_mairie || 0,
+            stock_chaises || 0,
+            stock_chaises || 0,
+            prix_prises || 0,
+            start_date,
+            end_date,
+        ]);
+        res.status(201).json({ message: 'Festival créé', festival: rows[0] });
+    }
+    catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ error: 'Un festival avec ce nom existe déjà' });
+        }
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+// Role : Mettre a jour un festival.
+// Preconditions : Utilisateur authentifie avec un role backoffice, id valide.
+// Postconditions : Met a jour le festival ou retourne une erreur.
+router.put('/:id', requireBackoffice, async (req, res) => {
+    const { id } = req.params;
+    const { name, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises, start_date, end_date } = req.body;
+    try {
+        const { rowCount } = await pool.query(`UPDATE festival
+             SET name = $1,
+                 stock_tables_standard = $2,
+                 stock_tables_grande = $3,
+                 stock_tables_mairie = $4,
+                 stock_chaises = $5,
+                 stock_chaises_available = GREATEST(0, $5 - (stock_chaises - stock_chaises_available)),
+                 prix_prises = $6,
+                 start_date = $7,
+                 end_date = $8
+             WHERE id = $9`, [name, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises, start_date, end_date, id]);
+        if (rowCount === 0) {
+            return res.status(404).json({ error: 'Festival non trouvé' });
+        }
+        res.json({ message: 'Festival mis à jour' });
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+// Role : Lister les jeux alloues a un reservant pour un festival.
+// Preconditions : Utilisateur authentifie avec un role backoffice, ids valides.
+// Postconditions : Retourne la liste des jeux alloues.
+router.get('/:festivalId/reservants/:reservantId/games', requireBackoffice, async (req, res) => {
+    const festivalId = Number(req.params.festivalId);
+    const reservantId = Number(req.params.reservantId);
+    if (!Number.isFinite(festivalId) || !Number.isFinite(reservantId)) {
+        return res.status(400).json({ error: 'Identifiants invalides' });
+    }
+    try {
+        const reservationId = await findReservationId(festivalId, reservantId);
+        if (!reservationId) {
+            return res.status(404).json({ error: 'Aucune réservation pour ce couple festival/réservant' });
+        }
+        const { rows } = await pool.query(`
+            SELECT
+                ja.id AS allocation_id,
+                ja.reservation_id,
+                ja.game_id,
+                ja.nb_tables_occupees,
+                ja.nb_exemplaires,
+                ja.zone_plan_id,
+                ja.taille_table_requise,
+                g.title,
+                g.type,
+                g.editor_id,
+                e.name AS editor_name,
+                g.min_age,
+                g.authors,
+                g.min_players,
+                g.max_players,
+                g.prototype,
+                g.duration_minutes,
+                g.theme,
+                g.description,
+                g.image_url,
+                g.rules_video_url,
+                COALESCE(
+                    json_agg(DISTINCT jsonb_build_object('id', m.id, 'name', m.name, 'description', m.description))
+                        FILTER (WHERE m.id IS NOT NULL),
+                    '[]'
+                ) AS mechanisms
+            FROM jeux_alloues ja
+            JOIN games g ON g.id = ja.game_id
+            LEFT JOIN editor e ON e.id = g.editor_id
+            LEFT JOIN game_mechanism gm ON gm.game_id = g.id
+            LEFT JOIN mechanism m ON m.id = gm.mechanism_id
+            WHERE ja.reservation_id = $1
+            GROUP BY
+                ja.id, ja.reservation_id, ja.game_id, ja.nb_tables_occupees, ja.nb_exemplaires,
+                ja.zone_plan_id, ja.taille_table_requise,
+                g.id, g.title, g.type, g.editor_id, e.name, g.min_age, g.authors,
+                g.min_players, g.max_players, g.prototype, g.duration_minutes, g.theme,
+                g.description, g.image_url, g.rules_video_url
+            ORDER BY g.title ASC
+            `, [reservationId]);
+        res.json(rows);
+    }
+    catch (err) {
+        console.error('Erreur lors de la récupération des jeux alloués', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+// Role : Ajouter un jeu alloue a un reservant pour un festival.
+// Preconditions : Utilisateur authentifie avec un role backoffice, ids valides, payload valide.
+// Postconditions : Cree l'allocation et retourne le detail.
+router.post('/:festivalId/reservants/:reservantId/games', requireBackoffice, async (req, res) => {
+    const festivalId = Number(req.params.festivalId);
+    const reservantId = Number(req.params.reservantId);
+    if (!Number.isFinite(festivalId) || !Number.isFinite(reservantId)) {
+        return res.status(400).json({ error: 'Identifiants invalides' });
+    }
+    const { errors, payload } = validateAllocationPayload(req.body);
+    if (errors.length > 0) {
+        return res.status(400).json({ error: 'Payload invalide', details: errors });
+    }
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const reservationId = await findReservationId(festivalId, reservantId, client);
+        if (!reservationId) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Aucune réservation pour ce couple festival/réservant' });
+        }
+        const { rows: existing } = await client.query('SELECT id FROM jeux_alloues WHERE reservation_id = $1 AND game_id = $2', [reservationId, payload.game_id]);
+        if (existing.length > 0) {
+            await client.query('ROLLBACK');
+            return res.status(409).json({ error: 'Ce jeu est déjà associé à cette réservation' });
+        }
+        const { rows: gameRows } = await client.query('SELECT id FROM games WHERE id = $1', [payload.game_id]);
+        if (gameRows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: 'Jeu inexistant' });
+        }
+        const insertResult = await client.query(`
+            INSERT INTO jeux_alloues (
+                game_id, reservation_id, zone_plan_id, nb_tables_occupees, nb_exemplaires, taille_table_requise
+            )
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id
+            `, [
+            payload.game_id,
+            reservationId,
+            payload.zone_plan_id,
+            payload.nb_tables_occupees,
+            payload.nb_exemplaires,
+            payload.taille_table_requise,
+        ]);
+        const allocationId = insertResult.rows[0].id;
+        await client.query('COMMIT');
+        const { rows } = await pool.query(`
+            SELECT
+                ja.id AS allocation_id,
+                ja.reservation_id,
+                ja.game_id,
+                ja.nb_tables_occupees,
+                ja.nb_exemplaires,
+                ja.zone_plan_id,
+                ja.taille_table_requise,
+                g.title,
+                g.type,
+                g.editor_id,
+                e.name AS editor_name,
+                g.min_age,
+                g.authors,
+                g.min_players,
+                g.max_players,
+                g.prototype,
+                g.duration_minutes,
+                g.theme,
+                g.description,
+                g.image_url,
+                g.rules_video_url,
+                COALESCE(
+                    json_agg(DISTINCT jsonb_build_object('id', m.id, 'name', m.name, 'description', m.description))
+                        FILTER (WHERE m.id IS NOT NULL),
+                    '[]'
+                ) AS mechanisms
+            FROM jeux_alloues ja
+            JOIN games g ON g.id = ja.game_id
+            LEFT JOIN editor e ON e.id = g.editor_id
+            LEFT JOIN game_mechanism gm ON gm.game_id = g.id
+            LEFT JOIN mechanism m ON m.id = gm.mechanism_id
+            WHERE ja.id = $1
+            GROUP BY
+                ja.id, ja.reservation_id, ja.game_id, ja.nb_tables_occupees, ja.nb_exemplaires,
+                ja.zone_plan_id, ja.taille_table_requise,
+                g.id, g.title, g.type, g.editor_id, e.name, g.min_age, g.authors,
+                g.min_players, g.max_players, g.prototype, g.duration_minutes, g.theme,
+                g.description, g.image_url, g.rules_video_url
+            `, [allocationId]);
+        res.status(201).json(rows[0]);
+    }
+    catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Erreur lors de l\'ajout du jeu à la réservation', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+    finally {
+        client.release();
+    }
+});
+// Role : Supprimer un festival et ses dependances.
+// Preconditions : Utilisateur authentifie (admin ou super-organizer), id valide.
+// Postconditions : Supprime les donnees liees au festival ou retourne une erreur.
+router.delete('/:id', [verifyToken, requireRole(FESTIVAL_DELETE_ROLES)], async (req, res) => {
+    const { id } = req.params;
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const { rows: festivalRows } = await client.query('SELECT id FROM festival WHERE id = $1', [id]);
+        if (festivalRows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Festival non trouvé' });
+        }
+        await client.query(`
+            DELETE FROM suivi_contact
+            WHERE workflow_id IN (SELECT id FROM suivi_workflow WHERE festival_id = $1)
+            `, [id]);
+        await client.query(`
+            DELETE FROM reservation_zones_tarifaires
+            WHERE reservation_id IN (SELECT id FROM reservation WHERE festival_id = $1)
+            `, [id]);
+        await client.query(`
+            DELETE FROM reservation_zone_plan
+            WHERE reservation_id IN (SELECT id FROM reservation WHERE festival_id = $1)
+            `, [id]);
+        await client.query(`
+            DELETE FROM jeux_alloues
+            WHERE reservation_id IN (SELECT id FROM reservation WHERE festival_id = $1)
+            `, [id]);
+        await client.query(`
+            DELETE FROM jeux_alloues
+            WHERE zone_plan_id IN (SELECT id FROM zone_plan WHERE festival_id = $1)
+            `, [id]);
+        await client.query('DELETE FROM reservation WHERE festival_id = $1', [id]);
+        await client.query('DELETE FROM suivi_workflow WHERE festival_id = $1', [id]);
+        await client.query('DELETE FROM zone_plan WHERE festival_id = $1', [id]);
+        await client.query('DELETE FROM zone_tarifaire WHERE festival_id = $1', [id]);
+        const { rowCount } = await client.query('DELETE FROM festival WHERE id = $1', [id]);
+        if (rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Festival non trouvé' });
+        }
+        await client.query('COMMIT');
+        res.json({ message: 'Festival supprimé' });
+    }
+    catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+    finally {
+        client.release();
+    }
+});
+// Role : Recuperer le stock de chaises (Total - Allocations Simples - Allocations Jeux).
+// Preconditions : Utilisateur authentifie avec un role backoffice, id valide.
+// Postconditions : Retourne le total et le disponible.
+router.get('/:id/stock-chaises', requireBackoffice, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { rows } = await pool.query(`SELECT 
+                f.stock_chaises AS total,
+                (f.stock_chaises 
+                 - COALESCE((
+                    SELECT SUM(rzp.nb_chaises) 
+                    FROM reservation_zone_plan rzp 
+                    JOIN reservation r ON r.id = rzp.reservation_id 
+                    WHERE r.festival_id = $1
+                 ), 0)
+                 - COALESCE((
+                    SELECT SUM(ja.nb_chaises) 
+                    FROM jeux_alloues ja 
+                    JOIN reservation r ON r.id = ja.reservation_id 
+                    WHERE r.festival_id = $1 AND ja.zone_plan_id IS NOT NULL
+                 ), 0)
+                ) AS available
+             FROM festival f
+             WHERE f.id = $1`, [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Festival non trouvé' });
+        }
+        // On renvoie le format attendu par ton Angular (ReservationService)
+        res.json({
+            chaises: {
+                total: Number(rows[0].total),
+                available: Number(rows[0].available)
+            }
+        });
+    }
+    catch (err) {
+        console.error('Erreur lors de la récupération du stock de chaises:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+export default router;
+//# sourceMappingURL=festival.js.map

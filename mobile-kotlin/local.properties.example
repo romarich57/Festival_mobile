@@ -1,0 +1,11 @@
+# Copy these keys into your Android project's local.properties file
+# (local.properties should stay local and must not be committed)
+
+# Android emulator -> host machine backend
+API_BASE_URL_DEBUG=http://10.0.2.2:4000/api/
+
+# Physical Android device on same Wi-Fi network -> replace with your laptop IP
+API_BASE_URL_DEVICE=http://192.168.1.50:4000/api/
+
+# Production API (when ready)
+API_BASE_URL_RELEASE=https://api.example.com/api/

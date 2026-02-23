@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Projet Mobile Kotlin</string>
+    <string name="title">Connexion backend</string>
+    <string name="base_url_label">Base URL API:</string>
+    <string name="check_api">Tester /health</string>
+    <string name="idle_status">Prêt à tester la connexion API.</string>
+
+    <!-- Login Screen Strings -->
+    <string name="login_title">Connexion</string>
+    <string name="login_identifier_hint">Email ou pseudo</string>
+    <string name="login_password_hint">Mot de passe</string>
+    <string name="login_button_text">Se connecter</string>
+    <string name="login_no_account">Pas encore de compte ?</string>
+    <string name="login_create_account">Créer un compte</string>
+    <string name="login_no_verification_email">Email de vérification pas reçu ?</string>
+    <string name="login_resend_email">Renvoyer un email</string>
+    <string name="login_forgot_password">Mot de passe oublié ?</string>
+    <string name="login_reset_password">Réinitialiser</string>
+    <string name="header_festivals">Festivals</string>
+    <string name="header_connexion">Connexion</string>
+    <string name="header_inscription">Inscription</string>
+</resources>
