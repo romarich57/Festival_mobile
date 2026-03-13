@@ -12,6 +12,8 @@ npm install
 npm run dev
 ```
 
+Note: ce setup utilise PostgreSQL Docker exposé en `localhost:5433` (pour éviter les conflits avec un PostgreSQL local sur `5432`).
+
 Vérification API:
 
 ```bash

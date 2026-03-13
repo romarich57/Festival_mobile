@@ -1,4 +1,5 @@
 // Role : Initialiser le pool de connexions Postgres.
+import 'dotenv/config';
 import pkg from 'pg';
 const { Pool } = pkg;
 const connectionString = process.env.DATABASE_URL;

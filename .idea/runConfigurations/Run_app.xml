@@ -1,5 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run_app" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.projetmobile.mobile.MainActivity" />
+    <module name="Projet_mobile.mobile-kotlin" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

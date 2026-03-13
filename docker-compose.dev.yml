@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: secureapp_dev_password
       POSTGRES_DB: secureapp
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - projet_mobile_pgdata:/var/lib/postgresql/data
     healthcheck:

@@ -32,7 +32,8 @@ android {
 
     buildTypes {
         debug {
-            val apiBaseUrl = getLocalProp("API_BASE_URL_DEBUG", "http://10.0.2.2:4000/api/")
+            val apiBaseUrl = getLocalProp("API_BASE_URL_DEVICE",
+                getLocalProp("API_BASE_URL_DEBUG", "http://10.0.2.2:4000/api/"))
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         }
 
