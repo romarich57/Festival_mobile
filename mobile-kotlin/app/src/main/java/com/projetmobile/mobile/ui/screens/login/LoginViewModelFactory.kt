@@ -1,8 +1,8 @@
-package com.projetmobile.mobile.ui.login
+package com.projetmobile.mobile.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.projetmobile.mobile.ui.ApiRepository
+import com.projetmobile.mobile.data.remote.ApiRepository
 
 class LoginViewModelFactory(
     private val apiRepository: ApiRepository

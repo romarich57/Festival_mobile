@@ -1,7 +1,4 @@
-package com.projetmobile.mobile.network
-
-import com.projetmobile.mobile.network.models.LoginRequest
-import com.projetmobile.mobile.network.models.LoginResponse
+package com.projetmobile.mobile.data.remote
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

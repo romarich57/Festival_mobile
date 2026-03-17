@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.ui.login
+package com.projetmobile.mobile.ui.screens.login
 
 sealed class LoginUiState {
     object Idle : LoginUiState()

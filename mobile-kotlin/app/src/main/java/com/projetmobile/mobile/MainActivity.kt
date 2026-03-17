@@ -8,11 +8,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.projetmobile.mobile.databinding.ActivityMainBinding
-import com.projetmobile.mobile.network.ApiClient
-import com.projetmobile.mobile.ui.ApiRepository
-import com.projetmobile.mobile.ui.MainUiState
-import com.projetmobile.mobile.ui.MainViewModel
-import com.projetmobile.mobile.ui.MainViewModelFactory
+import com.projetmobile.mobile.data.remote.ApiClient
+import com.projetmobile.mobile.data.remote.ApiRepository
+import com.projetmobile.mobile.ui.screens.MainUiState
+import com.projetmobile.mobile.ui.screens.MainViewModel
+import com.projetmobile.mobile.ui.screens.MainViewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {

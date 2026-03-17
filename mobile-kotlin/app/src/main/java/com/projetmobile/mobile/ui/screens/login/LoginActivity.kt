@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.ui.login
+package com.projetmobile.mobile.ui.screens.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,8 +11,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.projetmobile.mobile.MainActivity
 import com.projetmobile.mobile.databinding.ActivityLoginBinding
-import com.projetmobile.mobile.network.ApiClient
-import com.projetmobile.mobile.ui.ApiRepository
+import com.projetmobile.mobile.data.remote.ApiClient
+import com.projetmobile.mobile.data.remote.ApiRepository
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {

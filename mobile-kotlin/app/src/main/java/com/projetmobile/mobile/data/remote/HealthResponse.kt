@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.network
+package com.projetmobile.mobile.data.remote
 
 data class HealthResponse(
     val status: String,

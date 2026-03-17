@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.network.models
+package com.projetmobile.mobile.data.remote
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

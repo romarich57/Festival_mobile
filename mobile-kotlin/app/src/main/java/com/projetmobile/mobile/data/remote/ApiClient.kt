@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.network
+package com.projetmobile.mobile.data.remote
 
 import com.projetmobile.mobile.BuildConfig
 import okhttp3.Cookie

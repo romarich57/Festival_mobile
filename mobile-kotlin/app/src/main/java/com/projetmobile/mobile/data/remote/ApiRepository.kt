@@ -1,9 +1,4 @@
-package com.projetmobile.mobile.ui
-
-import com.projetmobile.mobile.network.ApiService
-import com.projetmobile.mobile.network.HealthResponse
-import com.projetmobile.mobile.network.models.LoginRequest
-import com.projetmobile.mobile.network.models.LoginResponse
+package com.projetmobile.mobile.data.remote
 
 class ApiRepository(
     private val apiService: ApiService,

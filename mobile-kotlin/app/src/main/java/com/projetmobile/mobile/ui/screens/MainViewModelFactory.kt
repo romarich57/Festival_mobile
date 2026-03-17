@@ -1,7 +1,8 @@
-package com.projetmobile.mobile.ui
+package com.projetmobile.mobile.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.projetmobile.mobile.data.remote.ApiRepository
 
 class MainViewModelFactory(
     private val repository: ApiRepository,

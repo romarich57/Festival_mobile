@@ -1,4 +1,6 @@
-package com.projetmobile.mobile.ui
+package com.projetmobile.mobile.ui.screens
+
+import com.projetmobile.mobile.data.remote.ApiRepository
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
