@@ -14,7 +14,8 @@ import com.projetmobile.mobile.ui.components.ReservationCard
 fun ReservationDashboardScreen(
     festivalId: Int, // Récupéré depuis la navigation
     viewModel: ReservationViewModel,
-    onNavigateToDetails: (Int) -> Unit
+    onNavigateToDetails: (Int) -> Unit, //action pour changer de page vers les détails d'une réservation
+    onNavigateToCreate: () -> Unit //action pour changer de page vers le formulaire de création de réservation
 ) {
     // Les états collectés depuis le ViewModel
     val reservations by viewModel.filteredReservations.collectAsState()
@@ -28,8 +29,15 @@ fun ReservationDashboardScreen(
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Dashboard des Réservations", style = MaterialTheme.typography.headlineMedium)
-
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Dashboard des Réservations", style = MaterialTheme.typography.headlineMedium)
+            Button(onClick = onNavigateToCreate) { // On déclenche la navigation ici
+                Text("Nouvelle Reservation")
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         // La barre de recherche

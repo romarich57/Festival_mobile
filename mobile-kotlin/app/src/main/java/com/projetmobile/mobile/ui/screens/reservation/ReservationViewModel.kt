@@ -3,6 +3,7 @@ package com.projetmobile.mobile.ui.screens.reservation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
+import com.projetmobile.mobile.data.remote.ReservationCreatePayloadDto
 import com.projetmobile.mobile.data.remote.ReservationRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -50,6 +51,35 @@ class ReservationViewModel(
                 _allReservations.value = repository.getReservations(festivalId)
             } catch (e: Exception) {
                 errorMessage.value = e.message ?: "Erreur inconnue"
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+    fun createReservation(
+        festivalId: Int,
+        nom: String,
+        email: String,
+        type: String
+    ) {
+        viewModelScope.launch {
+            isLoading.value = true
+            try {
+                val payload = ReservationCreatePayloadDto(
+                    reservantName = nom,
+                    reservantEmail = email,
+                    reservantType = type,
+                    festivalId = festivalId
+                    // On laisse les prix à 0 pour ce test simple
+                )
+                repository.createReservation(payload)
+
+                // Si ça marche, on recharge la liste pour voir la nouvelle réservation
+                loadReservations(festivalId)
+
+            } catch (e: Exception) {
+                errorMessage.value = "Erreur création : ${e.message}"
             } finally {
                 isLoading.value = false
             }

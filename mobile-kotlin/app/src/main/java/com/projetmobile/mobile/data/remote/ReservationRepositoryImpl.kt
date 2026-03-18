@@ -11,4 +11,10 @@ class ReservationRepositoryImpl(
         // Appelle l'API, récupère les DTOs, et les transforme en Entities pour que le reste de l'app puisse les utiliser sans se soucier du format de l'API
         return api.getReservationsByFestival(festivalId).map { it.toEntity() }
     }
+
+    //on appelle l'API pour créer une réservation, pas besoin de faire de mapping ici car on envoie juste les données du payload
+    override suspend fun createReservation(payload: ReservationCreatePayloadDto) {
+        api.createReservation(payload)
+    }
+
 }
