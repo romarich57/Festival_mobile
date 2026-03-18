@@ -2,7 +2,7 @@
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
 import {
-  FRONTEND_URL,
+  PUBLIC_BACKEND_URL,
   SMTP_HOST,
   SMTP_PASS,
   SMTP_PORT,
@@ -39,14 +39,25 @@ function ensureTransporter(): Transporter {
 // Role : Envoyer un email de verification.
 // Preconditions : email et token sont fournis.
 // Postconditions : Un email est envoye via le transporteur SMTP.
+export function buildVerificationEmailUrl(token: string): string {
+  const baseUrl = PUBLIC_BACKEND_URL.replace(/\/$/, '')
+  const verificationUrl = new URL('/api/auth/verify-email', `${baseUrl}/`)
+  verificationUrl.searchParams.set('token', token)
+  return verificationUrl.toString()
+}
+
+export function buildPasswordResetEmailUrl(token: string): string {
+  const baseUrl = PUBLIC_BACKEND_URL.replace(/\/$/, '')
+  const resetUrl = new URL('/api/auth/reset-password', `${baseUrl}/`)
+  resetUrl.searchParams.set('token', token)
+  return resetUrl.toString()
+}
+
 export async function sendVerificationEmail(
   email: string,
   token: string,
 ): Promise<void> {
-  const baseUrl = FRONTEND_URL.replace(/\/$/, '')
-  const verificationUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(
-    token,
-  )}`
+  const verificationUrl = buildVerificationEmailUrl(token)
 
   const html = `
     <p>Bonjour,</p>
@@ -94,8 +105,7 @@ export async function sendPasswordResetEmail(
   email: string,
   token: string,
 ): Promise<void> {
-  const baseUrl = FRONTEND_URL.replace(/\/$/, '')
-  const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`
+  const resetUrl = buildPasswordResetEmailUrl(token)
 
   const html = `
     <p>Bonjour,</p>

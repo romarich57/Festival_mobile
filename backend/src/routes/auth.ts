@@ -1,6 +1,7 @@
 // Role : Gérer les routes d'authentification et de session.
 import crypto from 'node:crypto'
 import { Router } from 'express'
+import type { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import pool from '../db/database.js'
@@ -9,7 +10,11 @@ import {
   createAccessToken,
   createRefreshToken,
 } from '../middleware/token-management.js'
-import { JWT_SECRET } from '../config/env.js'
+import {
+  JWT_SECRET,
+  MOBILE_DEEP_LINK_BASE,
+  MOBILE_PASSWORD_RESET_DEEP_LINK_BASE,
+} from '../config/env.js'
 import type { TokenPayload } from '../types/token-payload.js'
 import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.js'
 
@@ -43,6 +48,8 @@ type SafeUser = {
   emailVerified: boolean
   createdAt: Date
 }
+
+type VerificationFlowStatus = 'success' | 'expired' | 'invalid' | 'error'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PASSWORD_RESET_EXPIRATION_MS = 60 * 60 * 1000
@@ -98,6 +105,266 @@ function hashVerificationToken(token: string): string {
 // Postconditions : Retourne le hash SHA-256.
 function hashRefreshTokenId(tokenId: string): string {
   return crypto.createHash('sha256').update(tokenId).digest('hex')
+}
+
+// Role : Construire le deep link mobile de retour vers l'application.
+// Preconditions : status fait partie des statuts supportes.
+// Postconditions : Retourne une URL deeplink avec le statut.
+export function buildVerificationDeepLink(status: VerificationFlowStatus): string {
+  const normalizedBase = MOBILE_DEEP_LINK_BASE.replace(/\/$/, '')
+
+  try {
+    const deepLink = new URL(normalizedBase)
+    deepLink.searchParams.set('status', status)
+    return deepLink.toString()
+  } catch {
+    const separator = normalizedBase.includes('?') ? '&' : '?'
+    return `${normalizedBase}${separator}status=${encodeURIComponent(status)}`
+  }
+}
+
+// Role : Construire le deep link mobile vers l'ecran de reinitialisation du mot de passe.
+// Preconditions : token est une chaine non vide.
+// Postconditions : Retourne une URL deeplink avec le token de reset.
+export function buildPasswordResetDeepLink(token: string): string {
+  const normalizedBase = MOBILE_PASSWORD_RESET_DEEP_LINK_BASE.replace(/\/$/, '')
+
+  try {
+    const deepLink = new URL(normalizedBase)
+    deepLink.searchParams.set('token', token)
+    return deepLink.toString()
+  } catch {
+    const separator = normalizedBase.includes('?') ? '&' : '?'
+    return `${normalizedBase}${separator}token=${encodeURIComponent(token)}`
+  }
+}
+
+// Role : Echaper une chaine avant injection HTML.
+// Preconditions : value est une chaine.
+// Postconditions : Retourne une version HTML-safe.
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+// Role : Fournir le contenu HTML de fallback lors de la verification email.
+// Preconditions : status et deepLink sont valides.
+// Postconditions : Retourne une page HTML minimale qui tente d'ouvrir l'app.
+export function renderVerificationFallbackHtml({
+  status,
+  deepLink,
+}: {
+  status: VerificationFlowStatus
+  deepLink: string
+}): string {
+  const safeDeepLink = escapeHtml(deepLink)
+  const contentByStatus: Record<
+    VerificationFlowStatus,
+    { title: string; message: string }
+  > = {
+    success: {
+      title: 'Email vérifié',
+      message:
+        'Votre adresse email a bien été confirmée. Nous essayons d’ouvrir l’application mobile.',
+    },
+    expired: {
+      title: 'Lien expiré',
+      message:
+        'Le lien de vérification a expiré. Revenez dans l’application pour renvoyer un nouvel email.',
+    },
+    invalid: {
+      title: 'Lien invalide',
+      message:
+        'Ce lien de vérification est invalide. Revenez dans l’application pour demander un nouvel email.',
+    },
+    error: {
+      title: 'Vérification indisponible',
+      message:
+        'Une erreur est survenue pendant la vérification. Réessayez depuis l’application dans quelques instants.',
+    },
+  }
+  const content = contentByStatus[status]
+  const safeTitle = escapeHtml(content.title)
+  const safeMessage = escapeHtml(content.message)
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${safeTitle}</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #f4f6fd 0%, #e8eef9 100%);
+        color: #18233a;
+        display: grid;
+        place-items: center;
+      }
+      main {
+        width: min(92vw, 460px);
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 18px 50px rgba(24, 35, 58, 0.12);
+        padding: 32px 24px;
+      }
+      h1 {
+        margin: 0 0 16px;
+        font-size: 2rem;
+      }
+      p {
+        margin: 0 0 16px;
+        line-height: 1.6;
+      }
+      a {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 14px 18px;
+        border-radius: 14px;
+        background: #6f96dd;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      small {
+        display: block;
+        margin-top: 16px;
+        color: #57657f;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>${safeTitle}</h1>
+      <p>${safeMessage}</p>
+      <a href="${safeDeepLink}">Ouvrir l'application</a>
+      <small>Si l’application ne s’ouvre pas automatiquement, utilisez le bouton ci-dessus.</small>
+    </main>
+    <script>
+      window.setTimeout(function () {
+        window.location.replace(${JSON.stringify(deepLink)});
+      }, 120);
+    </script>
+  </body>
+</html>`
+}
+
+// Role : Fournir le contenu HTML de fallback pour ouvrir l'ecran mobile de reset password.
+// Preconditions : token est valide.
+// Postconditions : Retourne une page HTML minimale qui tente d'ouvrir l'app.
+export function renderPasswordResetFallbackHtml(token: string): string {
+  const deepLink = buildPasswordResetDeepLink(token)
+  const safeDeepLink = escapeHtml(deepLink)
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Réinitialisation du mot de passe</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #f4f6fd 0%, #e8eef9 100%);
+        color: #18233a;
+        display: grid;
+        place-items: center;
+      }
+      main {
+        width: min(92vw, 460px);
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 18px 50px rgba(24, 35, 58, 0.12);
+        padding: 32px 24px;
+      }
+      h1 {
+        margin: 0 0 16px;
+        font-size: 2rem;
+      }
+      p {
+        margin: 0 0 16px;
+        line-height: 1.6;
+      }
+      a {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 14px 18px;
+        border-radius: 14px;
+        background: #6f96dd;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      small {
+        display: block;
+        margin-top: 16px;
+        color: #57657f;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Réinitialiser votre mot de passe</h1>
+      <p>Nous essayons d’ouvrir l’application mobile pour finaliser la réinitialisation du mot de passe.</p>
+      <a href="${safeDeepLink}">Ouvrir l'application</a>
+      <small>Si l’application ne s’ouvre pas automatiquement, utilisez le bouton ci-dessus.</small>
+    </main>
+    <script>
+      window.setTimeout(function () {
+        window.location.replace(${JSON.stringify(deepLink)});
+      }, 120);
+    </script>
+  </body>
+</html>`
+}
+
+// Role : Determiner si la reponse doit etre renvoyee sous forme HTML.
+// Preconditions : req est une requete Express.
+// Postconditions : Retourne true pour un navigateur/email client HTML.
+function prefersHtmlResponse(req: Request): boolean {
+  if (typeof req.accepts === 'function') {
+    const preferredType = req.accepts(['html', 'json'])
+    if (preferredType === 'html') {
+      return true
+    }
+    if (preferredType === 'json') {
+      return false
+    }
+  }
+
+  const acceptHeader =
+    typeof req.get === 'function' ? req.get('accept') ?? '' : ''
+  return acceptHeader.includes('text/html') || acceptHeader.includes('application/xhtml+xml')
+}
+
+// Role : Renvoyer le resultat de verification vers l'application mobile ou une page fallback.
+// Preconditions : status et httpStatus sont valides.
+// Postconditions : Termine la reponse HTTP.
+function respondWithVerificationResult(
+  req: Request,
+  res: Response,
+  status: VerificationFlowStatus,
+  httpStatus: number,
+) {
+  const deepLink = buildVerificationDeepLink(status)
+  res.setHeader('Cache-Control', 'no-store')
+
+  if (prefersHtmlResponse(req)) {
+    return res
+      .status(httpStatus)
+      .type('html')
+      .send(renderVerificationFallbackHtml({ status, deepLink }))
+  }
+
+  return res.redirect(deepLink)
 }
 
 type JwtDecoded = { exp?: number }
@@ -369,19 +636,45 @@ router.post('/resend-verification', async (req, res) => {
 router.get('/verify-email', async (req, res) => {
   const token = sanitize(req.query?.token)
   if (!token) {
-    return res.status(400).json({ error: 'Token manquant' })
+    return respondWithVerificationResult(req, res, 'invalid', 400)
   }
 
   const tokenHash = hashVerificationToken(token)
 
   try {
+    const { rows: matches } = await pool.query<{
+      id: number
+      email_verification_expires_at: Date | null
+    }>(
+      `
+      SELECT id, email_verification_expires_at
+      FROM users
+      WHERE email_verification_token = $1
+      LIMIT 1
+    `,
+      [tokenHash],
+    )
+
+    const tokenMatch = matches[0]
+    if (!tokenMatch) {
+      return respondWithVerificationResult(req, res, 'invalid', 400)
+    }
+
+    if (
+      !tokenMatch.email_verification_expires_at ||
+      tokenMatch.email_verification_expires_at.getTime() <= Date.now()
+    ) {
+      return respondWithVerificationResult(req, res, 'expired', 400)
+    }
+
     const { rows } = await pool.query<DbUser>(
       `
       UPDATE users
       SET email_verified = TRUE,
           email_verification_token = NULL,
           email_verification_expires_at = NULL
-      WHERE email_verification_token = $1
+      WHERE id = $2
+        AND email_verification_token = $1
         AND email_verification_expires_at > NOW()
       RETURNING
         id,
@@ -396,22 +689,38 @@ router.get('/verify-email', async (req, res) => {
         email_verified,
         created_at
     `,
-      [tokenHash],
+      [tokenHash, tokenMatch.id],
     )
 
     const user = rows[0]
     if (!user) {
-      return res.status(400).json({ error: 'Token invalide ou expiré' })
+      return respondWithVerificationResult(req, res, 'invalid', 400)
     }
 
-    res.json({
-      message: 'Votre email est vérifié, vous pouvez vous connecter.',
-      user: toSafeUser(user),
-    })
+    return respondWithVerificationResult(req, res, 'success', 200)
   } catch (error) {
     console.error('Erreur vérification email', error)
-    res.status(500).json({ error: 'Erreur serveur' })
+    return respondWithVerificationResult(req, res, 'error', 500)
   }
+})
+
+// Role : Rediriger un lien email de reset password vers l'application mobile.
+// Preconditions : token est fourni dans la query string.
+// Postconditions : Redirige vers le deeplink mobile ou renvoie une page HTML fallback.
+router.get('/reset-password', async (req, res) => {
+  const token = sanitize(req.query?.token)
+  if (!token) {
+    return res.status(400).json({ error: 'Token manquant' })
+  }
+
+  const deepLink = buildPasswordResetDeepLink(token)
+  res.setHeader('Cache-Control', 'no-store')
+
+  if (prefersHtmlResponse(req)) {
+    return res.status(200).type('html').send(renderPasswordResetFallbackHtml(token))
+  }
+
+  return res.redirect(deepLink)
 })
 
 // Role : Demander une reinitialisation de mot de passe.
