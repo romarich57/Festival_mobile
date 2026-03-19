@@ -16,9 +16,12 @@ class AppNavKeySerializationTest {
     fun appNavKeys_roundTripThroughSerialization() {
         val keys = listOf<AppNavKey>(
             Festivals,
+            Reservants,
+            Games,
             Login,
             Register,
             Profile,
+            Admin,
             ForgotPassword,
             PendingVerification("user@example.com"),
             PendingVerification(null),

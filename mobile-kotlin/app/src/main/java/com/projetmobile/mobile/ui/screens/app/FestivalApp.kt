@@ -43,6 +43,7 @@ import com.projetmobile.mobile.AppContainer
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.ui.components.GradientScreenBackground
+import com.projetmobile.mobile.ui.components.ImplementationPlaceholder
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationScreen
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationViewModel
 import com.projetmobile.mobile.ui.screens.auth.emailverification.VerificationResultScreen
@@ -57,12 +58,15 @@ import com.projetmobile.mobile.ui.screens.auth.resetpassword.ResetPasswordViewMo
 import com.projetmobile.mobile.ui.screens.festival.FestivalScreen
 import com.projetmobile.mobile.ui.screens.festival.FestivalViewModel
 import com.projetmobile.mobile.ui.screens.profile.ProfileScreen
+import com.projetmobile.mobile.ui.utils.navigation.Admin
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
 import com.projetmobile.mobile.ui.utils.navigation.ForgotPassword
+import com.projetmobile.mobile.ui.utils.navigation.Games
 import com.projetmobile.mobile.ui.utils.navigation.Login
 import com.projetmobile.mobile.ui.utils.navigation.PendingVerification
 import com.projetmobile.mobile.ui.utils.navigation.Profile
+import com.projetmobile.mobile.ui.utils.navigation.Reservants
 import com.projetmobile.mobile.ui.utils.navigation.Register
 import com.projetmobile.mobile.ui.utils.navigation.ResetPassword
 import com.projetmobile.mobile.ui.utils.navigation.TopLevelTab
@@ -101,15 +105,22 @@ fun FestivalApp(
     val sessionUiState by sessionViewModel.uiState.collectAsStateWithLifecycle()
 
     val festivalsBackStack = rememberAppNavBackStack(Festivals)
+    val reservantsBackStack = rememberAppNavBackStack(Reservants)
+    val gamesBackStack = rememberAppNavBackStack(Games)
     val loginBackStack = rememberAppNavBackStack(Login)
     val registerBackStack = rememberAppNavBackStack(Register)
     val profileBackStack = rememberAppNavBackStack(Profile)
+    val adminBackStack = rememberAppNavBackStack(Admin)
 
     var selectedTopLevelTab by rememberSaveable { mutableStateOf(TopLevelTab.Festivals) }
     var previousAuthenticationState by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
     val isAuthenticated = sessionUiState.currentUser != null
-    val tabsToShow = visibleTabs(isAuthenticated)
+    val userRole = sessionUiState.currentUser?.role
+    val tabsToShow = visibleTabs(
+        isAuthenticated = isAuthenticated,
+        userRole = userRole,
+    )
     val saveableStateHolder = rememberSaveableStateHolder()
     val viewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
         "FestivalApp requires a ViewModelStoreOwner."
@@ -119,9 +130,12 @@ fun FestivalApp(
     fun backStackFor(tab: TopLevelTab): NavBackStack<AppNavKey> {
         return when (tab) {
             TopLevelTab.Festivals -> festivalsBackStack
+            TopLevelTab.Reservants -> reservantsBackStack
+            TopLevelTab.Games -> gamesBackStack
             TopLevelTab.Login -> loginBackStack
             TopLevelTab.Register -> registerBackStack
             TopLevelTab.Profile -> profileBackStack
+            TopLevelTab.Admin -> adminBackStack
         }
     }
 
@@ -148,6 +162,16 @@ fun FestivalApp(
         selectedTopLevelTab = tab
     }
 
+    fun resetPrivateStacks() {
+        listOf(
+            TopLevelTab.Festivals,
+            TopLevelTab.Reservants,
+            TopLevelTab.Games,
+            TopLevelTab.Profile,
+            TopLevelTab.Admin,
+        ).forEach(::resetToRoot)
+    }
+
     val entryProvider: (AppNavKey) -> NavEntry<AppNavKey> = { key ->
         when (key) {
             Festivals -> NavEntry(key) {
@@ -159,6 +183,14 @@ fun FestivalApp(
                     uiState = festivalUiState,
                     onRetry = festivalViewModel::loadFestivals,
                 )
+            }
+
+            Reservants -> NavEntry(key) {
+                ImplementationPlaceholder()
+            }
+
+            Games -> NavEntry(key) {
+                ImplementationPlaceholder()
             }
 
             Login -> NavEntry(key) {
@@ -261,6 +293,10 @@ fun FestivalApp(
                 )
             }
 
+            Admin -> NavEntry(key) {
+                ImplementationPlaceholder()
+            }
+
             is ResetPassword -> NavEntry(key) {
                 val resetPasswordViewModel: ResetPasswordViewModel = viewModel(
                     factory = ResetPasswordViewModel.factory(
@@ -289,16 +325,16 @@ fun FestivalApp(
         ),
     )
 
-    if (selectedTopLevelTab !in tabsToShow) {
-        selectedTopLevelTab = tabsToShow.first()
-    }
-
-    val activeBackStack = backStackFor(selectedTopLevelTab)
-    val activeKey = activeBackStack.lastOrNull() ?: specFor(selectedTopLevelTab).rootKey
+    val resolvedSelectedTopLevelTab = selectedTopLevelTab
+        .takeIf { it in tabsToShow }
+        ?: tabsToShow.first()
+    val activeBackStack = backStackFor(resolvedSelectedTopLevelTab)
+    val activeKey = activeBackStack.lastOrNull() ?: specFor(resolvedSelectedTopLevelTab).rootKey
     val chrome = chromeFor(
         activeKey = activeKey,
         activeBackStack = activeBackStack.toList(),
         isAuthenticated = isAuthenticated,
+        userRole = userRole,
     )
 
     LaunchedEffect(isAuthenticated) {
@@ -308,7 +344,7 @@ fun FestivalApp(
             }
 
             previousAuthenticationState == true && !isAuthenticated -> {
-                resetToRoot(TopLevelTab.Profile)
+                resetPrivateStacks()
                 resetToRoot(TopLevelTab.Login)
                 selectedTopLevelTab = TopLevelTab.Login
                 previousAuthenticationState = false
@@ -326,6 +362,12 @@ fun FestivalApp(
         }
     }
 
+    LaunchedEffect(resolvedSelectedTopLevelTab) {
+        if (selectedTopLevelTab != resolvedSelectedTopLevelTab) {
+            selectedTopLevelTab = resolvedSelectedTopLevelTab
+        }
+    }
+
     LaunchedEffect(incomingDestinations, isAuthenticated) {
         incomingDestinations.collect { destination ->
             if (isAuthenticated && ownerTab(destination) != TopLevelTab.Festivals) {
@@ -335,9 +377,12 @@ fun FestivalApp(
 
             when (ownerTab(destination)) {
                 TopLevelTab.Festivals -> openRoot(TopLevelTab.Festivals)
+                TopLevelTab.Reservants -> openRoot(TopLevelTab.Reservants)
+                TopLevelTab.Games -> openRoot(TopLevelTab.Games)
                 TopLevelTab.Login -> openSecondary(TopLevelTab.Login, destination)
                 TopLevelTab.Register -> openSecondary(TopLevelTab.Register, destination)
                 TopLevelTab.Profile -> openRoot(TopLevelTab.Profile)
+                TopLevelTab.Admin -> openRoot(TopLevelTab.Admin)
             }
         }
     }
@@ -405,7 +450,7 @@ fun FestivalApp(
                     backStack = activeBackStack,
                     entryDecorators = entryDecorators,
                     entryProvider = entryProvider,
-                    selectedTopLevelTab = selectedTopLevelTab,
+                    selectedTopLevelTab = resolvedSelectedTopLevelTab,
                     innerPadding = innerPadding,
                     isAuthenticated = isAuthenticated,
                     onSelectTopLevelTab = { selectedTopLevelTab = it },

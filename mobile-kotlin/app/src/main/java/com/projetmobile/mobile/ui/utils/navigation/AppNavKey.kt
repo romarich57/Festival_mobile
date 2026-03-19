@@ -3,9 +3,12 @@ package com.projetmobile.mobile.ui.utils.navigation
 import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.PersonAddAlt1
+import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
 import com.projetmobile.mobile.data.entity.auth.VerificationResultStatus
@@ -21,6 +24,12 @@ sealed interface AppNavKey : NavKey
 data object Festivals : AppNavKey
 
 @Serializable
+data object Reservants : AppNavKey
+
+@Serializable
+data object Games : AppNavKey
+
+@Serializable
 data object Login : AppNavKey
 
 @Serializable
@@ -28,6 +37,9 @@ data object Register : AppNavKey
 
 @Serializable
 data object Profile : AppNavKey
+
+@Serializable
+data object Admin : AppNavKey
 
 @Serializable
 data object ForgotPassword : AppNavKey
@@ -43,9 +55,12 @@ data class ResetPassword(val token: String?) : AppNavKey
 
 enum class TopLevelTab {
     Festivals,
+    Reservants,
+    Games,
     Login,
     Register,
     Profile,
+    Admin,
 }
 
 data class TopLevelDestinationSpec(
@@ -72,6 +87,20 @@ val topLevelDestinationSpecs = listOf(
         topBarTitle = "Festivals",
     ),
     TopLevelDestinationSpec(
+        tab = TopLevelTab.Reservants,
+        label = "Réservant",
+        icon = Icons.Outlined.Groups,
+        rootKey = Reservants,
+        topBarTitle = "Réservants",
+    ),
+    TopLevelDestinationSpec(
+        tab = TopLevelTab.Games,
+        label = "Jeux",
+        icon = Icons.Outlined.SportsEsports,
+        rootKey = Games,
+        topBarTitle = "Jeux",
+    ),
+    TopLevelDestinationSpec(
         tab = TopLevelTab.Login,
         label = "Connexion",
         icon = Icons.Outlined.LockOpen,
@@ -92,6 +121,13 @@ val topLevelDestinationSpecs = listOf(
         rootKey = Profile,
         topBarTitle = "Profil",
     ),
+    TopLevelDestinationSpec(
+        tab = TopLevelTab.Admin,
+        label = "Admin",
+        icon = Icons.Outlined.AdminPanelSettings,
+        rootKey = Admin,
+        topBarTitle = "Admin",
+    ),
 )
 
 private val specByTab = topLevelDestinationSpecs.associateBy(TopLevelDestinationSpec::tab)
@@ -100,20 +136,35 @@ fun specFor(tab: TopLevelTab): TopLevelDestinationSpec = checkNotNull(specByTab[
     "No top-level destination spec found for $tab"
 }
 
-fun visibleTabs(isAuthenticated: Boolean): List<TopLevelTab> {
-    return if (isAuthenticated) {
-        listOf(TopLevelTab.Festivals, TopLevelTab.Profile)
-    } else {
-        listOf(TopLevelTab.Festivals, TopLevelTab.Login, TopLevelTab.Register)
+fun visibleTabs(isAuthenticated: Boolean, userRole: String?): List<TopLevelTab> {
+    return when {
+        !isAuthenticated -> listOf(TopLevelTab.Festivals, TopLevelTab.Login, TopLevelTab.Register)
+        isAdminRole(userRole) -> listOf(
+            TopLevelTab.Festivals,
+            TopLevelTab.Reservants,
+            TopLevelTab.Games,
+            TopLevelTab.Profile,
+            TopLevelTab.Admin,
+        )
+
+        else -> listOf(
+            TopLevelTab.Festivals,
+            TopLevelTab.Reservants,
+            TopLevelTab.Games,
+            TopLevelTab.Profile,
+        )
     }
 }
 
 fun ownerTab(key: AppNavKey): TopLevelTab {
     return when (key) {
         Festivals -> TopLevelTab.Festivals
+        Reservants -> TopLevelTab.Reservants
+        Games -> TopLevelTab.Games
         Login, ForgotPassword, is VerificationResult, is ResetPassword -> TopLevelTab.Login
         Register, is PendingVerification -> TopLevelTab.Register
         Profile -> TopLevelTab.Profile
+        Admin -> TopLevelTab.Admin
     }
 }
 
@@ -121,13 +172,19 @@ fun chromeFor(
     activeKey: AppNavKey,
     activeBackStack: List<AppNavKey>,
     isAuthenticated: Boolean,
+    userRole: String?,
 ): AppChromeState {
+    val tabsToShow = visibleTabs(
+        isAuthenticated = isAuthenticated,
+        userRole = userRole,
+    )
+
     return AppChromeState(
         title = topBarTitleFor(activeKey),
         showBack = activeBackStack.size > 1,
         showBottomBar = true,
         selectedTab = ownerTab(activeKey).let { owner ->
-            if (owner in visibleTabs(isAuthenticated)) owner else visibleTabs(isAuthenticated).first()
+            if (owner in tabsToShow) owner else tabsToShow.first()
         },
     )
 }
@@ -135,9 +192,12 @@ fun chromeFor(
 fun topBarTitleFor(key: AppNavKey): String {
     return when (key) {
         Festivals -> "Festivals"
+        Reservants -> "Réservants"
+        Games -> "Jeux"
         Login -> "Connexion"
         Register -> "Inscription"
         Profile -> "Profil"
+        Admin -> "Admin"
         ForgotPassword -> "Mot de passe oublié"
         is PendingVerification -> "Vérifiez votre email"
         is VerificationResult -> verificationTitleFor(key.status)
@@ -185,6 +245,17 @@ private fun verificationTitleFor(status: VerificationResultStatus): String {
         VerificationResultStatus.Invalid -> "Lien invalide"
         VerificationResultStatus.Error -> "Erreur de vérification"
     }
+}
+
+private fun isAdminRole(userRole: String?): Boolean {
+    return normalizeUserRole(userRole) == "admin"
+}
+
+private fun normalizeUserRole(userRole: String?): String? {
+    return userRole
+        ?.trim()
+        ?.lowercase()
+        ?.takeIf { it.isNotBlank() }
 }
 
 private fun URI.queryParameters(): Map<String, String?> {

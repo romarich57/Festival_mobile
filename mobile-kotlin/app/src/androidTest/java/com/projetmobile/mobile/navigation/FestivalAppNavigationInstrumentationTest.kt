@@ -41,22 +41,43 @@ class FestivalAppNavigationInstrumentationTest {
         composeRule.onNodeWithTag("bottom-tab-Festivals").assertIsDisplayed()
         composeRule.onNodeWithTag("bottom-tab-Login").assertIsDisplayed()
         composeRule.onNodeWithTag("bottom-tab-Register").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("bottom-tab-Reservants").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("bottom-tab-Games").assertCountEquals(0)
         composeRule.onAllNodesWithTag("bottom-tab-Profile").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("bottom-tab-Admin").assertCountEquals(0)
         composeRule.onNodeWithTag("app-top-bar-title").assertIsDisplayed()
     }
 
     @Test
-    fun authenticatedChrome_showsPrivateTabsOnly() {
+    fun authenticatedChrome_showsBusinessTabsForNonAdmin() {
         setFestivalAppContent(
-            authRepository = FakeAuthRepository(initialUser = sampleUser()),
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
         )
 
         waitForTag("bottom-tab-Profile")
 
         composeRule.onNodeWithTag("bottom-tab-Festivals").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Reservants").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Games").assertIsDisplayed()
         composeRule.onNodeWithTag("bottom-tab-Profile").assertIsDisplayed()
         composeRule.onAllNodesWithTag("bottom-tab-Login").assertCountEquals(0)
         composeRule.onAllNodesWithTag("bottom-tab-Register").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("bottom-tab-Admin").assertCountEquals(0)
+    }
+
+    @Test
+    fun authenticatedChrome_showsAdminTabForAdmin() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "admin")),
+        )
+
+        waitForTag("bottom-tab-Admin")
+
+        composeRule.onNodeWithTag("bottom-tab-Festivals").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Reservants").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Games").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Profile").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Admin").assertIsDisplayed()
     }
 
     @Test
@@ -97,7 +118,7 @@ class FestivalAppNavigationInstrumentationTest {
     @Test
     fun logoutSuccess_switchesToLogin() {
         setFestivalAppContent(
-            authRepository = FakeAuthRepository(initialUser = sampleUser()),
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
         )
 
         composeRule.onNodeWithTag("bottom-tab-Profile").performClick()
@@ -132,6 +153,24 @@ class FestivalAppNavigationInstrumentationTest {
     }
 
     @Test
+    fun registerScreen_hidesIntroCopy_andShowsPrimaryActionsWithoutScrolling() {
+        setFestivalAppContent()
+
+        composeRule.onNodeWithTag("bottom-tab-Register").performClick()
+
+        waitForTag("register-username-field")
+
+        composeRule.onAllNodesWithText(
+            "Créez votre compte avec les informations demandées. Un email de vérification vous sera envoyé automatiquement.",
+        ).assertCountEquals(0)
+        composeRule.onNodeWithTag("register-username-field").assertIsDisplayed()
+        composeRule.onNodeWithTag("register-first-name-field").assertIsDisplayed()
+        composeRule.onNodeWithTag("register-last-name-field").assertIsDisplayed()
+        composeRule.onNodeWithTag("register-submit-button").assertIsDisplayed()
+        composeRule.onNodeWithText("Retour à la connexion").assertIsDisplayed()
+    }
+
+    @Test
     fun authDeepLinks_attachSecondaryScreensToLoginTab() {
         val destinations = MutableSharedFlow<AppNavKey>(extraBufferCapacity = 2)
         setFestivalAppContent(incomingDestinations = destinations)
@@ -155,6 +194,62 @@ class FestivalAppNavigationInstrumentationTest {
         composeRule.onNodeWithText(
             "Le lien de vérification a expiré. Demandez un nouvel email depuis l’écran de connexion.",
         ).assertIsDisplayed()
+    }
+
+    @Test
+    fun loginSuccess_nonAdminDoesNotShowAdminTab() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(loginUser = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Login").performClick()
+        composeRule.onNodeWithTag("login-identifier-field").performTextInput("orga@example.com")
+        composeRule.onNodeWithTag("login-password-field").performTextInput("password123")
+        composeRule.onNodeWithTag("login-submit-button").performClick()
+
+        waitForTag("bottom-tab-Profile")
+
+        composeRule.onNodeWithTag("bottom-tab-Festivals").assertIsSelected()
+        composeRule.onNodeWithTag("bottom-tab-Reservants").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Games").assertIsDisplayed()
+        composeRule.onNodeWithTag("bottom-tab-Profile").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("bottom-tab-Admin").assertCountEquals(0)
+    }
+
+    @Test
+    fun loginSuccess_adminShowsAdminTab() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(loginUser = sampleUser(role = "admin")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Login").performClick()
+        composeRule.onNodeWithTag("login-identifier-field").performTextInput("admin@example.com")
+        composeRule.onNodeWithTag("login-password-field").performTextInput("password123")
+        composeRule.onNodeWithTag("login-submit-button").performClick()
+
+        waitForTag("bottom-tab-Admin")
+
+        composeRule.onNodeWithTag("bottom-tab-Festivals").assertIsSelected()
+        composeRule.onNodeWithTag("bottom-tab-Admin").assertIsDisplayed()
+    }
+
+    @Test
+    fun placeholderTabs_showImplementationMessage() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "admin")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Reservants").performClick()
+        waitForText("Section en cours d'implémentation")
+        composeRule.onNodeWithTag("bottom-tab-Reservants").assertIsSelected()
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForText("Section en cours d'implémentation")
+        composeRule.onNodeWithTag("bottom-tab-Games").assertIsSelected()
+
+        composeRule.onNodeWithTag("bottom-tab-Admin").performClick()
+        waitForText("Section en cours d'implémentation")
+        composeRule.onNodeWithTag("bottom-tab-Admin").assertIsSelected()
     }
 
     private fun setFestivalAppContent(
@@ -281,11 +376,14 @@ private class FakeAuthRepository(
     }
 }
 
-private fun sampleUser(email: String = "romain@example.com"): AuthUser {
+private fun sampleUser(
+    email: String = "romain@example.com",
+    role: String = "organizer",
+): AuthUser {
     return AuthUser(
         id = 7,
         login = "romain",
-        role = "user",
+        role = role,
         firstName = "Romain",
         lastName = "Richard",
         email = email,
