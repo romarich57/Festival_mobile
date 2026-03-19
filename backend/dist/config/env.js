@@ -14,6 +14,9 @@ const DEFAULT_FRONTEND_ORIGINS = [
 const DEFAULT_FRONTEND_URL = DEFAULT_FRONTEND_ORIGINS[0] ?? 'http://localhost:5173';
 export const FRONTEND_URL = process.env.FRONTEND_URL || DEFAULT_FRONTEND_URL;
 const FRONTEND_ORIGINS_RAW = process.env.FRONTEND_ORIGINS ?? DEFAULT_FRONTEND_ORIGINS.join(',');
+const DEFAULT_PUBLIC_BACKEND_URL = 'http://localhost:4000';
+const DEFAULT_MOBILE_DEEP_LINK_BASE = 'festivalapp://auth/verification';
+const DEFAULT_MOBILE_PASSWORD_RESET_DEEP_LINK_BASE = 'festivalapp://auth/reset-password';
 // Role : Normaliser une origine pour la comparer a la liste autorisee.
 // Preconditions : origin est une chaine non vide.
 // Postconditions : Retourne une origine sans slash final ou bien l'origine brute si invalide.
@@ -30,6 +33,15 @@ export const FRONTEND_ORIGINS = FRONTEND_ORIGINS_RAW.split(',')
     .filter((origin) => origin.length > 0)
     .map(normalizeOrigin)
     .filter((origin, index, origins) => origins.indexOf(origin) === index);
+export const PUBLIC_BACKEND_URL = process.env.PUBLIC_BACKEND_URL ||
+    process.env.BACKEND_PUBLIC_URL ||
+    DEFAULT_PUBLIC_BACKEND_URL;
+export const MOBILE_DEEP_LINK_BASE = process.env.MOBILE_DEEP_LINK_BASE ||
+    process.env.VERIFICATION_MOBILE_DEEP_LINK_BASE ||
+    DEFAULT_MOBILE_DEEP_LINK_BASE;
+export const MOBILE_PASSWORD_RESET_DEEP_LINK_BASE = process.env.MOBILE_PASSWORD_RESET_DEEP_LINK_BASE ||
+    process.env.PASSWORD_RESET_MOBILE_DEEP_LINK_BASE ||
+    DEFAULT_MOBILE_PASSWORD_RESET_DEEP_LINK_BASE;
 export const SMTP_HOST = process.env.SMTP_HOST;
 export const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
 export const SMTP_USER = process.env.SMTP_USER;

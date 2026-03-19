@@ -1,6 +1,6 @@
 // Role : Centraliser l'envoi des emails transactionnels.
 import nodemailer from 'nodemailer';
-import { FRONTEND_URL, SMTP_HOST, SMTP_PASS, SMTP_PORT, SMTP_USER, } from '../config/env.js';
+import { PUBLIC_BACKEND_URL, SMTP_HOST, SMTP_PASS, SMTP_PORT, SMTP_USER, } from '../config/env.js';
 let transporter = null;
 // Role : Initialiser le transporteur SMTP si besoin.
 // Preconditions : Les variables SMTP sont configurees.
@@ -25,9 +25,20 @@ function ensureTransporter() {
 // Role : Envoyer un email de verification.
 // Preconditions : email et token sont fournis.
 // Postconditions : Un email est envoye via le transporteur SMTP.
+export function buildVerificationEmailUrl(token) {
+    const baseUrl = PUBLIC_BACKEND_URL.replace(/\/$/, '');
+    const verificationUrl = new URL('/api/auth/verify-email', `${baseUrl}/`);
+    verificationUrl.searchParams.set('token', token);
+    return verificationUrl.toString();
+}
+export function buildPasswordResetEmailUrl(token) {
+    const baseUrl = PUBLIC_BACKEND_URL.replace(/\/$/, '');
+    const resetUrl = new URL('/api/auth/reset-password', `${baseUrl}/`);
+    resetUrl.searchParams.set('token', token);
+    return resetUrl.toString();
+}
 export async function sendVerificationEmail(email, token) {
-    const baseUrl = FRONTEND_URL.replace(/\/$/, '');
-    const verificationUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`;
+    const verificationUrl = buildVerificationEmailUrl(token);
     const html = `
     <p>Bonjour,</p>
     <p>Merci pour votre inscription sur SecureApp.</p>
@@ -69,8 +80,7 @@ Si vous n'êtes pas à l'origine de cette demande, ignorez simplement ce message
 // Preconditions : email et token sont fournis.
 // Postconditions : Un email est envoye via le transporteur SMTP.
 export async function sendPasswordResetEmail(email, token) {
-    const baseUrl = FRONTEND_URL.replace(/\/$/, '');
-    const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+    const resetUrl = buildPasswordResetEmailUrl(token);
     const html = `
     <p>Bonjour,</p>
     <p>Une demande de réinitialisation de mot de passe a été effectuée pour votre compte SecureApp.</p>

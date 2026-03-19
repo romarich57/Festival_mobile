@@ -1,0 +1,63 @@
+package com.projetmobile.mobile.ui.screens.auth.emailverification
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.projetmobile.mobile.ui.components.AuthCard
+import com.projetmobile.mobile.ui.components.AuthLinkButton
+import com.projetmobile.mobile.ui.components.PrimaryAuthButton
+
+@Composable
+fun PendingVerificationScreen(
+    uiState: PendingVerificationUiState,
+    onResendVerification: () -> Unit,
+    onBackToLogin: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AuthCard(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(28.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = if (uiState.email.isBlank()) {
+                    "Votre compte a été créé. Consultez votre boîte mail pour confirmer votre adresse."
+                } else {
+                    "Un email de vérification a été envoyé à ${uiState.email}. Ouvrez-le depuis votre téléphone pour revenir directement dans l’app."
+                },
+                style = MaterialTheme.typography.bodyLarge,
+            )
+
+            uiState.errorMessage?.let { message ->
+                Text(text = message, color = MaterialTheme.colorScheme.error)
+            }
+            uiState.infoMessage?.let { message ->
+                Text(text = message, color = MaterialTheme.colorScheme.secondary)
+            }
+
+            PrimaryAuthButton(
+                text = if (uiState.isLoading) "Envoi..." else "Renvoyer un email",
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading,
+                onClick = onResendVerification,
+            )
+
+            if (uiState.isLoading) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+            AuthLinkButton(
+                text = "Retour à la connexion",
+                onClick = onBackToLogin,
+            )
+        }
+    }
+}
