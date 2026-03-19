@@ -85,4 +85,29 @@ class AuthFormValidatorTest {
         assertEquals(null, result.confirmationError)
         assertTrue(result.isValid)
     }
+
+    @Test
+    fun validateProfileUpdate_reusesRegisterRulesWithoutPassword() {
+        val invalid = AuthFormValidator.validateProfileUpdate(
+            username = "",
+            firstName = "",
+            lastName = "",
+            email = "invalid-email",
+            phone = "123",
+        )
+        val valid = AuthFormValidator.validateProfileUpdate(
+            username = "romain",
+            firstName = "Romain",
+            lastName = "Richard",
+            email = "romain@example.com",
+            phone = "0600000000",
+        )
+
+        assertTrue(invalid.isInvalid)
+        assertTrue(invalid.usernameError != null)
+        assertTrue(invalid.emailError != null)
+        assertTrue(invalid.phoneError != null)
+        assertTrue(valid.isValid)
+        assertEquals(null, valid.emailError)
+    }
 }

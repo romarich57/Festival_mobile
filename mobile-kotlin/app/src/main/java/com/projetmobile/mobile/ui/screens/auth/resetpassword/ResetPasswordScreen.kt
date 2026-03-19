@@ -10,14 +10,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.AuthCard
 import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import com.projetmobile.mobile.ui.components.AuthLinkButton
-import com.projetmobile.mobile.ui.components.FestivalTextField
+import com.projetmobile.mobile.ui.components.FestivalPasswordField
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
@@ -43,31 +41,23 @@ fun ResetPasswordScreen(
                 color = MaterialTheme.colorScheme.onSurface,
             )
 
-            FestivalTextField(
+            FestivalPasswordField(
                 value = uiState.password,
                 onValueChange = onPasswordChanged,
                 label = "Nouveau mot de passe",
                 modifier = Modifier.fillMaxWidth(),
                 isError = uiState.passwordError != null,
                 supportingText = uiState.passwordError,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                ),
                 enabled = !uiState.isTokenMissing && uiState.successMessage == null,
             )
 
-            FestivalTextField(
+            FestivalPasswordField(
                 value = uiState.confirmation,
                 onValueChange = onConfirmationChanged,
                 label = "Confirmation",
                 modifier = Modifier.fillMaxWidth(),
                 isError = uiState.confirmationError != null,
                 supportingText = uiState.confirmationError,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                ),
                 enabled = !uiState.isTokenMissing && uiState.successMessage == null,
             )
 

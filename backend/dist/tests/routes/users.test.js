@@ -1,9 +1,16 @@
 // Role : Tester les routes /users.
-import test from 'node:test';
+import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
+import nodemailer from 'nodemailer';
 import pool from '../../db/database.js';
 import usersRouter from '../../routes/users.js';
 import { createTestUser, generateTestEmail, generateTestLogin, setupTests, teardownTests, } from '../test-helpers.js';
+const sendMailMock = mock.fn(async () => ({ messageId: 'users-test-message-id' }));
+mock.method(nodemailer, 'createTransport', () => {
+    return {
+        sendMail: sendMailMock,
+    };
+});
 // Role : Recuperer le handler pour une route et une methode.
 // Preconditions : path et method sont definis.
 // Postconditions : Retourne le handler ou undefined.
@@ -16,6 +23,9 @@ test.before(async () => {
 });
 test.after(async () => {
     await teardownTests();
+});
+test.beforeEach(() => {
+    sendMailMock.mock.resetCalls();
 });
 test('POST /users - should create user with default role', async () => {
     const login = generateTestLogin();
@@ -114,6 +124,95 @@ test('PUT /users/me - should update current user profile', async () => {
     ]);
     assert.strictEqual(rows[0].first_name, 'Profile');
     assert.strictEqual(rows[0].last_name, 'Updated');
+});
+test('GET /users/me - should return current user profile', async () => {
+    const user = await createTestUser({ emailVerified: false });
+    const handler = getRouteHandler('/me', 'get');
+    assert.ok(handler);
+    const mockReq = {
+        user: { id: user.id },
+    };
+    const mockRes = {
+        statusCode: 200,
+        jsonData: null,
+        status(code) {
+            this.statusCode = code;
+            return this;
+        },
+        json(data) {
+            this.jsonData = data;
+            return this;
+        },
+    };
+    await handler?.(mockReq, mockRes, () => { });
+    assert.strictEqual(mockRes.statusCode, 200);
+    assert.strictEqual(mockRes.jsonData.id, user.id);
+    assert.strictEqual(mockRes.jsonData.email, user.email);
+    assert.strictEqual(mockRes.jsonData.emailVerified, false);
+});
+test('PUT /users/me - should trigger a new verification when email changes', async () => {
+    const user = await createTestUser({ emailVerified: true });
+    const handler = getRouteHandler('/me', 'put');
+    assert.ok(handler);
+    const nextEmail = generateTestEmail();
+    const mockReq = {
+        user: { id: user.id },
+        body: {
+            email: nextEmail,
+        },
+    };
+    const mockRes = {
+        statusCode: 200,
+        jsonData: null,
+        status(code) {
+            this.statusCode = code;
+            return this;
+        },
+        json(data) {
+            this.jsonData = data;
+            return this;
+        },
+    };
+    await handler?.(mockReq, mockRes, () => { });
+    assert.strictEqual(mockRes.statusCode, 200);
+    assert.strictEqual(mockRes.jsonData.message, 'Profil mis à jour. Vérifiez votre nouvel email.');
+    assert.strictEqual(mockRes.jsonData.emailVerificationSent, true);
+    assert.strictEqual(mockRes.jsonData.user.email, nextEmail);
+    assert.strictEqual(mockRes.jsonData.user.emailVerified, false);
+    assert.strictEqual(sendMailMock.mock.calls.length, 1);
+    const { rows } = await pool.query('SELECT email, email_verified, email_verification_token FROM users WHERE id = $1', [user.id]);
+    assert.strictEqual(rows[0].email, nextEmail);
+    assert.strictEqual(rows[0].email_verified, false);
+    assert.ok(rows[0].email_verification_token);
+});
+test('PUT /users/me - should clear avatar when avatarUrl is null', async () => {
+    const user = await createTestUser();
+    await pool.query('UPDATE users SET avatar_url = $1 WHERE id = $2', ['/uploads/avatars/old.png', user.id]);
+    const handler = getRouteHandler('/me', 'put');
+    assert.ok(handler);
+    const mockReq = {
+        user: { id: user.id },
+        body: {
+            avatarUrl: null,
+        },
+    };
+    const mockRes = {
+        statusCode: 200,
+        jsonData: null,
+        status(code) {
+            this.statusCode = code;
+            return this;
+        },
+        json(data) {
+            this.jsonData = data;
+            return this;
+        },
+    };
+    await handler?.(mockReq, mockRes, () => { });
+    assert.strictEqual(mockRes.statusCode, 200);
+    assert.strictEqual(mockRes.jsonData.user.avatarUrl, null);
+    const { rows } = await pool.query('SELECT avatar_url FROM users WHERE id = $1', [user.id]);
+    assert.strictEqual(rows[0].avatar_url, null);
 });
 test('DELETE /users/me - should delete current user', async () => {
     const user = await createTestUser();

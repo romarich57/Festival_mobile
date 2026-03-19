@@ -63,6 +63,10 @@ function createMockResponse() {
         cookie(name: string, value: string, options?: any) {
             this.headers[`cookie:${name}`] = JSON.stringify({ value, options })
             return this
+        },
+        clearCookie(name: string, options?: any) {
+            this.headers[`clear-cookie:${name}`] = JSON.stringify(options)
+            return this
         }
     }
 }
@@ -414,6 +418,87 @@ test('POST /login - should return access_token and refresh_token cookies', async
     assert.strictEqual(mockRes.statusCode, 200)
     assert.ok(mockRes.headers['cookie:access_token'])
     assert.ok(mockRes.headers['cookie:refresh_token'])
+})
+
+test('POST /login - should issue non-secure auth cookies when HTTPS is disabled', async () => {
+    const previousHttpsEnabled = process.env.HTTPS_ENABLED
+    process.env.HTTPS_ENABLED = 'false'
+
+    try {
+        const password = 'SecurePass123!'
+        const user = await createTestUser({ password, emailVerified: true })
+        const mockReq = {
+            body: {
+                identifier: user.login,
+                password
+            }
+        }
+        const mockRes: any = createMockResponse()
+
+        await getRouteHandler('/login', 'post')?.(mockReq as any, mockRes as any, () => {})
+
+        const accessCookie = JSON.parse(mockRes.headers['cookie:access_token'])
+        const refreshCookie = JSON.parse(mockRes.headers['cookie:refresh_token'])
+
+        assert.strictEqual(accessCookie.options.secure, false)
+        assert.strictEqual(refreshCookie.options.secure, false)
+        assert.strictEqual(accessCookie.options.httpOnly, true)
+        assert.strictEqual(refreshCookie.options.httpOnly, true)
+    } finally {
+        process.env.HTTPS_ENABLED = previousHttpsEnabled
+    }
+})
+
+test('POST /login - should issue secure auth cookies when HTTPS is enabled', async () => {
+    const previousHttpsEnabled = process.env.HTTPS_ENABLED
+    process.env.HTTPS_ENABLED = 'true'
+
+    try {
+        const password = 'SecurePass123!'
+        const user = await createTestUser({ password, emailVerified: true })
+        const mockReq = {
+            body: {
+                identifier: user.login,
+                password
+            }
+        }
+        const mockRes: any = createMockResponse()
+
+        await getRouteHandler('/login', 'post')?.(mockReq as any, mockRes as any, () => {})
+
+        const accessCookie = JSON.parse(mockRes.headers['cookie:access_token'])
+        const refreshCookie = JSON.parse(mockRes.headers['cookie:refresh_token'])
+
+        assert.strictEqual(accessCookie.options.secure, true)
+        assert.strictEqual(refreshCookie.options.secure, true)
+    } finally {
+        process.env.HTTPS_ENABLED = previousHttpsEnabled
+    }
+})
+
+test('POST /logout - should clear auth cookies with the active cookie policy', async () => {
+    const previousHttpsEnabled = process.env.HTTPS_ENABLED
+    process.env.HTTPS_ENABLED = 'false'
+
+    try {
+        const mockReq = {
+            cookies: {}
+        }
+        const mockRes: any = createMockResponse()
+
+        await getRouteHandler('/logout', 'post')?.(mockReq as any, mockRes as any, () => {})
+
+        const clearedAccessCookie = JSON.parse(mockRes.headers['clear-cookie:access_token'])
+        const clearedRefreshCookie = JSON.parse(mockRes.headers['clear-cookie:refresh_token'])
+
+        assert.strictEqual(mockRes.statusCode, 200)
+        assert.strictEqual(clearedAccessCookie.secure, false)
+        assert.strictEqual(clearedRefreshCookie.secure, false)
+        assert.strictEqual(clearedAccessCookie.httpOnly, true)
+        assert.strictEqual(clearedRefreshCookie.httpOnly, true)
+    } finally {
+        process.env.HTTPS_ENABLED = previousHttpsEnabled
+    }
 })
 
 test('POST /login - should return 401 for invalid identifier', async () => {

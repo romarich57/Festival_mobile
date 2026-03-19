@@ -2,19 +2,22 @@ package com.projetmobile.mobile
 
 import android.content.Context
 import com.projetmobile.mobile.data.remote.auth.AuthApiService
+import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.festival.FestivalApiService
+import com.projetmobile.mobile.data.remote.profile.ProfileApiService
 import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.database.PersistentCookieJar
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepositoryImpl
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepositoryImpl
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.projetmobile.mobile.data.repository.profile.ProfileRepository
+import com.projetmobile.mobile.data.repository.profile.ProfileRepositoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class AppContainer(context: Context) {
     private val applicationContext = context.applicationContext
@@ -33,12 +36,6 @@ class AppContainer(context: Context) {
         }
     }
 
-    private val moshi by lazy {
-        Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-    }
-
     private val cookieJar by lazy {
         PersistentCookieJar(applicationContext)
     }
@@ -54,7 +51,9 @@ class AppContainer(context: Context) {
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
             .client(httpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .addConverterFactory(
+                ApiJson.instance.asConverterFactory("application/json".toMediaType()),
+            )
             .build()
     }
 
@@ -66,6 +65,10 @@ class AppContainer(context: Context) {
         retrofit.create(FestivalApiService::class.java)
     }
 
+    private val profileApiService by lazy {
+        retrofit.create(ProfileApiService::class.java)
+    }
+
     val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(
             authApiService = authApiService,
@@ -75,5 +78,12 @@ class AppContainer(context: Context) {
 
     val festivalRepository: FestivalRepository by lazy {
         FestivalRepositoryImpl(festivalApiService)
+    }
+
+    val profileRepository: ProfileRepository by lazy {
+        ProfileRepositoryImpl(
+            profileApiService = profileApiService,
+            authApiService = authApiService,
+        )
     }
 }

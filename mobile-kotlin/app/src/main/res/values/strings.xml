@@ -16,6 +16,8 @@
     <string name="login_resend_email">Renvoyer un email</string>
     <string name="login_forgot_password">Mot de passe oublié ?</string>
     <string name="login_reset_password">Réinitialiser</string>
+    <string name="password_visibility_show">Afficher le mot de passe</string>
+    <string name="password_visibility_hide">Masquer le mot de passe</string>
     <string name="header_festivals">Festivals</string>
     <string name="header_connexion">Connexion</string>
     <string name="header_inscription">Inscription</string>

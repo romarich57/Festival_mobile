@@ -4,24 +4,12 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pool from '../db/database.js';
+import { createAuthAccessCookieOptions, createAuthCookieBaseOptions, createAuthRefreshCookieOptions, } from '../config/auth-cookie-options.js';
 import { verifyToken, createAccessToken, createRefreshToken, } from '../middleware/token-management.js';
 import { JWT_SECRET, MOBILE_DEEP_LINK_BASE, MOBILE_PASSWORD_RESET_DEEP_LINK_BASE, } from '../config/env.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../services/email.js';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_RESET_EXPIRATION_MS = 60 * 60 * 1000;
-const COOKIE_BASE_OPTIONS = {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict',
-};
-const ACCESS_COOKIE_OPTIONS = {
-    ...COOKIE_BASE_OPTIONS,
-    maxAge: 15 * 60 * 1000,
-};
-const REFRESH_COOKIE_OPTIONS = {
-    ...COOKIE_BASE_OPTIONS,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-};
 const router = Router();
 // Role : Construire un utilisateur sans champs sensibles.
 // Preconditions : row provient de la table users.
@@ -351,8 +339,8 @@ router.post('/login', async (req, res) => {
       INSERT INTO refresh_tokens (user_id, jti_hash, expires_at)
       VALUES ($1, $2, $3)
     `, [user.id, hashRefreshTokenId(refreshTokenId), refreshExpiresAt]);
-        res.cookie('access_token', accessToken, ACCESS_COOKIE_OPTIONS);
-        res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS);
+        res.cookie('access_token', accessToken, createAuthAccessCookieOptions());
+        res.cookie('refresh_token', refreshToken, createAuthRefreshCookieOptions());
         res.json({
             message: 'Authentification réussie',
             user: toSafeUser(user),
@@ -692,8 +680,8 @@ router.post('/logout', async (req, res) => {
             console.warn('Refresh token invalide lors du logout', error);
         }
     }
-    res.clearCookie('access_token', COOKIE_BASE_OPTIONS);
-    res.clearCookie('refresh_token', COOKIE_BASE_OPTIONS);
+    res.clearCookie('access_token', createAuthCookieBaseOptions());
+    res.clearCookie('refresh_token', createAuthCookieBaseOptions());
     res.json({ message: 'Déconnexion réussie' });
 });
 // Role : Renouveler les tokens via le refresh token.
@@ -768,8 +756,8 @@ router.post('/refresh', async (req, res) => {
             login: decoded.login,
             role: decoded.role,
         });
-        res.cookie('access_token', newAccess, ACCESS_COOKIE_OPTIONS);
-        res.cookie('refresh_token', newRefreshToken, REFRESH_COOKIE_OPTIONS);
+        res.cookie('access_token', newAccess, createAuthAccessCookieOptions());
+        res.cookie('refresh_token', newRefreshToken, createAuthRefreshCookieOptions());
         res.json({ message: 'Token renouvelé' });
     }
     catch (error) {

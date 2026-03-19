@@ -60,6 +60,12 @@ class AppSessionViewModel(
         }
     }
 
+    fun onUserProfileUpdated(user: AuthUser) {
+        _uiState.update { state ->
+            state.copy(currentUser = user, errorMessage = null)
+        }
+    }
+
     fun logout() {
         viewModelScope.launch {
             _uiState.update { state ->

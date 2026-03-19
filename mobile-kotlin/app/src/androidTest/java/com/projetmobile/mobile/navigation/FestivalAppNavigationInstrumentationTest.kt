@@ -15,8 +15,13 @@ import com.projetmobile.mobile.data.entity.auth.AuthUser
 import com.projetmobile.mobile.data.entity.auth.VerificationResultStatus
 import com.projetmobile.mobile.data.entity.auth.RegisterAccountInput
 import com.projetmobile.mobile.data.entity.festival.FestivalSummary
+import com.projetmobile.mobile.data.entity.profile.AvatarUploadResult
+import com.projetmobile.mobile.data.entity.profile.OptionalField
+import com.projetmobile.mobile.data.entity.profile.ProfileUpdateInput
+import com.projetmobile.mobile.data.entity.profile.ProfileUpdateResult
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
+import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.ui.screens.app.FestivalApp
 import com.projetmobile.mobile.ui.theme.FestivalMobileTheme
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
@@ -128,6 +133,71 @@ class FestivalAppNavigationInstrumentationTest {
 
         composeRule.onNodeWithTag("bottom-tab-Login").assertIsSelected()
         composeRule.onNodeWithTag("login-submit-button").assertIsDisplayed()
+    }
+
+    @Test
+    fun profileScreen_showsAccountSections_andPasswordResetAction() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+            profileRepository = FakeProfileRepository(initialProfile = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Profile").performClick()
+
+        waitForTag("profile-summary-card")
+
+        composeRule.onNodeWithTag("profile-summary-card").assertIsDisplayed()
+        composeRule.onNodeWithText("Romain").assertIsDisplayed()
+        composeRule.onNodeWithText("Richard").assertIsDisplayed()
+        composeRule.onNodeWithText("@romain").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-login-edit-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-email-edit-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-password-card").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-password-reset-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("logout-button").assertIsDisplayed()
+    }
+
+    @Test
+    fun profileScreen_allowsInlineEditingFromFieldActions() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+            profileRepository = FakeProfileRepository(initialProfile = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Profile").performClick()
+        waitForTag("profile-login-edit-button")
+
+        composeRule.onNodeWithTag("profile-login-edit-button").performClick()
+
+        waitForTag("profile-login-field")
+
+        composeRule.onNodeWithTag("profile-login-field").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-save-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-cancel-button").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("profile-email-edit-button").performClick()
+        waitForTag("profile-email-field")
+        composeRule.onNodeWithTag("profile-email-field").assertIsDisplayed()
+    }
+
+    @Test
+    fun profileScreen_successBanner_disappearsAfterDelay() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+            profileRepository = FakeProfileRepository(initialProfile = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Profile").performClick()
+        waitForTag("profile-first-name-edit-button")
+
+        composeRule.onNodeWithTag("profile-first-name-edit-button").performClick()
+        waitForTag("profile-first-name-field")
+        composeRule.onNodeWithTag("profile-first-name-field").performTextInput(" Jr")
+        composeRule.onNodeWithTag("profile-save-button").performClick()
+
+        waitForText("Profil mis a jour.")
+        composeRule.onNodeWithText("Profil mis a jour.").assertIsDisplayed()
+        waitForTextGone("Profil mis a jour.", timeoutMillis = 6_000)
     }
 
     @Test
@@ -255,6 +325,7 @@ class FestivalAppNavigationInstrumentationTest {
     private fun setFestivalAppContent(
         authRepository: FakeAuthRepository = FakeAuthRepository(),
         festivalRepository: FestivalRepository = FakeFestivalRepository(),
+        profileRepository: ProfileRepository = FakeProfileRepository(),
         incomingDestinations: MutableSharedFlow<AppNavKey> = MutableSharedFlow(extraBufferCapacity = 1),
     ) {
         composeRule.setContent {
@@ -262,6 +333,7 @@ class FestivalAppNavigationInstrumentationTest {
                 FestivalApp(
                     authRepository = authRepository,
                     festivalRepository = festivalRepository,
+                    profileRepository = profileRepository,
                     incomingDestinations = incomingDestinations,
                 )
             }
@@ -277,6 +349,12 @@ class FestivalAppNavigationInstrumentationTest {
     private fun waitForText(text: String) {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun waitForTextGone(text: String, timeoutMillis: Long) {
+        composeRule.waitUntil(timeoutMillis = timeoutMillis) {
+            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty()
         }
     }
 }
@@ -392,4 +470,61 @@ private fun sampleUser(
         emailVerified = true,
         createdAt = "2026-03-18T09:00:00Z",
     )
+}
+
+private class FakeProfileRepository(
+    initialProfile: AuthUser = sampleUser(),
+) : ProfileRepository {
+    private var currentProfile: AuthUser = initialProfile
+
+    override suspend fun getProfile(): Result<AuthUser> = Result.success(currentProfile)
+
+    override suspend fun updateProfile(input: ProfileUpdateInput): Result<ProfileUpdateResult> {
+        val previousEmail = currentProfile.email
+        val emailChanged = input.email != null && input.email != previousEmail
+        currentProfile = currentProfile.copy(
+            login = input.login ?: currentProfile.login,
+            firstName = input.firstName ?: currentProfile.firstName,
+            lastName = input.lastName ?: currentProfile.lastName,
+            email = input.email ?: currentProfile.email,
+            phone = when (val phone = input.phone) {
+                OptionalField.Unchanged -> currentProfile.phone
+                is OptionalField.Value -> phone.value
+            },
+            avatarUrl = when (val avatar = input.avatarUrl) {
+                OptionalField.Unchanged -> currentProfile.avatarUrl
+                is OptionalField.Value -> avatar.value
+            },
+            emailVerified = if (emailChanged) {
+                false
+            } else {
+                currentProfile.emailVerified
+            },
+        )
+
+        return Result.success(
+            ProfileUpdateResult(
+                message = "Profil mis a jour.",
+                user = currentProfile,
+                emailVerificationSent = emailChanged,
+            ),
+        )
+    }
+
+    override suspend fun uploadAvatar(
+        fileName: String,
+        mimeType: String,
+        bytes: ByteArray,
+    ): Result<AvatarUploadResult> {
+        return Result.success(
+            AvatarUploadResult(
+                url = "/uploads/avatars/$fileName",
+                message = "Avatar uploade.",
+            ),
+        )
+    }
+
+    override suspend fun requestPasswordReset(email: String): Result<String> {
+        return Result.success("Si un compte existe, un email a ete envoye.")
+    }
 }

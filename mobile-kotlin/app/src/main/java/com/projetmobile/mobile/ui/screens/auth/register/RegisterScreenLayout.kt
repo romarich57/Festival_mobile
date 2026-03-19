@@ -15,9 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.projetmobile.mobile.ui.components.FestivalPasswordField
 import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.components.InlineAuthLinkButton
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
@@ -91,7 +91,7 @@ internal fun RegisterFieldsSection(
                 keyboardType = KeyboardType.Email,
             ),
         )
-        FestivalTextField(
+        FestivalPasswordField(
             value = uiState.password,
             onValueChange = onPasswordChanged,
             label = "Mot de passe",
@@ -100,10 +100,6 @@ internal fun RegisterFieldsSection(
                 .testTag("register-password-field"),
             isError = uiState.passwordError != null,
             supportingText = uiState.passwordError,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-            ),
         )
         FestivalTextField(
             value = uiState.phone,
