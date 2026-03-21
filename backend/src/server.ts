@@ -129,10 +129,10 @@ app.use(
 )
 app.use('/api/reservation', verifyToken, requireRole(BACKOFFICE_ROLES), reservationRouter)
 app.use('/api/reservant', verifyToken, requireRole(BACKOFFICE_ROLES), reservantRouter)
-app.use('/api/games', verifyToken, requireRole(BACKOFFICE_ROLES), gamesRouter)
-app.use('/api/mechanisms', verifyToken, requireRole(BACKOFFICE_ROLES), mechanismsRouter)
+app.use('/api/games', verifyToken, gamesRouter)
+app.use('/api/mechanisms', verifyToken, mechanismsRouter)
 app.use('/api/jeux_alloues', verifyToken, requireRole(BACKOFFICE_ROLES), allocatedGamesRouter)
-app.use('/api/editors', verifyToken, requireRole(BACKOFFICE_ROLES), editorRouter)
+app.use('/api/editors', verifyToken, editorRouter)
 app.use('/api/zone-plan', verifyToken, requireRole(BACKOFFICE_ROLES), zonePlanRouter)
 app.use('/api/workflow', verifyToken, requireRole(BACKOFFICE_ROLES), workflowRouter)
 app.use('/api/admin', verifyToken, requireAdmin, (_req, res) => {
@@ -155,27 +155,26 @@ const createHttpsOptions = () => ({
   cert: fs.readFileSync(httpsCertPath),
 })
 
-  // Démarrage
-  ; (async () => {
-    // Exécution des migrations de la base de données
-    await runMigrations()
+; (async () => {
+  // Exécution des migrations de la base de données
+  await runMigrations()
 
-    // Création/validation du compte admin requise au démarrage
-    await ensureAdmin()
-    await ensureFestivals()
+  // Création/validation du compte admin requise au démarrage
+  await ensureAdmin()
+  await ensureFestivals()
 
-    const onReady = () => {
-      const scheme = HTTPS_ENABLED ? 'https' : 'http'
-      const hostToLog = HOST === '0.0.0.0' ? '0.0.0.0' : HOST
-      console.log(`👍 Serveur API démarré sur ${scheme}://${hostToLog}:${PORT}`)
-    }
+  const onReady = () => {
+    const scheme = HTTPS_ENABLED ? 'https' : 'http'
+    const hostToLog = HOST === '0.0.0.0' ? '0.0.0.0' : HOST
+    console.log(`👍 Serveur API démarré sur ${scheme}://${hostToLog}:${PORT}`)
+  }
 
-    if (HTTPS_ENABLED) {
-      https.createServer(createHttpsOptions(), app).listen(PORT, HOST, onReady)
-    } else {
-      http.createServer(app).listen(PORT, HOST, onReady)
-    }
-  })().catch((err) => {
-    console.error('❌ Erreur au démarrage du serveur :', err)
-    process.exit(1)
-  })
+  if (HTTPS_ENABLED) {
+    https.createServer(createHttpsOptions(), app).listen(PORT, HOST, onReady)
+  } else {
+    http.createServer(app).listen(PORT, HOST, onReady)
+  }
+})().catch((err) => {
+  console.error('❌ Erreur au démarrage du serveur :', err)
+  process.exit(1)
+})
