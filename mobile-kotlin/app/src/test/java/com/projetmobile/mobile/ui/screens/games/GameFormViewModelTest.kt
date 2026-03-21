@@ -48,7 +48,7 @@ class GameFormViewModelTest {
     @Test
     fun saveGame_blocksWhenFormIsInvalid() = runTest {
         val repository = FakeGamesRepository()
-        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create)
+        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create())
         advanceUntilIdle()
 
         viewModel.saveGame()
@@ -64,7 +64,7 @@ class GameFormViewModelTest {
         val repository = FakeGamesRepository().apply {
             uploadGameImageResult = Result.failure(IllegalStateException("Upload impossible"))
         }
-        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create)
+        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create())
         advanceUntilIdle()
 
         fillValidForm(viewModel)
@@ -88,7 +88,7 @@ class GameFormViewModelTest {
     @Test
     fun saveGame_setsCompletionMessageOnCreateSuccess() = runTest {
         val repository = FakeGamesRepository()
-        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create)
+        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create())
         advanceUntilIdle()
 
         fillValidForm(viewModel)
@@ -126,7 +126,7 @@ class GameFormViewModelTest {
                 ),
             )
         }
-        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create)
+        val viewModel = viewModel(repository = repository, mode = GameFormMode.Create())
         advanceUntilIdle()
 
         fillValidForm(viewModel)
@@ -170,6 +170,30 @@ class GameFormViewModelTest {
         assertEquals("Types indisponibles", viewModel.uiState.value.lookupErrorMessage)
         assertEquals(null, viewModel.uiState.value.errorMessage)
         assertEquals("Ark Nova", viewModel.uiState.value.fields.title)
+    }
+
+    @Test
+    fun init_prefillsAndLocksEditorWhenCreateModeProvidesEditor() = runTest {
+        val repository = FakeGamesRepository()
+        val viewModel = viewModel(
+            repository = repository,
+            mode = GameFormMode.Create(
+                prefilledEditorId = 12,
+                lockEditorSelection = true,
+            ),
+        )
+        advanceUntilIdle()
+
+        assertEquals(12, viewModel.uiState.value.fields.editorId)
+        assertTrue(viewModel.uiState.value.isEditorSelectionLocked)
+
+        viewModel.onEditorSelected(99)
+        fillValidForm(viewModel)
+        viewModel.saveGame()
+        advanceUntilIdle()
+
+        assertEquals(12, viewModel.uiState.value.fields.editorId)
+        assertEquals(12, repository.lastCreatedDraft?.editorId)
     }
 
     private fun viewModel(

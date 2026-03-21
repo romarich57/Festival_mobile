@@ -12,7 +12,11 @@ data class AppChromeState(
 fun ownerTab(key: AppNavKey): TopLevelTab {
     return when (key) {
         Festivals -> TopLevelTab.Festivals
-        Reservants -> TopLevelTab.Reservants
+        Reservants,
+        ReservantCreate,
+        is ReservantDetails,
+        is ReservantEdit,
+        is ReservantGameCreate -> TopLevelTab.Reservants
         Games, GameCreate, is GameDetails, is GameEdit -> TopLevelTab.Games
         Login, ForgotPassword, is VerificationResult, is ResetPassword -> TopLevelTab.Login
         Register, is PendingVerification -> TopLevelTab.Register
@@ -46,6 +50,10 @@ fun topBarTitleFor(key: AppNavKey): String {
     return when (key) {
         Festivals -> "Festivals"
         Reservants -> "Réservants"
+        ReservantCreate -> "Nouveau réservant"
+        is ReservantDetails -> "Détail du réservant"
+        is ReservantEdit -> "Modifier un réservant"
+        is ReservantGameCreate -> "Nouveau jeu"
         Games -> "Jeux"
         GameCreate -> "Nouveau jeu"
         is GameDetails -> "Détails du jeu"

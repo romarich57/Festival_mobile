@@ -5,7 +5,10 @@ import com.projetmobile.mobile.data.entity.games.GameTypeOption
 import com.projetmobile.mobile.data.entity.games.MechanismOption
 
 sealed interface GameFormMode {
-    data object Create : GameFormMode
+    data class Create(
+        val prefilledEditorId: Int? = null,
+        val lockEditorSelection: Boolean = false,
+    ) : GameFormMode
 
     data class Edit(val gameId: Int) : GameFormMode
 }
@@ -70,4 +73,7 @@ data class GameFormUiState(
 ) {
     val isEditMode: Boolean
         get() = mode is GameFormMode.Edit
+
+    val isEditorSelectionLocked: Boolean
+        get() = (mode as? GameFormMode.Create)?.lockEditorSelection == true
 }

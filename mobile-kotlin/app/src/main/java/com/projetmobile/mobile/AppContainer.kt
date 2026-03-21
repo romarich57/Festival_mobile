@@ -6,6 +6,7 @@ import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.festival.FestivalApiService
 import com.projetmobile.mobile.data.remote.games.GamesApiService
 import com.projetmobile.mobile.data.remote.profile.ProfileApiService
+import com.projetmobile.mobile.data.remote.reservants.ReservantsApiService
 import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.database.PersistentCookieJar
 import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
@@ -17,6 +18,8 @@ import com.projetmobile.mobile.data.repository.games.GamesRepository
 import com.projetmobile.mobile.data.repository.games.GamesRepositoryImpl
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepositoryImpl
+import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
+import com.projetmobile.mobile.data.repository.reservants.ReservantsRepositoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -85,6 +88,10 @@ class AppContainer(context: Context) {
         retrofit.create(GamesApiService::class.java)
     }
 
+    private val reservantsApiService by lazy {
+        retrofit.create(ReservantsApiService::class.java)
+    }
+
     val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(
             authApiService = authApiService,
@@ -105,5 +112,9 @@ class AppContainer(context: Context) {
 
     val gamesRepository: GamesRepository by lazy {
         GamesRepositoryImpl(gamesApiService)
+    }
+
+    val reservantsRepository: ReservantsRepository by lazy {
+        ReservantsRepositoryImpl(reservantsApiService)
     }
 }

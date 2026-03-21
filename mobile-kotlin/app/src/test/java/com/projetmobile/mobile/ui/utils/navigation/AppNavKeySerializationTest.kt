@@ -17,6 +17,10 @@ class AppNavKeySerializationTest {
         val keys = listOf<AppNavKey>(
             Festivals,
             Reservants,
+            ReservantCreate,
+            ReservantDetails(8),
+            ReservantEdit(11),
+            ReservantGameCreate(reservantId = 12, editorId = 44),
             Games,
             GameCreate,
             GameDetails(7),

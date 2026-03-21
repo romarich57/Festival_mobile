@@ -12,11 +12,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.FestivalTextField
@@ -102,9 +100,7 @@ private fun GameRulesVideoSection(
     rulesVideoUrl: String,
     onRulesVideoUrlChanged: (String) -> Unit,
 ) {
-    var activeVideoReference by androidx.compose.runtime.remember {
-        mutableStateOf<YoutubeVideoReference?>(null)
-    }
+    val context = LocalContext.current
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         FestivalTextField(
@@ -116,14 +112,7 @@ private fun GameRulesVideoSection(
         GamesRulesVideoPreview(
             rulesVideoUrl = rulesVideoUrl,
             title = "Aperçu de la vidéo des règles",
-            onPlayVideo = { videoReference -> activeVideoReference = videoReference },
-        )
-    }
-
-    activeVideoReference?.let { videoReference ->
-        GamesYoutubePlayerDialog(
-            videoReference = videoReference,
-            onDismiss = { activeVideoReference = null },
+            onPlayVideo = { videoReference -> openVideoExternally(context, videoReference) },
         )
     }
 }

@@ -14,6 +14,21 @@ data object Festivals : AppNavKey
 data object Reservants : AppNavKey
 
 @Serializable
+data object ReservantCreate : AppNavKey
+
+@Serializable
+data class ReservantDetails(val reservantId: Int) : AppNavKey
+
+@Serializable
+data class ReservantEdit(val reservantId: Int) : AppNavKey
+
+@Serializable
+data class ReservantGameCreate(
+    val reservantId: Int,
+    val editorId: Int,
+) : AppNavKey
+
+@Serializable
 data object Games : AppNavKey
 
 @Serializable

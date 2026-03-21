@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.ui.screens.games
+package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun <T> GamesDropdownSelector(
+internal fun <T> ReservantsDropdownSelector(
     label: String,
     selectedLabel: String,
     options: List<Pair<String, T>>,
     onValueSelected: (T) -> Unit,
-    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -44,7 +43,6 @@ internal fun <T> GamesDropdownSelector(
         Box(modifier = Modifier.fillMaxWidth()) {
             OutlinedButton(
                 onClick = { expanded = true },
-                enabled = enabled,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
             ) {

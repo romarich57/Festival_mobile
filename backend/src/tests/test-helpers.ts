@@ -83,7 +83,9 @@ export async function createTestReservant(overrides: {
     siret?: string
     notes?: string
 } = {}) {
+    testCounter++
     const email = overrides.email || generateTestEmail()
+    const name = overrides.name || `Test Reservant ${testCounter}_${Date.now()}`
 
     const { rows } = await pool.query(
         `INSERT INTO reservant (
@@ -97,7 +99,7 @@ export async function createTestReservant(overrides: {
     ) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *`,
         [
-            overrides.name || 'Test Reservant',
+            name,
             email,
             overrides.type || 'editeur',
             overrides.phone_number || null,
@@ -235,6 +237,49 @@ export async function deleteTestGameFixtures() {
 // Preconditions : Aucune.
 // Postconditions : Toutes les donnees de test sont supprimees.
 export async function cleanupTestData() {
+    await pool.query(`
+        DELETE FROM suivi_contact
+        WHERE contact_id IN (
+            SELECT id FROM contact WHERE email LIKE '%@test.com'
+        )
+        OR workflow_id IN (
+            SELECT id
+            FROM suivi_workflow
+            WHERE reservant_id IN (
+                SELECT id FROM reservant WHERE email LIKE '%@test.com'
+            )
+            OR festival_id IN (
+                SELECT id FROM festival WHERE name LIKE 'Test Festival%'
+            )
+        )
+    `)
+    await pool.query(`
+        DELETE FROM reservation
+        WHERE reservant_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+        OR represented_editor_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+        OR festival_id IN (
+            SELECT id FROM festival WHERE name LIKE 'Test Festival%'
+        )
+    `)
+    await pool.query(`
+        DELETE FROM suivi_workflow
+        WHERE reservant_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+        OR festival_id IN (
+            SELECT id FROM festival WHERE name LIKE 'Test Festival%'
+        )
+    `)
+    await pool.query(`
+        DELETE FROM contact
+        WHERE reservant_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+    `)
     await deleteTestGameFixtures()
     await deleteTestFestivals()
     await deleteTestReservants()

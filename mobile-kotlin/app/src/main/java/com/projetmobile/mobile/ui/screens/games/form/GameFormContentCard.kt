@@ -32,6 +32,7 @@ internal fun GameFormContentCard(
                 fields = uiState.fields,
                 availableTypes = uiState.availableTypes,
                 availableEditors = uiState.availableEditors,
+                editorSelectionLocked = uiState.isEditorSelectionLocked,
                 imageSourceMode = uiState.imageSourceMode,
                 localImageSelection = uiState.localImageSelection,
                 actions = actions,

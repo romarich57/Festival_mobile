@@ -486,6 +486,13 @@ private fun resolveYoutubePlayerErrorMessage(reason: String): String {
     }
 }
 
+internal fun openVideoExternally(
+    context: Context,
+    videoReference: YoutubeVideoReference,
+) {
+    openYoutubeExternally(context, videoReference)
+}
+
 private fun openYoutubeExternally(
     context: Context,
     videoReference: YoutubeVideoReference,

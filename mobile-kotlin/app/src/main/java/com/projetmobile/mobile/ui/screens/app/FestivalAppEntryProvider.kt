@@ -10,6 +10,7 @@ import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.games.GamesRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
+import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.ui.components.ImplementationPlaceholder
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationScreen
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationViewModel
@@ -31,6 +32,10 @@ import com.projetmobile.mobile.ui.screens.games.GamesCatalogRoute
 import com.projetmobile.mobile.ui.screens.profile.ProfileScreen
 import com.projetmobile.mobile.ui.screens.profile.ProfileViewModel
 import com.projetmobile.mobile.ui.screens.profile.profileViewModelFactory
+import com.projetmobile.mobile.ui.screens.reservants.ReservantDetailRoute
+import com.projetmobile.mobile.ui.screens.reservants.ReservantFormMode
+import com.projetmobile.mobile.ui.screens.reservants.ReservantFormRoute
+import com.projetmobile.mobile.ui.screens.reservants.ReservantsCatalogRoute
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
 import com.projetmobile.mobile.ui.utils.navigation.ForgotPassword
@@ -40,6 +45,10 @@ import com.projetmobile.mobile.ui.utils.navigation.GameEdit
 import com.projetmobile.mobile.ui.utils.navigation.Login
 import com.projetmobile.mobile.ui.utils.navigation.PendingVerification
 import com.projetmobile.mobile.ui.utils.navigation.Profile
+import com.projetmobile.mobile.ui.utils.navigation.ReservantCreate
+import com.projetmobile.mobile.ui.utils.navigation.ReservantDetails
+import com.projetmobile.mobile.ui.utils.navigation.ReservantEdit
+import com.projetmobile.mobile.ui.utils.navigation.ReservantGameCreate
 import com.projetmobile.mobile.ui.utils.navigation.ResetPassword
 import com.projetmobile.mobile.ui.utils.navigation.TopLevelTab
 import com.projetmobile.mobile.ui.utils.navigation.VerificationResult
@@ -51,15 +60,21 @@ internal fun festivalAppEntryProvider(
     festivalRepository: FestivalRepository,
     gamesRepository: GamesRepository,
     profileRepository: ProfileRepository,
+    reservantsRepository: ReservantsRepository,
     sessionUiState: AppSessionUiState,
     sessionViewModel: AppSessionViewModel,
     gamesRefreshSignal: Int,
     gamesFlashMessage: String?,
+    reservantsRefreshSignal: Int,
+    reservantsFlashMessage: String?,
     onOpenRoot: (TopLevelTab) -> Unit,
     onOpenSecondary: (TopLevelTab, AppNavKey) -> Unit,
     onSelectTopLevelTab: (TopLevelTab) -> Unit,
     onConsumeGamesFlashMessage: () -> Unit,
+    onConsumeReservantsFlashMessage: () -> Unit,
     onGamesSaved: (String) -> Unit,
+    onReservantSaved: (Int, String) -> Unit,
+    onLinkedGameCreated: (Int, String) -> Unit,
 ): (AppNavKey) -> NavEntry<AppNavKey> {
     return { key ->
         when (key) {
@@ -75,7 +90,24 @@ internal fun festivalAppEntryProvider(
             }
 
             com.projetmobile.mobile.ui.utils.navigation.Reservants -> NavEntry(key) {
-                ImplementationPlaceholder()
+                ReservantsCatalogRoute(
+                    loadReservants = reservantsRepository::getReservants,
+                    loadDeleteSummary = reservantsRepository::getDeleteSummary,
+                    deleteReservant = reservantsRepository::deleteReservant,
+                    currentUserRole = sessionUiState.currentUser?.role,
+                    refreshSignal = reservantsRefreshSignal,
+                    flashMessage = reservantsFlashMessage,
+                    onConsumeFlashMessage = onConsumeReservantsFlashMessage,
+                    onCreateReservant = {
+                        onOpenSecondary(TopLevelTab.Reservants, ReservantCreate)
+                    },
+                    onOpenReservantDetails = { reservantId ->
+                        onOpenSecondary(TopLevelTab.Reservants, ReservantDetails(reservantId))
+                    },
+                    onEditReservant = { reservantId ->
+                        onOpenSecondary(TopLevelTab.Reservants, ReservantEdit(reservantId))
+                    },
+                )
             }
 
             com.projetmobile.mobile.ui.utils.navigation.Games -> NavEntry(key) {
@@ -98,9 +130,85 @@ internal fun festivalAppEntryProvider(
             GameCreate -> NavEntry(key) {
                 GameFormRoute(
                     gamesRepository = gamesRepository,
-                    mode = GameFormMode.Create,
+                    mode = GameFormMode.Create(),
                     onBackToList = { onOpenRoot(TopLevelTab.Games) },
                     onGameSaved = onGamesSaved,
+                )
+            }
+
+            ReservantCreate -> NavEntry(key) {
+                ReservantFormRoute(
+                    mode = ReservantFormMode.Create,
+                    loadEditors = reservantsRepository::getEditors,
+                    loadReservant = reservantsRepository::getReservant,
+                    createReservant = reservantsRepository::createReservant,
+                    updateReservant = reservantsRepository::updateReservant,
+                    currentUserRole = sessionUiState.currentUser?.role,
+                    onBackToList = { onOpenRoot(TopLevelTab.Reservants) },
+                    onReservantSaved = onReservantSaved,
+                )
+            }
+
+            is ReservantDetails -> NavEntry(key) {
+                ReservantDetailRoute(
+                    reservantId = key.reservantId,
+                    loadReservant = reservantsRepository::getReservant,
+                    loadContacts = reservantsRepository::getContacts,
+                    addContact = reservantsRepository::addContact,
+                    loadGames = { editorId ->
+                        gamesRepository.getGames(
+                            filters = com.projetmobile.mobile.data.entity.games.GameFilters(editorId = editorId),
+                            page = 1,
+                            limit = 50,
+                        ).map { page -> page.items }
+                    },
+                    currentUserRole = sessionUiState.currentUser?.role,
+                    refreshSignal = reservantsRefreshSignal,
+                    flashMessage = reservantsFlashMessage,
+                    onConsumeFlashMessage = onConsumeReservantsFlashMessage,
+                    onEditReservant = { reservantId ->
+                        onOpenSecondary(TopLevelTab.Reservants, ReservantEdit(reservantId))
+                    },
+                    onOpenGameDetails = { gameId ->
+                        onOpenSecondary(TopLevelTab.Games, GameDetails(gameId))
+                    },
+                    onCreateLinkedGame = { reservantId, editorId ->
+                        onOpenSecondary(
+                            TopLevelTab.Reservants,
+                            ReservantGameCreate(reservantId, editorId),
+                        )
+                    },
+                )
+            }
+
+            is ReservantEdit -> NavEntry(key) {
+                ReservantFormRoute(
+                    mode = ReservantFormMode.Edit(key.reservantId),
+                    loadEditors = reservantsRepository::getEditors,
+                    loadReservant = reservantsRepository::getReservant,
+                    createReservant = reservantsRepository::createReservant,
+                    updateReservant = reservantsRepository::updateReservant,
+                    currentUserRole = sessionUiState.currentUser?.role,
+                    onBackToList = {
+                        onOpenSecondary(TopLevelTab.Reservants, ReservantDetails(key.reservantId))
+                    },
+                    onReservantSaved = onReservantSaved,
+                )
+            }
+
+            is ReservantGameCreate -> NavEntry(key) {
+                GameFormRoute(
+                    gamesRepository = gamesRepository,
+                    mode = GameFormMode.Create(
+                        prefilledEditorId = key.editorId,
+                        lockEditorSelection = true,
+                    ),
+                    onBackToList = {
+                        onOpenSecondary(TopLevelTab.Reservants, ReservantDetails(key.reservantId))
+                    },
+                    onGameSaved = { message ->
+                        onLinkedGameCreated(key.reservantId, message)
+                    },
                 )
             }
 

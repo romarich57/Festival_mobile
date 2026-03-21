@@ -25,6 +25,7 @@ internal fun GameFormBasicsSection(
     fields: GameFormFields,
     availableTypes: List<GameTypeOption>,
     availableEditors: List<EditorOption>,
+    editorSelectionLocked: Boolean,
     imageSourceMode: GameImageSourceMode,
     localImageSelection: LocalGameImageSelection?,
     actions: GameFormActions,
@@ -71,6 +72,7 @@ internal fun GameFormBasicsSection(
             ?: "Choisir un éditeur",
         options = availableEditors.map { it.name to it.id },
         onValueSelected = actions.onEditorSelected,
+        enabled = !editorSelectionLocked,
         modifier = Modifier
             .fillMaxWidth()
             .testTag("game-editor-field"),

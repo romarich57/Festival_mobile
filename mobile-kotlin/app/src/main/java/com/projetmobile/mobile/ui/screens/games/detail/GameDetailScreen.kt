@@ -22,12 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,15 +42,13 @@ internal fun GameDetailScreen(
     actions: GameDetailActions,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
             .testTag("game-detail-root"),
     ) {
-        var activeVideoReference by androidx.compose.runtime.remember {
-            mutableStateOf<YoutubeVideoReference?>(null)
-        }
-
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopCenter,
@@ -112,7 +108,7 @@ internal fun GameDetailScreen(
                                     GamesRulesVideoPreview(
                                         rulesVideoUrl = game.rulesVideoUrl.orEmpty(),
                                         title = "Vidéo des règles",
-                                        onPlayVideo = { videoReference -> activeVideoReference = videoReference },
+                                        onPlayVideo = { videoReference -> openVideoExternally(context, videoReference) },
                                     )
                                 }
                             }
@@ -148,13 +144,6 @@ internal fun GameDetailScreen(
                     else -> item { EmptyGamesCard() }
                 }
             }
-        }
-
-        activeVideoReference?.let { videoReference ->
-            GamesYoutubePlayerDialog(
-                videoReference = videoReference,
-                onDismiss = { activeVideoReference = null },
-            )
         }
     }
 }

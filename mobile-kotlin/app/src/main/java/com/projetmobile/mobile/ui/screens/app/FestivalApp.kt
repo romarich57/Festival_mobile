@@ -21,6 +21,7 @@ import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.games.GamesRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
+import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.ui.utils.navigation.Admin
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
@@ -31,6 +32,10 @@ import com.projetmobile.mobile.ui.utils.navigation.Games
 import com.projetmobile.mobile.ui.utils.navigation.Login
 import com.projetmobile.mobile.ui.utils.navigation.Profile
 import com.projetmobile.mobile.ui.utils.navigation.Register
+import com.projetmobile.mobile.ui.utils.navigation.ReservantCreate
+import com.projetmobile.mobile.ui.utils.navigation.ReservantDetails
+import com.projetmobile.mobile.ui.utils.navigation.ReservantEdit
+import com.projetmobile.mobile.ui.utils.navigation.ReservantGameCreate
 import com.projetmobile.mobile.ui.utils.navigation.Reservants
 import com.projetmobile.mobile.ui.utils.navigation.TopLevelTab
 import com.projetmobile.mobile.ui.utils.navigation.chromeFor
@@ -52,6 +57,7 @@ fun FestivalApp(
         festivalRepository = appContainer.festivalRepository,
         gamesRepository = appContainer.gamesRepository,
         profileRepository = appContainer.profileRepository,
+        reservantsRepository = appContainer.reservantsRepository,
         incomingDestinations = incomingDestinations,
     )
 }
@@ -63,6 +69,7 @@ fun FestivalApp(
     festivalRepository: FestivalRepository,
     gamesRepository: GamesRepository,
     profileRepository: ProfileRepository,
+    reservantsRepository: ReservantsRepository,
     incomingDestinations: Flow<AppNavKey> = emptyFlow(),
 ) {
     val sessionViewModel: AppSessionViewModel = viewModel(
@@ -82,6 +89,8 @@ fun FestivalApp(
     var previousAuthenticationState by rememberSaveable { mutableStateOf<Boolean?>(null) }
     var gamesRefreshSignal by rememberSaveable { mutableStateOf(0) }
     var gamesFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var reservantsRefreshSignal by rememberSaveable { mutableStateOf(0) }
+    var reservantsFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     val isAuthenticated = sessionUiState.currentUser != null
     val userRole = sessionUiState.currentUser?.role
@@ -145,18 +154,32 @@ fun FestivalApp(
         festivalRepository = festivalRepository,
         gamesRepository = gamesRepository,
         profileRepository = profileRepository,
+        reservantsRepository = reservantsRepository,
         sessionUiState = sessionUiState,
         sessionViewModel = sessionViewModel,
         gamesRefreshSignal = gamesRefreshSignal,
         gamesFlashMessage = gamesFlashMessage,
+        reservantsRefreshSignal = reservantsRefreshSignal,
+        reservantsFlashMessage = reservantsFlashMessage,
         onOpenRoot = ::openRoot,
         onOpenSecondary = ::openSecondary,
         onSelectTopLevelTab = { selectedTopLevelTab = it },
         onConsumeGamesFlashMessage = { gamesFlashMessage = null },
+        onConsumeReservantsFlashMessage = { reservantsFlashMessage = null },
         onGamesSaved = { message ->
             gamesFlashMessage = message
             gamesRefreshSignal += 1
             openRoot(TopLevelTab.Games)
+        },
+        onReservantSaved = { reservantId, message ->
+            reservantsFlashMessage = message
+            reservantsRefreshSignal += 1
+            openSecondary(TopLevelTab.Reservants, ReservantDetails(reservantId))
+        },
+        onLinkedGameCreated = { reservantId, message ->
+            reservantsFlashMessage = message
+            reservantsRefreshSignal += 1
+            openSecondary(TopLevelTab.Reservants, ReservantDetails(reservantId))
         },
     )
 
@@ -223,7 +246,14 @@ fun FestivalApp(
 
             when (ownerTab(destination)) {
                 TopLevelTab.Festivals -> openRoot(TopLevelTab.Festivals)
-                TopLevelTab.Reservants -> openRoot(TopLevelTab.Reservants)
+                TopLevelTab.Reservants -> when (destination) {
+                    Reservants -> openRoot(TopLevelTab.Reservants)
+                    ReservantCreate -> openSecondary(TopLevelTab.Reservants, ReservantCreate)
+                    is ReservantDetails -> openSecondary(TopLevelTab.Reservants, destination)
+                    is ReservantEdit -> openSecondary(TopLevelTab.Reservants, destination)
+                    is ReservantGameCreate -> openSecondary(TopLevelTab.Reservants, destination)
+                    else -> openRoot(TopLevelTab.Reservants)
+                }
                 TopLevelTab.Games -> when (destination) {
                     Games -> openRoot(TopLevelTab.Games)
                     GameCreate -> openSecondary(TopLevelTab.Games, GameCreate)

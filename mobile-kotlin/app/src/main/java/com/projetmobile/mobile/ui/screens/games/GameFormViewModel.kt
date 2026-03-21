@@ -26,7 +26,12 @@ internal class GameFormViewModel(
     fun onTitleChanged(value: String) = updateFields { copy(title = value, titleError = null) }
     fun onTypeChanged(value: String) = updateFields { copy(type = value, typeError = null) }
     fun onSelectSuggestedType(value: String) = updateFields { copy(type = value, typeError = null) }
-    fun onEditorSelected(editorId: Int?) = updateFields { copy(editorId = editorId, editorError = null) }
+    fun onEditorSelected(editorId: Int?) {
+        if (_uiState.value.isEditorSelectionLocked) {
+            return
+        }
+        updateFields { copy(editorId = editorId, editorError = null) }
+    }
     fun onMinAgeChanged(value: String) = updateNumericField(value) { copy(minAgeInput = value, minAgeError = null) }
     fun onAuthorsChanged(value: String) = updateFields { copy(authors = value, authorsError = null) }
     fun onMinPlayersChanged(value: String) = updateNumericField(value) { copy(minPlayersInput = value, minPlayersError = null) }
@@ -102,7 +107,7 @@ internal class GameFormViewModel(
             )
 
             val result = when (val currentMode = _uiState.value.mode) {
-                GameFormMode.Create -> gamesRepository.createGame(draft)
+                is GameFormMode.Create -> gamesRepository.createGame(draft)
                 is GameFormMode.Edit -> gamesRepository.updateGame(currentMode.gameId, draft)
             }
 
@@ -163,6 +168,17 @@ internal class GameFormViewModel(
                     availableMechanisms = lookups.availableMechanisms,
                     lookupErrorMessage = lookups.errorMessage,
                 )
+            }
+            val createMode = mode as? GameFormMode.Create
+            if (createMode?.prefilledEditorId != null) {
+                _uiState.update { state ->
+                    state.copy(
+                        fields = state.fields.copy(
+                            editorId = createMode.prefilledEditorId,
+                            editorError = null,
+                        ),
+                    )
+                }
             }
             val editMode = mode as? GameFormMode.Edit
             if (editMode != null) {

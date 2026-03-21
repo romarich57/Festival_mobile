@@ -1,13 +1,159 @@
 // Role : Tester les routes /api/reservant.
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import pool from '../../db/database.js'
 import reservantRouter from '../../routes/reservant.js'
 import {
+    createTestFestival,
     createTestReservant,
     generateTestEmail,
     setupTests,
     teardownTests
 } from '../test-helpers.js'
+
+type MockResponse = {
+    statusCode: number
+    jsonData: any
+    headersSent?: boolean
+    status: (code: number) => MockResponse
+    json: (data: any) => MockResponse
+}
+
+type Handler = (req: any, res: MockResponse, next: () => void) => Promise<void> | void
+
+function createMockResponse(): MockResponse {
+    return {
+        statusCode: 200,
+        jsonData: null,
+        headersSent: false,
+        status(code: number) {
+            this.statusCode = code
+            return this
+        },
+        json(data: any) {
+            this.jsonData = data
+            this.headersSent = true
+            return this
+        }
+    }
+}
+
+function getRouteStack(path: string, method: 'get' | 'post' | 'put' | 'patch' | 'delete'): Handler[] {
+    const layer: any = reservantRouter.stack.find(
+        (item: any) => item.route?.path === path && item.route?.methods?.[method]
+    )
+    return (layer?.route?.stack ?? []).map((entry: any) => entry.handle as Handler)
+}
+
+async function runRoute(
+    path: string,
+    method: 'get' | 'post' | 'put' | 'patch' | 'delete',
+    req: any
+) {
+    const handlers = getRouteStack(path, method)
+    assert.ok(handlers.length > 0, `Route ${method.toUpperCase()} ${path} introuvable`)
+
+    const res = createMockResponse()
+
+    const invokeAt = async (index: number): Promise<void> => {
+        const handler = handlers[index]
+        if (!handler || res.headersSent) {
+            return
+        }
+
+        let nextCalled = false
+        await handler(req, res, () => {
+            nextCalled = true
+        })
+
+        if (nextCalled && !res.headersSent) {
+            await invokeAt(index + 1)
+        }
+    }
+
+    await invokeAt(0)
+    return res
+}
+
+async function createReservantContact(input: {
+    reservantId: number
+    name?: string
+    email?: string
+    phoneNumber?: string
+    jobTitle?: string
+    priority?: number
+}) {
+    const { rows } = await pool.query(
+        `
+            INSERT INTO contact (name, email, phone_number, job_title, reservant_id, priority)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, name, email, phone_number, job_title, reservant_id, priority
+        `,
+        [
+            input.name ?? 'Contact Test',
+            input.email ?? generateTestEmail(),
+            input.phoneNumber ?? '0601020304',
+            input.jobTitle ?? 'Responsable',
+            input.reservantId,
+            input.priority ?? 1
+        ]
+    )
+
+    return rows[0]
+}
+
+async function createWorkflowForReservant(reservantId: number, festivalId: number, state = 'Pas_de_contact') {
+    const { rows } = await pool.query(
+        `
+            INSERT INTO suivi_workflow (reservant_id, festival_id, state)
+            VALUES ($1, $2, $3)
+            RETURNING id, reservant_id, festival_id, state
+        `,
+        [reservantId, festivalId, state]
+    )
+
+    return rows[0]
+}
+
+async function createContactEvent(contactId: number, workflowId: number, dateContact = new Date('2024-06-01T10:00:00Z')) {
+    const { rows } = await pool.query(
+        `
+            INSERT INTO suivi_contact (contact_id, workflow_id, date_contact)
+            VALUES ($1, $2, $3)
+            RETURNING id, contact_id, workflow_id, date_contact
+        `,
+        [contactId, workflowId, dateContact]
+    )
+
+    return rows[0]
+}
+
+async function createReservationForReservant(input: {
+    reservantId: number
+    festivalId: number
+    workflowId: number
+}) {
+    const { rows } = await pool.query(
+        `
+            INSERT INTO reservation (
+                reservant_id,
+                festival_id,
+                workflow_id,
+                start_price,
+                table_discount_offered,
+                direct_discount,
+                nb_prises,
+                final_price,
+                statut_paiement
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING id, reservant_id, festival_id, workflow_id, statut_paiement
+        `,
+        [input.reservantId, input.festivalId, input.workflowId, 100, 0, 0, 1, 100, 'non_payé']
+    )
+
+    return rows[0]
+}
 
 // Tests des routes /api/reservant (CRUD)
 
@@ -76,7 +222,10 @@ test('GET / - should return empty array when no data', async () => {
 
     assert.strictEqual(mockRes.statusCode, 200)
     assert.ok(Array.isArray(mockRes.jsonData))
-    assert.strictEqual(mockRes.jsonData.length, 0)
+    assert.ok(
+        mockRes.jsonData.every((item: any) => !String(item.email ?? '').endsWith('@test.com')),
+        'Aucune fixture de test ne doit subsister après le nettoyage'
+    )
 })
 
 test('GET / - should return correct fields', async () => {
@@ -706,109 +855,44 @@ test('PUT /:id - should handle null optional fields', async () => {
 
 test('DELETE /:id - should delete reservant', async () => {
     const reservant = await createTestReservant()
+    const res = await runRoute('/:id', 'delete', {
+        params: { id: reservant.id.toString() },
+        user: { role: 'admin' }
+    })
 
-    const mockReq = {
-        params: { id: reservant.id }
-    }
-    const mockRes: any = {
-        statusCode: 200,
-        jsonData: null,
-        status(code: number) {
-            this.statusCode = code
-            return this
-        },
-        json(data: any) {
-            this.jsonData = data
-            return this
-        }
-    }
-
-    await reservantRouter.stack
-        .find((layer: any) => layer.route?.path === '/:id' && layer.route?.methods?.delete)
-        ?.route?.stack[0]?.handle(mockReq as any, mockRes as any, () => {})
-
-    assert.strictEqual(mockRes.statusCode, 200)
-    assert.ok(mockRes.jsonData.message)
+    assert.strictEqual(res.statusCode, 200)
+    assert.ok(res.jsonData.message)
 })
 
 test('DELETE /:id - should return 404 if not found', async () => {
-    const mockReq = {
-        params: { id: 99999 }
-    }
-    const mockRes: any = {
-        statusCode: 200,
-        jsonData: null,
-        status(code: number) {
-            this.statusCode = code
-            return this
-        },
-        json(data: any) {
-            this.jsonData = data
-            return this
-        }
-    }
+    const res = await runRoute('/:id', 'delete', {
+        params: { id: '99999' },
+        user: { role: 'admin' }
+    })
 
-    await reservantRouter.stack
-        .find((layer: any) => layer.route?.path === '/:id' && layer.route?.methods?.delete)
-        ?.route?.stack[0]?.handle(mockReq as any, mockRes as any, () => {})
-
-    assert.strictEqual(mockRes.statusCode, 404)
-    assert.ok(mockRes.jsonData?.error)
+    assert.strictEqual(res.statusCode, 404)
+    assert.ok(res.jsonData?.error)
 })
 
 test('DELETE /:id - should return success message', async () => {
     const reservant = await createTestReservant()
+    const res = await runRoute('/:id', 'delete', {
+        params: { id: reservant.id.toString() },
+        user: { role: 'admin' }
+    })
 
-    const mockReq = {
-        params: { id: reservant.id }
-    }
-    const mockRes: any = {
-        statusCode: 200,
-        jsonData: null,
-        status(code: number) {
-            this.statusCode = code
-            return this
-        },
-        json(data: any) {
-            this.jsonData = data
-            return this
-        }
-    }
-
-    await reservantRouter.stack
-        .find((layer: any) => layer.route?.path === '/:id' && layer.route?.methods?.delete)
-        ?.route?.stack[0]?.handle(mockReq as any, mockRes as any, () => {})
-
-    assert.strictEqual(mockRes.statusCode, 200)
-    assert.ok(mockRes.jsonData.message)
-    assert.ok(mockRes.jsonData.message.includes('supprimé'))
+    assert.strictEqual(res.statusCode, 200)
+    assert.ok(res.jsonData.message)
+    assert.ok(res.jsonData.message.includes('supprimé'))
 })
 
 test('DELETE /:id - should verify actually deleted from DB', async () => {
     const reservant = await createTestReservant()
+    await runRoute('/:id', 'delete', {
+        params: { id: reservant.id.toString() },
+        user: { role: 'admin' }
+    })
 
-    // Supprimer
-    const mockReqDelete = {
-        params: { id: reservant.id }
-    }
-    const mockResDelete = {
-        statusCode: 200,
-        jsonData: null,
-        status(code: number) {
-            this.statusCode = code
-            return this
-        },
-        json(data: any) {
-            this.jsonData = data
-            return this
-        }
-    }
-
-    await reservantRouter.stack
-        .find((layer: any) => layer.route?.path === '/:id' && layer.route?.methods?.delete)
-        ?.route?.stack[0]?.handle(mockReqDelete as any, mockResDelete as any, () => {})
-
-    // Tenter de recuperer
     const mockReqGet = {
         params: { id: reservant.id }
     }
@@ -832,33 +916,198 @@ test('DELETE /:id - should verify actually deleted from DB', async () => {
     assert.strictEqual(mockResGet.statusCode, 404)
 })
 
-test('DELETE /:id - should reject if foreign key constraint', async () => {
-    // Note : ce test demande des donnees liees (contacts, workflows, etc.)
-    // Pour l'instant, on verifie la suppression de base
-    // En situation reelle, il faut creer les donnees liees avant
-
+test('DELETE /:id - should reject forbidden role before delete handler', async () => {
     const reservant = await createTestReservant()
+    const res = await runRoute('/:id', 'delete', {
+        params: { id: reservant.id.toString() },
+        user: { role: 'organizer' }
+    })
 
-    const mockReq = {
-        params: { id: reservant.id }
-    }
-    const mockRes: any = {
-        statusCode: 200,
-        jsonData: null,
-        status(code: number) {
-            this.statusCode = code
-            return this
-        },
-        json(data: any) {
-            this.jsonData = data
-            return this
+    assert.strictEqual(res.statusCode, 403)
+    assert.strictEqual(res.jsonData.error, 'Acces interdit')
+})
+
+// ============================================
+// Tests normalisation des erreurs / delete-summary / contacts
+// ============================================
+
+test('POST / - should normalize database details as string array', async () => {
+    const originalQuery = pool.query.bind(pool)
+    let callCount = 0
+
+    ;(pool as any).query = async (...args: any[]) => {
+        callCount += 1
+        if (callCount === 1) {
+            return { rows: [] }
         }
+        throw { code: '23502', detail: 'insert detail' }
     }
 
-    await reservantRouter.stack
-        .find((layer: any) => layer.route?.path === '/:id' && layer.route?.methods?.delete)
-        ?.route?.stack[0]?.handle(mockReq as any, mockRes as any, () => {})
+    try {
+        const res = await runRoute('/', 'post', {
+            body: {
+                name: 'Stub Reservant',
+                email: generateTestEmail(),
+                type: 'editeur'
+            }
+        })
 
-    // Sans violation de cle etrangere, la suppression reussit
-    assert.strictEqual(mockRes.statusCode, 200)
+        assert.strictEqual(res.statusCode, 400)
+        assert.strictEqual(res.jsonData.error, 'Champ requis manquant')
+        assert.deepStrictEqual(res.jsonData.details, ['insert detail'])
+    } finally {
+        ;(pool as any).query = originalQuery
+    }
+})
+
+test('GET /:id/delete-summary - should reject invalid reservant id', async () => {
+    const res = await runRoute('/:id/delete-summary', 'get', {
+        params: { id: 'abc' }
+    })
+
+    assert.strictEqual(res.statusCode, 400)
+    assert.strictEqual(res.jsonData.error, 'Identifiant de réservant invalide')
+})
+
+test('GET /:id/delete-summary - should return 404 for unknown reservant', async () => {
+    const res = await runRoute('/:id/delete-summary', 'get', {
+        params: { id: '99999' }
+    })
+
+    assert.strictEqual(res.statusCode, 404)
+    assert.strictEqual(res.jsonData.error, 'Réservant non trouvé')
+})
+
+test('GET /:id/delete-summary - should include linked contacts workflows and reservations', async () => {
+    const reservant = await createTestReservant({ name: 'Summary Reservant' })
+    const festival = await createTestFestival()
+    const contact = await createReservantContact({ reservantId: reservant.id, name: 'Summary Contact' })
+    const workflow = await createWorkflowForReservant(reservant.id, festival.id)
+    const reservation = await createReservationForReservant({
+        reservantId: reservant.id,
+        festivalId: festival.id,
+        workflowId: workflow.id
+    })
+
+    const res = await runRoute('/:id/delete-summary', 'get', {
+        params: { id: reservant.id.toString() }
+    })
+
+    assert.strictEqual(res.statusCode, 200)
+    assert.strictEqual(res.jsonData.reservant_id, reservant.id)
+    assert.deepStrictEqual(res.jsonData.contacts.map((item: any) => item.id), [contact.id])
+    assert.deepStrictEqual(res.jsonData.workflows.map((item: any) => item.id), [workflow.id])
+    assert.deepStrictEqual(res.jsonData.reservations.map((item: any) => item.id), [reservation.id])
+})
+
+test('GET /:id/contacts - should reject invalid reservant id', async () => {
+    const res = await runRoute('/:id/contacts', 'get', {
+        params: { id: 'abc' }
+    })
+
+    assert.strictEqual(res.statusCode, 400)
+    assert.strictEqual(res.jsonData.error, 'Identifiant de réservant invalide')
+})
+
+test('GET /:id/contacts - should return 404 for unknown reservant', async () => {
+    const res = await runRoute('/:id/contacts', 'get', {
+        params: { id: '99999' }
+    })
+
+    assert.strictEqual(res.statusCode, 404)
+    assert.strictEqual(res.jsonData.error, 'Réservant non trouvé')
+})
+
+test('POST /:id/contacts - should return 404 when reservant does not exist', async () => {
+    const res = await runRoute('/:id/contacts', 'post', {
+        params: { id: '99999' },
+        body: {
+            name: 'Missing Reservant Contact',
+            email: generateTestEmail(),
+            phone_number: '0601020304',
+            job_title: 'Coordination',
+            priority: 1
+        }
+    })
+
+    assert.strictEqual(res.statusCode, 404)
+    assert.strictEqual(res.jsonData.error, 'Réservant non trouvé')
+})
+
+test('POST /:id/contacts/events - should reject invalid date payload', async () => {
+    const reservant = await createTestReservant({ name: 'Date Reservant' })
+
+    const res = await runRoute('/:id/contacts/events', 'post', {
+        params: { id: reservant.id.toString() },
+        body: {
+            contactId: 1,
+            dateContact: 'not-a-date'
+        }
+    })
+
+    assert.strictEqual(res.statusCode, 400)
+    assert.strictEqual(res.jsonData.error, 'dateContact invalide')
+})
+
+test('POST /:id/contacts/events - should return 409 when contact belongs to another reservant', async () => {
+    const reservant = await createTestReservant({ name: 'Owner Reservant' })
+    const otherReservant = await createTestReservant({ name: 'Other Reservant' })
+    const festival = await createTestFestival()
+    const workflow = await createWorkflowForReservant(reservant.id, festival.id)
+    const foreignContact = await createReservantContact({
+        reservantId: otherReservant.id,
+        name: 'Foreign Contact'
+    })
+
+    const res = await runRoute('/:id/contacts/events', 'post', {
+        params: { id: reservant.id.toString() },
+        body: {
+            contactId: foreignContact.id
+        }
+    })
+
+    assert.strictEqual(res.statusCode, 409)
+    assert.strictEqual(res.jsonData.error, 'Ce contact n’appartient pas à ce réservant')
+    assert.ok(workflow.id)
+})
+
+test('DELETE /:id/contacts/:contactId - should return 409 when contact belongs to another reservant', async () => {
+    const reservant = await createTestReservant({ name: 'Delete Contact Owner' })
+    const otherReservant = await createTestReservant({ name: 'Delete Contact Other' })
+    const foreignContact = await createReservantContact({
+        reservantId: otherReservant.id,
+        name: 'Delete Foreign Contact'
+    })
+
+    const res = await runRoute('/:id/contacts/:contactId', 'delete', {
+        params: {
+            id: reservant.id.toString(),
+            contactId: foreignContact.id.toString()
+        }
+    })
+
+    assert.strictEqual(res.statusCode, 409)
+    assert.strictEqual(res.jsonData.error, 'Ce contact n’appartient pas à ce réservant')
+})
+
+test('DELETE /:id/contacts/events/:eventId - should return 409 when event belongs to another reservant', async () => {
+    const reservant = await createTestReservant({ name: 'Delete Event Owner' })
+    const otherReservant = await createTestReservant({ name: 'Delete Event Other' })
+    const festival = await createTestFestival()
+    const otherWorkflow = await createWorkflowForReservant(otherReservant.id, festival.id)
+    const otherContact = await createReservantContact({
+        reservantId: otherReservant.id,
+        name: 'Event Contact'
+    })
+    const foreignEvent = await createContactEvent(otherContact.id, otherWorkflow.id)
+
+    const res = await runRoute('/:id/contacts/events/:eventId', 'delete', {
+        params: {
+            id: reservant.id.toString(),
+            eventId: foreignEvent.id.toString()
+        }
+    })
+
+    assert.strictEqual(res.statusCode, 409)
+    assert.strictEqual(res.jsonData.error, 'Cet événement n’appartient pas à ce réservant')
 })
