@@ -5,6 +5,9 @@ import com.projetmobile.mobile.data.remote.auth.AuthApiService
 import com.projetmobile.mobile.data.remote.festival.FestivalApiService
 import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.database.PersistentCookieJar
+import com.projetmobile.mobile.data.remote.ReservationApiService
+import com.projetmobile.mobile.data.remote.ReservationRepository
+import com.projetmobile.mobile.data.remote.ReservationRepositoryImpl
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepositoryImpl
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
@@ -75,5 +78,13 @@ class AppContainer(context: Context) {
 
     val festivalRepository: FestivalRepository by lazy {
         FestivalRepositoryImpl(festivalApiService)
+    }
+
+    private val reservationApiService: ReservationApiService by lazy {
+        retrofit.create(ReservationApiService::class.java)
+    }
+
+    val reservationRepository: ReservationRepository by lazy {
+        ReservationRepositoryImpl(reservationApiService)
     }
 }

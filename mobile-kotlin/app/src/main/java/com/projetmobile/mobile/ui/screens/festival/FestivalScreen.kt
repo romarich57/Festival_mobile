@@ -17,11 +17,14 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.data.entity.festival.FestivalSummary
 import com.projetmobile.mobile.ui.components.AuthCard
 import com.projetmobile.mobile.ui.components.AuthLinkButton
+import androidx.compose.foundation.clickable
+
 
 @Composable
 fun FestivalScreen(
     uiState: FestivalUiState,
     onRetry: () -> Unit,
+    onFestivalClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when {
@@ -58,7 +61,7 @@ fun FestivalScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(uiState.festivals) { festival ->
-                    FestivalItemCard(festival)
+                    FestivalItemCard(festival, onClick = {onFestivalClick(festival.id)})
                 }
             }
         }
@@ -66,9 +69,11 @@ fun FestivalScreen(
 }
 
 @Composable
-private fun FestivalItemCard(festival: FestivalSummary) {
+private fun FestivalItemCard(festival: FestivalSummary, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {onClick()},
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {

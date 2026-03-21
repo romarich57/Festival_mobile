@@ -1,12 +1,17 @@
 package com.projetmobile.mobile.ui.screens.reservation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
 import com.projetmobile.mobile.data.remote.ReservationCreatePayloadDto
 import com.projetmobile.mobile.data.remote.ReservationRepository
+import com.projetmobile.mobile.data.remote.ReservationRepositoryImpl
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import com.projetmobile.mobile.data.remote.ReservationApiService
 
 class ReservationViewModel(
     private val repository: ReservationRepository
@@ -82,6 +87,14 @@ class ReservationViewModel(
                 errorMessage.value = "Erreur création : ${e.message}"
             } finally {
                 isLoading.value = false
+            }
+        }
+    }
+
+    companion object {
+        fun factory(repository: ReservationRepository): ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                ReservationViewModel(repository)
             }
         }
     }

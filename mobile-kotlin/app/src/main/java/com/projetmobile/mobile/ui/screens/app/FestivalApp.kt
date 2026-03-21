@@ -40,6 +40,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.projetmobile.mobile.AppContainer
+import com.projetmobile.mobile.data.remote.ReservationRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.ui.components.GradientScreenBackground
@@ -68,6 +69,7 @@ import com.projetmobile.mobile.ui.utils.navigation.PendingVerification
 import com.projetmobile.mobile.ui.utils.navigation.Profile
 import com.projetmobile.mobile.ui.utils.navigation.Reservants
 import com.projetmobile.mobile.ui.utils.navigation.Register
+import com.projetmobile.mobile.ui.utils.navigation.ReservationDashboard
 import com.projetmobile.mobile.ui.utils.navigation.ResetPassword
 import com.projetmobile.mobile.ui.utils.navigation.TopLevelTab
 import com.projetmobile.mobile.ui.utils.navigation.VerificationResult
@@ -78,6 +80,8 @@ import com.projetmobile.mobile.ui.utils.navigation.visibleTabs
 import com.projetmobile.mobile.ui.utils.session.AppSessionViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import com.projetmobile.mobile.ui.utils.navigation.ReservationForm
+import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,6 +92,7 @@ fun FestivalApp(
     FestivalApp(
         authRepository = appContainer.authRepository,
         festivalRepository = appContainer.festivalRepository,
+        reservationRepository = appContainer.reservationRepository,
         incomingDestinations = incomingDestinations,
     )
 }
@@ -97,6 +102,7 @@ fun FestivalApp(
 fun FestivalApp(
     authRepository: AuthRepository,
     festivalRepository: FestivalRepository,
+    reservationRepository: ReservationRepository,
     incomingDestinations: Flow<AppNavKey> = emptyFlow(),
 ) {
     val sessionViewModel: AppSessionViewModel = viewModel(
@@ -182,6 +188,39 @@ fun FestivalApp(
                 FestivalScreen(
                     uiState = festivalUiState,
                     onRetry = festivalViewModel::loadFestivals,
+                    onFestivalClick = { festivalId ->
+                        festivalsBackStack.add(ReservationDashboard(festivalId))
+                    }
+                )
+            }
+
+            is ReservationDashboard -> NavEntry(key) {
+                val reservationViewModel: com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel = viewModel(
+                    factory = com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel.factory(reservationRepository)
+                )
+
+                ReservationDashboardScreen(
+                    festivalId = key.festivalId,
+                    viewModel = reservationViewModel,
+                    onNavigateToDetails = { reservationId -> },
+                    onNavigateToCreate = {
+                        festivalsBackStack.add(com.projetmobile.mobile.ui.utils.navigation.ReservationForm(key.festivalId))
+                    }
+                )
+            }
+
+            is ReservationForm -> NavEntry(key) {
+
+                val reservationViewModel: com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel = viewModel(
+                    factory = com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel.factory(reservationRepository)
+                )
+
+                com.projetmobile.mobile.ui.screens.reservation.ReservationFormScreen(
+                    festivalId = key.festivalId,
+                    viewModel = reservationViewModel,
+                    onNavigateBack = {
+                        festivalsBackStack.removeLastOrNull()
+                    }
                 )
             }
 

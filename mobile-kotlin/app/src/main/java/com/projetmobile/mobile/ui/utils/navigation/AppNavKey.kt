@@ -53,6 +53,13 @@ data class VerificationResult(val status: VerificationResultStatus) : AppNavKey
 @Serializable
 data class ResetPassword(val token: String?) : AppNavKey
 
+@Serializable
+data class ReservationDashboard(val festivalId: Int) : AppNavKey
+
+@Serializable
+data class ReservationForm(val festivalId: Int) : AppNavKey
+
+
 enum class TopLevelTab {
     Festivals,
     Reservants,
@@ -158,7 +165,7 @@ fun visibleTabs(isAuthenticated: Boolean, userRole: String?): List<TopLevelTab> 
 
 fun ownerTab(key: AppNavKey): TopLevelTab {
     return when (key) {
-        Festivals -> TopLevelTab.Festivals
+        Festivals, is ReservationDashboard, is ReservationForm -> TopLevelTab.Festivals
         Reservants -> TopLevelTab.Reservants
         Games -> TopLevelTab.Games
         Login, ForgotPassword, is VerificationResult, is ResetPassword -> TopLevelTab.Login
@@ -192,6 +199,8 @@ fun chromeFor(
 fun topBarTitleFor(key: AppNavKey): String {
     return when (key) {
         Festivals -> "Festivals"
+        is ReservationDashboard -> "Réservations"
+        is ReservationForm -> "Nouvelle Réservation"
         Reservants -> "Réservants"
         Games -> "Jeux"
         Login -> "Connexion"
