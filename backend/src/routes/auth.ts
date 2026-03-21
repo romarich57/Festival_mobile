@@ -53,10 +53,13 @@ type VerificationFlowStatus = 'success' | 'expired' | 'invalid' | 'error'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PASSWORD_RESET_EXPIRATION_MS = 60 * 60 * 1000
+
+const HTTPS_ENABLED = process.env.HTTPS_ENABLED !== 'false'
+
 const COOKIE_BASE_OPTIONS = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'strict' as const,
+  secure: HTTPS_ENABLED,
+  sameSite: 'lax' as const,
 }
 const ACCESS_COOKIE_OPTIONS = {
   ...COOKIE_BASE_OPTIONS,
