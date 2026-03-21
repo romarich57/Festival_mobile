@@ -13,7 +13,7 @@ fun ownerTab(key: AppNavKey): TopLevelTab {
     return when (key) {
         Festivals -> TopLevelTab.Festivals
         Reservants -> TopLevelTab.Reservants
-        Games -> TopLevelTab.Games
+        Games, GameCreate, is GameDetails, is GameEdit -> TopLevelTab.Games
         Login, ForgotPassword, is VerificationResult, is ResetPassword -> TopLevelTab.Login
         Register, is PendingVerification -> TopLevelTab.Register
         Profile -> TopLevelTab.Profile
@@ -47,6 +47,9 @@ fun topBarTitleFor(key: AppNavKey): String {
         Festivals -> "Festivals"
         Reservants -> "Réservants"
         Games -> "Jeux"
+        GameCreate -> "Nouveau jeu"
+        is GameDetails -> "Détails du jeu"
+        is GameEdit -> "Modifier un jeu"
         Login -> "Connexion"
         Register -> "Inscription"
         Profile -> "Profil"

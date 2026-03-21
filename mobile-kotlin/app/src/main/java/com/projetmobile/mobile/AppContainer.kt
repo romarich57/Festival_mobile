@@ -4,13 +4,17 @@ import android.content.Context
 import com.projetmobile.mobile.data.remote.auth.AuthApiService
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.festival.FestivalApiService
+import com.projetmobile.mobile.data.remote.games.GamesApiService
 import com.projetmobile.mobile.data.remote.profile.ProfileApiService
 import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.database.PersistentCookieJar
+import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepositoryImpl
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepositoryImpl
+import com.projetmobile.mobile.data.repository.games.GamesRepository
+import com.projetmobile.mobile.data.repository.games.GamesRepositoryImpl
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepositoryImpl
 import okhttp3.OkHttpClient
@@ -40,8 +44,16 @@ class AppContainer(context: Context) {
         PersistentCookieJar(applicationContext)
     }
 
+    private val authRefreshInterceptor by lazy {
+        AuthRefreshInterceptor(
+            baseUrl = BuildConfig.API_BASE_URL,
+            cookieJar = cookieJar,
+        )
+    }
+
     private val httpClient by lazy {
         OkHttpClient.Builder()
+            .addInterceptor(authRefreshInterceptor)
             .addInterceptor(loggingInterceptor)
             .cookieJar(cookieJar)
             .build()
@@ -69,6 +81,10 @@ class AppContainer(context: Context) {
         retrofit.create(ProfileApiService::class.java)
     }
 
+    private val gamesApiService by lazy {
+        retrofit.create(GamesApiService::class.java)
+    }
+
     val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(
             authApiService = authApiService,
@@ -85,5 +101,9 @@ class AppContainer(context: Context) {
             profileApiService = profileApiService,
             authApiService = authApiService,
         )
+    }
+
+    val gamesRepository: GamesRepository by lazy {
+        GamesRepositoryImpl(gamesApiService)
     }
 }

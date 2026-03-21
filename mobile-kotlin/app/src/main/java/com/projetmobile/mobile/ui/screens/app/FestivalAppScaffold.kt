@@ -53,10 +53,12 @@ internal fun FestivalAppScaffold(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(
-                            text = chrome.title,
-                            modifier = Modifier.testTag("app-top-bar-title"),
-                        )
+                        if (chrome.title.isNotBlank()) {
+                            Text(
+                                text = chrome.title,
+                                modifier = Modifier.testTag("app-top-bar-title"),
+                            )
+                        }
                     },
                     navigationIcon = {
                         if (chrome.showBack) {

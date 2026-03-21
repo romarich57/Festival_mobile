@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
+import com.projetmobile.mobile.data.repository.games.GamesRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.ui.components.ImplementationPlaceholder
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationScreen
@@ -23,12 +24,19 @@ import com.projetmobile.mobile.ui.screens.auth.resetpassword.ResetPasswordScreen
 import com.projetmobile.mobile.ui.screens.auth.resetpassword.ResetPasswordViewModel
 import com.projetmobile.mobile.ui.screens.festival.FestivalScreen
 import com.projetmobile.mobile.ui.screens.festival.FestivalViewModel
+import com.projetmobile.mobile.ui.screens.games.GameDetailRoute
+import com.projetmobile.mobile.ui.screens.games.GameFormMode
+import com.projetmobile.mobile.ui.screens.games.GameFormRoute
+import com.projetmobile.mobile.ui.screens.games.GamesCatalogRoute
 import com.projetmobile.mobile.ui.screens.profile.ProfileScreen
 import com.projetmobile.mobile.ui.screens.profile.ProfileViewModel
 import com.projetmobile.mobile.ui.screens.profile.profileViewModelFactory
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
 import com.projetmobile.mobile.ui.utils.navigation.ForgotPassword
+import com.projetmobile.mobile.ui.utils.navigation.GameCreate
+import com.projetmobile.mobile.ui.utils.navigation.GameDetails
+import com.projetmobile.mobile.ui.utils.navigation.GameEdit
 import com.projetmobile.mobile.ui.utils.navigation.Login
 import com.projetmobile.mobile.ui.utils.navigation.PendingVerification
 import com.projetmobile.mobile.ui.utils.navigation.Profile
@@ -41,12 +49,17 @@ import com.projetmobile.mobile.ui.utils.session.AppSessionViewModel
 internal fun festivalAppEntryProvider(
     authRepository: AuthRepository,
     festivalRepository: FestivalRepository,
+    gamesRepository: GamesRepository,
     profileRepository: ProfileRepository,
     sessionUiState: AppSessionUiState,
     sessionViewModel: AppSessionViewModel,
+    gamesRefreshSignal: Int,
+    gamesFlashMessage: String?,
     onOpenRoot: (TopLevelTab) -> Unit,
     onOpenSecondary: (TopLevelTab, AppNavKey) -> Unit,
     onSelectTopLevelTab: (TopLevelTab) -> Unit,
+    onConsumeGamesFlashMessage: () -> Unit,
+    onGamesSaved: (String) -> Unit,
 ): (AppNavKey) -> NavEntry<AppNavKey> {
     return { key ->
         when (key) {
@@ -66,7 +79,49 @@ internal fun festivalAppEntryProvider(
             }
 
             com.projetmobile.mobile.ui.utils.navigation.Games -> NavEntry(key) {
-                ImplementationPlaceholder()
+                GamesCatalogRoute(
+                    gamesRepository = gamesRepository,
+                    currentUserRole = sessionUiState.currentUser?.role,
+                    gamesRefreshSignal = gamesRefreshSignal,
+                    gamesFlashMessage = gamesFlashMessage,
+                    onConsumeGamesFlashMessage = onConsumeGamesFlashMessage,
+                    onCreateGame = { onOpenSecondary(TopLevelTab.Games, GameCreate) },
+                    onOpenGameDetails = { gameId ->
+                        onOpenSecondary(TopLevelTab.Games, GameDetails(gameId))
+                    },
+                    onEditGame = { gameId ->
+                        onOpenSecondary(TopLevelTab.Games, GameEdit(gameId))
+                    },
+                )
+            }
+
+            GameCreate -> NavEntry(key) {
+                GameFormRoute(
+                    gamesRepository = gamesRepository,
+                    mode = GameFormMode.Create,
+                    onBackToList = { onOpenRoot(TopLevelTab.Games) },
+                    onGameSaved = onGamesSaved,
+                )
+            }
+
+            is GameDetails -> NavEntry(key) {
+                GameDetailRoute(
+                    gamesRepository = gamesRepository,
+                    gameId = key.gameId,
+                    currentUserRole = sessionUiState.currentUser?.role,
+                    onEditGame = { gameId ->
+                        onOpenSecondary(TopLevelTab.Games, GameEdit(gameId))
+                    },
+                )
+            }
+
+            is GameEdit -> NavEntry(key) {
+                GameFormRoute(
+                    gamesRepository = gamesRepository,
+                    mode = GameFormMode.Edit(key.gameId),
+                    onBackToList = { onOpenRoot(TopLevelTab.Games) },
+                    onGameSaved = onGamesSaved,
+                )
             }
 
             Login -> NavEntry(key) {

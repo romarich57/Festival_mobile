@@ -17,6 +17,15 @@ data object Reservants : AppNavKey
 data object Games : AppNavKey
 
 @Serializable
+data object GameCreate : AppNavKey
+
+@Serializable
+data class GameDetails(val gameId: Int) : AppNavKey
+
+@Serializable
+data class GameEdit(val gameId: Int) : AppNavKey
+
+@Serializable
 data object Login : AppNavKey
 
 @Serializable

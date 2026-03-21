@@ -1,6 +1,8 @@
 package com.projetmobile.mobile.data.database
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import okhttp3.Cookie
@@ -23,17 +25,8 @@ class PersistentCookieJar(context: Context) : CookieJar {
 
 private class SecureCookieStore(context: Context) {
     private val lock = Any()
-
-    private val sharedPreferences by lazy {
-        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-        EncryptedSharedPreferences.create(
-            "festival_mobile_cookies",
-            masterKeyAlias,
-            context,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
-    }
+    private val applicationContext = context.applicationContext
+    private var sharedPreferences: SharedPreferences? = null
 
     fun saveCookies(cookies: List<Cookie>) {
         synchronized(lock) {
@@ -70,13 +63,19 @@ private class SecureCookieStore(context: Context) {
     }
 
     private fun readCookies(): List<Cookie> {
-        val serializedCookies = sharedPreferences.getString(COOKIE_STORE_KEY, null) ?: return emptyList()
-        val jsonArray = JSONArray(serializedCookies)
-        return buildList {
-            for (index in 0 until jsonArray.length()) {
-                val cookieJson = jsonArray.optJSONObject(index) ?: continue
-                deserializeCookie(cookieJson)?.let(::add)
+        return runCatching {
+            val serializedCookies = getSharedPreferences().getString(COOKIE_STORE_KEY, null) ?: return emptyList()
+            val jsonArray = JSONArray(serializedCookies)
+            buildList {
+                for (index in 0 until jsonArray.length()) {
+                    val cookieJson = jsonArray.optJSONObject(index) ?: continue
+                    deserializeCookie(cookieJson)?.let(::add)
+                }
             }
+        }.getOrElse { throwable ->
+            Log.w(TAG, "Cookie store corrompu, réinitialisation locale.", throwable)
+            clearCorruptedStore()
+            emptyList()
         }
     }
 
@@ -86,9 +85,14 @@ private class SecureCookieStore(context: Context) {
             jsonArray.put(serializeCookie(cookie))
         }
 
-        sharedPreferences.edit()
-            .putString(COOKIE_STORE_KEY, jsonArray.toString())
-            .apply()
+        runCatching {
+            getSharedPreferences().edit()
+                .putString(COOKIE_STORE_KEY, jsonArray.toString())
+                .apply()
+        }.getOrElse { throwable ->
+            Log.w(TAG, "Impossible d'écrire le cookie store, réinitialisation locale.", throwable)
+            clearCorruptedStore()
+        }
     }
 
     private fun serializeCookie(cookie: Cookie): JSONObject {
@@ -145,7 +149,39 @@ private class SecureCookieStore(context: Context) {
         return "${cookie.name}|${cookie.domain}|${cookie.path}"
     }
 
+    private fun getSharedPreferences(): SharedPreferences {
+        sharedPreferences?.let { return it }
+
+        return runCatching {
+            createEncryptedPreferences()
+        }.recoverCatching {
+            Log.w(TAG, "Préférences chiffrées invalides, suppression du store local.", it)
+            clearCorruptedStore()
+            createEncryptedPreferences()
+        }.getOrThrow().also { preferences ->
+            sharedPreferences = preferences
+        }
+    }
+
+    private fun createEncryptedPreferences(): SharedPreferences {
+        val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+        return EncryptedSharedPreferences.create(
+            PREFERENCES_NAME,
+            masterKeyAlias,
+            applicationContext,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+    }
+
+    private fun clearCorruptedStore() {
+        sharedPreferences = null
+        applicationContext.deleteSharedPreferences(PREFERENCES_NAME)
+    }
+
     private companion object {
+        private const val TAG = "SecureCookieStore"
+        private const val PREFERENCES_NAME = "festival_mobile_cookies"
         private const val COOKIE_STORE_KEY = "cookies_json"
     }
 }

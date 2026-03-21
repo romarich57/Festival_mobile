@@ -19,10 +19,14 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import com.projetmobile.mobile.AppContainer
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
+import com.projetmobile.mobile.data.repository.games.GamesRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.ui.utils.navigation.Admin
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
+import com.projetmobile.mobile.ui.utils.navigation.GameCreate
+import com.projetmobile.mobile.ui.utils.navigation.GameDetails
+import com.projetmobile.mobile.ui.utils.navigation.GameEdit
 import com.projetmobile.mobile.ui.utils.navigation.Games
 import com.projetmobile.mobile.ui.utils.navigation.Login
 import com.projetmobile.mobile.ui.utils.navigation.Profile
@@ -46,6 +50,7 @@ fun FestivalApp(
     FestivalApp(
         authRepository = appContainer.authRepository,
         festivalRepository = appContainer.festivalRepository,
+        gamesRepository = appContainer.gamesRepository,
         profileRepository = appContainer.profileRepository,
         incomingDestinations = incomingDestinations,
     )
@@ -56,6 +61,7 @@ fun FestivalApp(
 fun FestivalApp(
     authRepository: AuthRepository,
     festivalRepository: FestivalRepository,
+    gamesRepository: GamesRepository,
     profileRepository: ProfileRepository,
     incomingDestinations: Flow<AppNavKey> = emptyFlow(),
 ) {
@@ -74,6 +80,8 @@ fun FestivalApp(
 
     var selectedTopLevelTab by rememberSaveable { mutableStateOf(TopLevelTab.Festivals) }
     var previousAuthenticationState by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    var gamesRefreshSignal by rememberSaveable { mutableStateOf(0) }
+    var gamesFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     val isAuthenticated = sessionUiState.currentUser != null
     val userRole = sessionUiState.currentUser?.role
@@ -135,12 +143,21 @@ fun FestivalApp(
     val entryProvider = festivalAppEntryProvider(
         authRepository = authRepository,
         festivalRepository = festivalRepository,
+        gamesRepository = gamesRepository,
         profileRepository = profileRepository,
         sessionUiState = sessionUiState,
         sessionViewModel = sessionViewModel,
+        gamesRefreshSignal = gamesRefreshSignal,
+        gamesFlashMessage = gamesFlashMessage,
         onOpenRoot = ::openRoot,
         onOpenSecondary = ::openSecondary,
         onSelectTopLevelTab = { selectedTopLevelTab = it },
+        onConsumeGamesFlashMessage = { gamesFlashMessage = null },
+        onGamesSaved = { message ->
+            gamesFlashMessage = message
+            gamesRefreshSignal += 1
+            openRoot(TopLevelTab.Games)
+        },
     )
 
     val entryDecorators: List<NavEntryDecorator<AppNavKey>> = listOf(
@@ -207,7 +224,13 @@ fun FestivalApp(
             when (ownerTab(destination)) {
                 TopLevelTab.Festivals -> openRoot(TopLevelTab.Festivals)
                 TopLevelTab.Reservants -> openRoot(TopLevelTab.Reservants)
-                TopLevelTab.Games -> openRoot(TopLevelTab.Games)
+                TopLevelTab.Games -> when (destination) {
+                    Games -> openRoot(TopLevelTab.Games)
+                    GameCreate -> openSecondary(TopLevelTab.Games, GameCreate)
+                    is GameDetails -> openSecondary(TopLevelTab.Games, destination)
+                    is GameEdit -> openSecondary(TopLevelTab.Games, destination)
+                    else -> openRoot(TopLevelTab.Games)
+                }
                 TopLevelTab.Login -> openSecondary(TopLevelTab.Login, destination)
                 TopLevelTab.Register -> openSecondary(TopLevelTab.Register, destination)
                 TopLevelTab.Profile -> openRoot(TopLevelTab.Profile)
