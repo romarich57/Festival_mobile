@@ -98,4 +98,15 @@ class ReservationViewModel(
             }
         }
     }
+
+    fun deleteReservation(reservationId: Int, festivalId: Int) {
+        viewModelScope.launch {
+            try {
+                repository.deleteReservation(reservationId) // Appelle ton API DELETE
+                loadReservations(festivalId) // Rafraîchit la liste après suppression
+            } catch (e: Exception) {
+                errorMessage.value = "Erreur lors de la suppression"
+            }
+        }
+    }
 }

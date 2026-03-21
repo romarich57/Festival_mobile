@@ -6,4 +6,6 @@ interface ReservationRepository {
     suspend fun getReservations(festivalId: Int): List<ReservationDashboardRowEntity>
 
     suspend fun createReservation(payload: ReservationCreatePayloadDto)
+
+    suspend fun deleteReservation(festivalId: Int)
 }

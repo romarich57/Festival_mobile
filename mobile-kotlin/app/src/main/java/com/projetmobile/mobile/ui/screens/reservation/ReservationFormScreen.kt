@@ -17,6 +17,9 @@ fun ReservationFormScreen(
     var email by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("editeur") }
 
+    val typeOptions = listOf("editeur", "boutique", "prestataire", "animateur", "association")
+    var expanded by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
         Text("Nouvelle Réservation", style = MaterialTheme.typography.headlineMedium)
@@ -38,12 +41,41 @@ fun ReservationFormScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = type,
-            onValueChange = { type = it },
-            label = { Text("Type (ex: editeur, boutique...)") },
+        @OptIn(ExperimentalMaterial3Api::class) // Nécessaire pour le composant ExposedDropdownMenuBox
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
             modifier = Modifier.fillMaxWidth()
-        )
+        ) {
+            OutlinedTextField(
+                value = type,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Type de réservant") },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                typeOptions.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption.replaceFirstChar { it.uppercase() }) },
+                        onClick = {
+                            type = selectionOption
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(32.dp))
 
         // Boutons en bas

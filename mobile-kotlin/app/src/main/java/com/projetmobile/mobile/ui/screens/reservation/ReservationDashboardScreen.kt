@@ -23,6 +23,9 @@ fun ReservationDashboardScreen(
     val error by viewModel.errorMessage.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var idToDelete by remember { mutableStateOf<Int?>(null) }
+
     // Lancement au démarrage de l'écran (équivalent du effect() dans le constructor)
     LaunchedEffect(festivalId) {
         viewModel.loadReservations(festivalId)
@@ -33,12 +36,15 @@ fun ReservationDashboardScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Dashboard des Réservations", style = MaterialTheme.typography.headlineMedium)
+            Text(
+                text = "Dashboard des Réservations",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f))
             Button(onClick = onNavigateToCreate) { // On déclenche la navigation ici
                 Text("Nouvelle Reservation")
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // La barre de recherche
         OutlinedTextField(
@@ -61,11 +67,41 @@ fun ReservationDashboardScreen(
                     items(reservations, key = { it.id }) { reservation ->
                         ReservationCard(
                             reservation = reservation,
-                            onViewDetailsClick = { onNavigateToDetails(it) }
+                            onViewDetailsClick = { onNavigateToDetails(it) },
+                            onDeleteClick = { id ->
+                                idToDelete = id
+                                showDeleteDialog = true
+                            }
                         )
                     }
                 }
             }
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false }, // Si on clique à côté
+                title = { Text("Confirmer la suppression") },
+                text = { Text("Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action est irréversible.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            idToDelete?.let { id ->
+                                viewModel.deleteReservation(id, festivalId)
+                            }
+                            showDeleteDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Supprimer")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Annuler")
+                    }
+                }
+            )
         }
     }
 }

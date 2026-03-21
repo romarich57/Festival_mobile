@@ -18,6 +18,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import com.projetmobile.mobile.data.remote.common.ApiJson
+import okhttp3.MediaType.Companion.toMediaType
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class AppContainer(context: Context) {
     private val applicationContext = context.applicationContext
@@ -57,7 +60,7 @@ class AppContainer(context: Context) {
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
             .client(httpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .addConverterFactory(ApiJson.instance.asConverterFactory("application/json".toMediaType()))
             .build()
     }
 

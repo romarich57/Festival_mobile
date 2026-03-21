@@ -17,4 +17,8 @@ class ReservationRepositoryImpl(
         api.createReservation(payload)
     }
 
+    override suspend fun deleteReservation(reservationId: Int) {
+        api.deleteReservation(reservationId)
+    }
+
 }

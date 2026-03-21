@@ -1,10 +1,18 @@
 package com.projetmobile.mobile.ui.components
 
+import android.graphics.Color
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
@@ -12,31 +20,37 @@ import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
 @Composable
 fun ReservationCard(
     reservation: ReservationDashboardRowEntity,
-    onViewDetailsClick: (Int) -> Unit
+    onViewDetailsClick: (Int) -> Unit,
+    onDeleteClick: (Int) -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable { onViewDetailsClick(reservation.id) },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface, // Couleur standard du thème
+            contentColor = MaterialTheme.colorScheme.onSurface  // Couleur du texte adaptée
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = reservation.reservantName, style = MaterialTheme.typography.titleMedium)
-            Text(text = "Type: ${reservation.reservantType}", style = MaterialTheme.typography.bodyMedium)
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = reservation.reservantName ?: "Inconnu", style = MaterialTheme.typography.titleMedium)
+                Text(text = reservation.reservantType, style = MaterialTheme.typography.bodySmall)
+                Text(text = "Statut: ${reservation.workflowState}", style = MaterialTheme.typography.bodySmall)
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Badge { Text(reservation.workflowState) } //Badge c'est un composant de Material3 pour afficher des statuts ou des étiquettes
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Button(onClick = { onViewDetailsClick(reservation.id) }) {
-                Text("Voir Détails")
+            // On ne laisse que la poubelle ici
+            IconButton(onClick = { onDeleteClick(reservation.id) }) {
+                Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
 
-    fun onViewDetailsClick(reservationId: Int) {
-        // Ici tu peux faire la navigation vers l'écran de détails
-        // Par exemple, si tu utilises NavController, tu pourrais faire :
-        // navController.navigate("reservation_details/$reservationId") ATTENTION C'EST PAS NAV3
-    }
+
+
 }
