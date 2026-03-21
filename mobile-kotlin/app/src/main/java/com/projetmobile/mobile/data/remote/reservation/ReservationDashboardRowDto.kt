@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.data.remote
+package com.projetmobile.mobile.data.remote.reservation
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

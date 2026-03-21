@@ -40,7 +40,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.projetmobile.mobile.AppContainer
-import com.projetmobile.mobile.data.remote.ReservationRepository
+import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.ui.components.GradientScreenBackground

@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.data.remote
+package com.projetmobile.mobile.data.remote.reservation
 
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi

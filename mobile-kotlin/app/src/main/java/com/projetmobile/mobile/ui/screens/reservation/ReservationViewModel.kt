@@ -6,12 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
-import com.projetmobile.mobile.data.remote.ReservationCreatePayloadDto
-import com.projetmobile.mobile.data.remote.ReservationRepository
-import com.projetmobile.mobile.data.remote.ReservationRepositoryImpl
+import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
+import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
+import com.projetmobile.mobile.data.repository.reservation.ReservationRepositoryImpl
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import com.projetmobile.mobile.data.remote.ReservationApiService
+import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
 
 class ReservationViewModel(
     private val repository: ReservationRepository

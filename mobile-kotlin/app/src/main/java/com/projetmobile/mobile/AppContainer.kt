@@ -5,9 +5,9 @@ import com.projetmobile.mobile.data.remote.auth.AuthApiService
 import com.projetmobile.mobile.data.remote.festival.FestivalApiService
 import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.database.PersistentCookieJar
-import com.projetmobile.mobile.data.remote.ReservationApiService
-import com.projetmobile.mobile.data.remote.ReservationRepository
-import com.projetmobile.mobile.data.remote.ReservationRepositoryImpl
+import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
+import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
+import com.projetmobile.mobile.data.repository.reservation.ReservationRepositoryImpl
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepositoryImpl
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository

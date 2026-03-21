@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.data.remote
+package com.projetmobile.mobile.data.remote.reservation
 
 import retrofit2.http.Body
 import retrofit2.http.DELETE

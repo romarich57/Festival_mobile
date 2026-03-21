@@ -1,6 +1,6 @@
 package com.projetmobile.mobile.data.mapper
 
-import com.projetmobile.mobile.data.remote.ReservationDashboardRowDto
+import com.projetmobile.mobile.data.remote.reservation.ReservationDashboardRowDto
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
 
 fun ReservationDashboardRowDto.toEntity(): ReservationDashboardRowEntity {

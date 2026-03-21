@@ -1,7 +1,9 @@
-package com.projetmobile.mobile.data.remote
+package com.projetmobile.mobile.data.repository.reservation
 
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
 import com.projetmobile.mobile.data.mapper.toEntity
+import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
+import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
 
 class ReservationRepositoryImpl(
     private val api: ReservationApiService
