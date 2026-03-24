@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
+import com.projetmobile.mobile.ui.components.FestivalDatePicker
 import com.projetmobile.mobile.ui.components.FestivalTextField
 
 /**
@@ -66,18 +67,18 @@ fun FestivalFormScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            FestivalTextField(
+            FestivalDatePicker(
                 value = uiState.startDate,
                 onValueChange = viewModel::onStartDateChange,
-                label = "Début (yyyy-MM-dd) *",
+                label = "Début *",
                 isError = uiState.startDateError != null,
                 supportingText = uiState.startDateError,
                 modifier = Modifier.weight(1f),
             )
-            FestivalTextField(
+            FestivalDatePicker(
                 value = uiState.endDate,
                 onValueChange = viewModel::onEndDateChange,
-                label = "Fin (yyyy-MM-dd) *",
+                label = "Fin *",
                 isError = uiState.endDateError != null,
                 supportingText = uiState.endDateError,
                 modifier = Modifier.weight(1f),
