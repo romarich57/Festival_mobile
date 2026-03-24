@@ -20,4 +20,10 @@ class FestivalRepositoryImpl(
             festivalApiService.addFestival(festival)
         }
     }
+
+    override suspend fun deleteFestival(id: Int): Result<Unit> {
+        return runCatching {
+            festivalApiService.deleteFestival(id)
+        }
+    }
 }

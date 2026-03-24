@@ -11,18 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel de la liste des festivals.
- *
- * Équivalents Angular :
- *  - loadFestivals()          = effect(() => _festivalService.loadAllFestivals())
- *  - selectFestival()         = festivalStore.setCurrentFestival(festival)
- *  - clearSelection()         = festivalStore.setCurrentFestival(null)
- *  - requestDeleteFestival()  = requestDeleteFestival() dans FestivalListComponent
- *  - confirmDelete()          = confirmDeleteFestival() → _festivalService.deleteFestival()
- *  - currentFestivalId        = computed(() => festivalStore.currentFestival()?.id)
- *  - pendingDeleteFestivalId  = signal<number | null>()
- */
 class FestivalViewModel(
     private val festivalRepository: FestivalRepository,
 ) : ViewModel() {
@@ -47,7 +35,7 @@ class FestivalViewModel(
 
     fun loadFestivals() {
         viewModelScope.launch {
-            _uiState.value = FestivalUiState(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true)
             festivalRepository.getFestivals()
                 .onSuccess { festivals ->
                     _uiState.value = FestivalUiState(
@@ -93,22 +81,29 @@ class FestivalViewModel(
 
     /**
      * Confirme et exécute la suppression.
-     * À brancher quand le repository aura deleteFestival(id).
-     *
-     * TODO : appeler festivalRepository.deleteFestival(id) quand disponible.
      */
     fun confirmDelete() {
         val id = _pendingDeleteFestivalId.value ?: return
         viewModelScope.launch {
-            // festivalRepository.deleteFestival(id)
-            //     .onSuccess { ... }
-            //     .onFailure { ... }
-            if (_currentFestivalId.value == id) clearSelection()
-            _pendingDeleteFestivalId.value = null
+            festivalRepository.deleteFestival(id)
+                .onSuccess {
+                    if (_currentFestivalId.value == id) clearSelection()
+                    _pendingDeleteFestivalId.value = null
+                    loadFestivals() // Recharger la liste après suppression
+                }
+                .onFailure { throwable ->
+                    _pendingDeleteFestivalId.value = null
+                    // On garde la liste des festivals et on affiche juste l'erreur
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Suppression impossible : ${throwable.localizedMessage}. Vérifiez vos droits."
+                    )
+                }
         }
     }
 
-    // ── Factory ───────────────────────────────────────────────────────────────
+    fun consumeError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
 
     companion object {
         fun factory(festivalRepository: FestivalRepository): ViewModelProvider.Factory =
