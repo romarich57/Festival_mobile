@@ -10,4 +10,7 @@ data class FestivalSummary(
     val stockTablesMairie: Int,
     val stockChaises: Int,
     val prixPrises: Double,
-)
+) {
+    val totalTables: Int
+        get() = stockTablesStandard + stockTablesGrande + stockTablesMairie
+}

@@ -1,100 +1,63 @@
 package com.projetmobile.mobile.ui.screens.festival
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import com.projetmobile.mobile.ui.screens.festival.FestivalViewModel
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.projetmobile.mobile.data.entity.festival.FestivalSummary
-import com.projetmobile.mobile.ui.components.AuthCard
-import com.projetmobile.mobile.ui.components.AuthLinkButton
-import androidx.compose.foundation.clickable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.projetmobile.mobile.ui.components.festival.FestivalList
 
-
+/**
+ * Écran liste des festivals.
+ *
+ * Équivalent du FestivalListComponent Angular côté orchestration :
+ *  - Lit le ViewModel (comme inject(FestivalService) + inject(FestivalState))
+ *  - Calcule currentFestivalId (comme computed() dans Angular)
+ *  - Branche les callbacks vers le ViewModel
+ *  - Délègue l'affichage à FestivalList (comme le template Angular délègue à FestivalCard)
+ *
+ * ⚠️ FestivalList et FestivalCard ne connaissent pas le ViewModel.
+ *    Seul ce fichier fait le pont entre UI et logique métier.
+ *
+ * @param viewModel       Source de vérité partagée (festivals + festival courant).
+ * @param canDelete       Équivalent isSuperOrganizer Angular — fourni par la nav/auth.
+ * @param onFestivalClick Navigation vers le détail après sélection.
+ */
 @Composable
 fun FestivalScreen(
-    uiState: FestivalUiState,
-    onRetry: () -> Unit,
-    onFestivalClick: (Int) -> Unit,
+    viewModel: FestivalViewModel,
     modifier: Modifier = Modifier,
+    canDelete: Boolean = false,
+    onFestivalClick: (id: Int) -> Unit = {},
 ) {
-    when {
-        uiState.isLoading -> {
-            AuthCard(modifier = modifier) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(28.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-            }
-        }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        uiState.errorMessage != null -> {
-            AuthCard(modifier = modifier) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(28.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Text(uiState.errorMessage, color = MaterialTheme.colorScheme.error)
-                    AuthLinkButton(text = "Réessayer", onClick = onRetry)
-                }
-            }
-        }
+    // Équivalent : computed(() => festivalStore.currentFestival()?.id)
+    val currentFestivalId by viewModel.currentFestivalId.collectAsStateWithLifecycle()
 
-        else -> {
-            LazyColumn(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(uiState.festivals) { festival ->
-                    FestivalItemCard(festival, onClick = {onFestivalClick(festival.id)})
-                }
-            }
-        }
-    }
-}
+    FestivalList(
+        festivals = uiState.festivals,
+        currentFestivalId = currentFestivalId,
+        isLoading = uiState.isLoading,
+        errorMessage = uiState.errorMessage,
+        canDelete = canDelete,
+        modifier = modifier,
 
-@Composable
-private fun FestivalItemCard(festival: FestivalSummary, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {onClick()},
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = festival.name,
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                text = "Du ${festival.startDate} au ${festival.endDate}",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = "Tables standard: ${festival.stockTablesStandard} • Chaises: ${festival.stockChaises}",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
+        // Équivalent onFestivalClick() Angular → setCurrentFestival + navigate
+        onSelect = { id ->
+            if (id != null) {
+                viewModel.selectFestival(id)
+                onFestivalClick(id)
+            } else {
+                viewModel.clearSelection()
+            }
+        },
+
+        // Équivalent requestDeleteFestival() Angular
+        onDeleteRequest = { id ->
+            viewModel.requestDeleteFestival(id)
+        },
+
+        // Équivalent rechargement liste
+        onRetry = { viewModel.loadFestivals() },
+    )
 }

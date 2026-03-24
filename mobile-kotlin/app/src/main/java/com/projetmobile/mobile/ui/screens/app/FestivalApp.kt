@@ -186,8 +186,7 @@ fun FestivalApp(
                 )
                 val festivalUiState by festivalViewModel.uiState.collectAsStateWithLifecycle()
                 FestivalScreen(
-                    uiState = festivalUiState,
-                    onRetry = festivalViewModel::loadFestivals,
+                    viewModel = festivalViewModel,
                     onFestivalClick = { festivalId ->
                         festivalsBackStack.add(ReservationDashboard(festivalId))
                     }
