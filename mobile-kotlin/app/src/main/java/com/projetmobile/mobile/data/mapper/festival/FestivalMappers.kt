@@ -13,7 +13,7 @@ import com.projetmobile.mobile.ui.utils.formatDate
  */
 @RequiresApi(Build.VERSION_CODES.O)
 fun FestivalDto.toFestivalSummary(): FestivalSummary = FestivalSummary(
-    id = id,
+    id = id ?: -1,
     name = name,
     startDate = formatDate(startDate),   // format dd/mm//yyyy
     endDate = formatDate(endDate),

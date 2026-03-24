@@ -56,11 +56,17 @@ import com.projetmobile.mobile.ui.screens.auth.register.RegisterScreen
 import com.projetmobile.mobile.ui.screens.auth.register.RegisterViewModel
 import com.projetmobile.mobile.ui.screens.auth.resetpassword.ResetPasswordScreen
 import com.projetmobile.mobile.ui.screens.auth.resetpassword.ResetPasswordViewModel
+import com.projetmobile.mobile.ui.screens.festivalForm.FestivalFormScreen
+import com.projetmobile.mobile.ui.screens.festivalForm.FestivalFormViewModel
 import com.projetmobile.mobile.ui.screens.festival.FestivalScreen
 import com.projetmobile.mobile.ui.screens.festival.FestivalViewModel
 import com.projetmobile.mobile.ui.screens.profile.ProfileScreen
+import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
+import com.projetmobile.mobile.ui.screens.reservation.ReservationFormScreen
+import com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel
 import com.projetmobile.mobile.ui.utils.navigation.Admin
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
+import com.projetmobile.mobile.ui.utils.navigation.FestivalForm
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
 import com.projetmobile.mobile.ui.utils.navigation.ForgotPassword
 import com.projetmobile.mobile.ui.utils.navigation.Games
@@ -70,6 +76,7 @@ import com.projetmobile.mobile.ui.utils.navigation.Profile
 import com.projetmobile.mobile.ui.utils.navigation.Reservants
 import com.projetmobile.mobile.ui.utils.navigation.Register
 import com.projetmobile.mobile.ui.utils.navigation.ReservationDashboard
+import com.projetmobile.mobile.ui.utils.navigation.ReservationForm
 import com.projetmobile.mobile.ui.utils.navigation.ResetPassword
 import com.projetmobile.mobile.ui.utils.navigation.TopLevelTab
 import com.projetmobile.mobile.ui.utils.navigation.VerificationResult
@@ -80,8 +87,6 @@ import com.projetmobile.mobile.ui.utils.navigation.visibleTabs
 import com.projetmobile.mobile.ui.utils.session.AppSessionViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import com.projetmobile.mobile.ui.utils.navigation.ReservationForm
-import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,56 +185,63 @@ fun FestivalApp(
 
     val entryProvider: (AppNavKey) -> NavEntry<AppNavKey> = { key ->
         when (key) {
+
+            // ── SNIPPET 3 : bloc Festivals mis à jour ─────────────────────────
             Festivals -> NavEntry(key) {
                 val festivalViewModel: FestivalViewModel = viewModel(
                     factory = FestivalViewModel.factory(festivalRepository),
                 )
-                val festivalUiState by festivalViewModel.uiState.collectAsStateWithLifecycle()
                 FestivalScreen(
                     viewModel = festivalViewModel,
+                    isAuthenticated = isAuthenticated,
                     onFestivalClick = { festivalId ->
                         festivalsBackStack.add(ReservationDashboard(festivalId))
-                    }
+                    },
+                    onAddClick = {
+                        festivalsBackStack.add(FestivalForm)
+                    },
+                )
+            }
+
+            // ── SNIPPET 4 : nouvel écran formulaire création festival ──────────
+            FestivalForm -> NavEntry(key) {
+                val festivalFormViewModel: FestivalFormViewModel = viewModel(
+                    factory = FestivalFormViewModel.factory(festivalRepository),
+                )
+                FestivalFormScreen(
+                    viewModel = festivalFormViewModel,
+                    onBack = { festivalsBackStack.removeLastOrNull() },
                 )
             }
 
             is ReservationDashboard -> NavEntry(key) {
-                val reservationViewModel: com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel = viewModel(
-                    factory = com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel.factory(reservationRepository)
+                val reservationViewModel: ReservationViewModel = viewModel(
+                    factory = ReservationViewModel.factory(reservationRepository),
                 )
-
                 ReservationDashboardScreen(
                     festivalId = key.festivalId,
                     viewModel = reservationViewModel,
-                    onNavigateToDetails = { reservationId -> },
+                    onNavigateToDetails = { },
                     onNavigateToCreate = {
-                        festivalsBackStack.add(com.projetmobile.mobile.ui.utils.navigation.ReservationForm(key.festivalId))
-                    }
+                        festivalsBackStack.add(ReservationForm(key.festivalId))
+                    },
                 )
             }
 
             is ReservationForm -> NavEntry(key) {
-
-                val reservationViewModel: com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel = viewModel(
-                    factory = com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel.factory(reservationRepository)
+                val reservationViewModel: ReservationViewModel = viewModel(
+                    factory = ReservationViewModel.factory(reservationRepository),
                 )
-
-                com.projetmobile.mobile.ui.screens.reservation.ReservationFormScreen(
+                ReservationFormScreen(
                     festivalId = key.festivalId,
                     viewModel = reservationViewModel,
-                    onNavigateBack = {
-                        festivalsBackStack.removeLastOrNull()
-                    }
+                    onNavigateBack = { festivalsBackStack.removeLastOrNull() },
                 )
             }
 
-            Reservants -> NavEntry(key) {
-                ImplementationPlaceholder()
-            }
+            Reservants -> NavEntry(key) { ImplementationPlaceholder() }
 
-            Games -> NavEntry(key) {
-                ImplementationPlaceholder()
-            }
+            Games -> NavEntry(key) { ImplementationPlaceholder() }
 
             Login -> NavEntry(key) {
                 val loginViewModel: LoginViewModel = viewModel(
@@ -313,7 +325,6 @@ fun FestivalApp(
                     factory = ForgotPasswordViewModel.factory(authRepository),
                 )
                 val forgotPasswordUiState by forgotPasswordViewModel.uiState.collectAsStateWithLifecycle()
-
                 ForgotPasswordScreen(
                     uiState = forgotPasswordUiState,
                     onEmailChanged = forgotPasswordViewModel::onEmailChanged,
@@ -331,9 +342,7 @@ fun FestivalApp(
                 )
             }
 
-            Admin -> NavEntry(key) {
-                ImplementationPlaceholder()
-            }
+            Admin -> NavEntry(key) { ImplementationPlaceholder() }
 
             is ResetPassword -> NavEntry(key) {
                 val resetPasswordViewModel: ResetPasswordViewModel = viewModel(
@@ -343,7 +352,6 @@ fun FestivalApp(
                     ),
                 )
                 val resetPasswordUiState by resetPasswordViewModel.uiState.collectAsStateWithLifecycle()
-
                 ResetPasswordScreen(
                     uiState = resetPasswordUiState,
                     onPasswordChanged = resetPasswordViewModel::onPasswordChanged,
@@ -380,20 +388,17 @@ fun FestivalApp(
             previousAuthenticationState == null -> {
                 previousAuthenticationState = isAuthenticated
             }
-
             previousAuthenticationState == true && !isAuthenticated -> {
                 resetPrivateStacks()
                 resetToRoot(TopLevelTab.Login)
                 selectedTopLevelTab = TopLevelTab.Login
                 previousAuthenticationState = false
             }
-
             previousAuthenticationState == false && isAuthenticated -> {
                 resetToRoot(TopLevelTab.Login)
                 selectedTopLevelTab = TopLevelTab.Festivals
                 previousAuthenticationState = true
             }
-
             else -> {
                 previousAuthenticationState = isAuthenticated
             }
@@ -412,7 +417,6 @@ fun FestivalApp(
                 selectedTopLevelTab = TopLevelTab.Festivals
                 return@collect
             }
-
             when (ownerTab(destination)) {
                 TopLevelTab.Festivals -> openRoot(TopLevelTab.Festivals)
                 TopLevelTab.Reservants -> openRoot(TopLevelTab.Reservants)
@@ -499,6 +503,11 @@ fun FestivalApp(
 }
 
 @Composable
+fun FestivalFormScreen(viewModel: FestivalFormViewModel, onBack: () -> AppNavKey?) {
+    TODO("Not yet implemented")
+}
+
+@Composable
 private fun AppNavDisplay(
     backStack: NavBackStack<AppNavKey>,
     entryDecorators: List<NavEntryDecorator<AppNavKey>>,
@@ -516,7 +525,6 @@ private fun AppNavDisplay(
                 selectedTopLevelTab != TopLevelTab.Festivals -> {
                     onSelectTopLevelTab(TopLevelTab.Festivals)
                 }
-
                 isAuthenticated -> Unit
                 else -> Unit
             }

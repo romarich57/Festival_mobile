@@ -1,6 +1,8 @@
 package com.projetmobile.mobile.ui.utils.navigation
 
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -58,6 +60,9 @@ data class ReservationDashboard(val festivalId: Int) : AppNavKey
 
 @Serializable
 data class ReservationForm(val festivalId: Int) : AppNavKey
+
+@Serializable
+data object FestivalForm : AppNavKey
 
 
 enum class TopLevelTab {
@@ -165,7 +170,7 @@ fun visibleTabs(isAuthenticated: Boolean, userRole: String?): List<TopLevelTab> 
 
 fun ownerTab(key: AppNavKey): TopLevelTab {
     return when (key) {
-        Festivals, is ReservationDashboard, is ReservationForm -> TopLevelTab.Festivals
+        Festivals, is ReservationDashboard, is ReservationForm, FestivalForm -> TopLevelTab.Festivals
         Reservants -> TopLevelTab.Reservants
         Games -> TopLevelTab.Games
         Login, ForgotPassword, is VerificationResult, is ResetPassword -> TopLevelTab.Login
@@ -189,7 +194,7 @@ fun chromeFor(
     return AppChromeState(
         title = topBarTitleFor(activeKey),
         showBack = activeBackStack.size > 1,
-        showBottomBar = true,
+        showBottomBar = activeKey !is FestivalForm,
         selectedTab = ownerTab(activeKey).let { owner ->
             if (owner in tabsToShow) owner else tabsToShow.first()
         },
@@ -201,6 +206,7 @@ fun topBarTitleFor(key: AppNavKey): String {
         Festivals -> "Festivals"
         is ReservationDashboard -> "Réservations"
         is ReservationForm -> "Nouvelle Réservation"
+        FestivalForm -> "Nouveau festival"
         Reservants -> "Réservants"
         Games -> "Jeux"
         Login -> "Connexion"
@@ -214,10 +220,12 @@ fun topBarTitleFor(key: AppNavKey): String {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun parseAppDeepLink(uri: Uri?): AppNavKey? {
     return parseAppDeepLinkString(uri?.toString())
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 fun parseAppDeepLinkString(rawUri: String?): AppNavKey? {
     val parsedUri = rawUri
         ?.takeIf { it.isNotBlank() }
@@ -267,6 +275,7 @@ private fun normalizeUserRole(userRole: String?): String? {
         ?.takeIf { it.isNotBlank() }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 private fun URI.queryParameters(): Map<String, String?> {
     val rawQuery = query ?: return emptyMap()
     if (rawQuery.isBlank()) {
