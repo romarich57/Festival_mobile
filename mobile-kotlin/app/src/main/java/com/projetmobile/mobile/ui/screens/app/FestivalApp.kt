@@ -185,8 +185,6 @@ fun FestivalApp(
 
     val entryProvider: (AppNavKey) -> NavEntry<AppNavKey> = { key ->
         when (key) {
-
-            // ── SNIPPET 3 : bloc Festivals mis à jour ─────────────────────────
             Festivals -> NavEntry(key) {
                 val festivalViewModel: FestivalViewModel = viewModel(
                     factory = FestivalViewModel.factory(festivalRepository),
@@ -203,7 +201,6 @@ fun FestivalApp(
                 )
             }
 
-            // ── SNIPPET 4 : nouvel écran formulaire création festival ──────────
             FestivalForm -> NavEntry(key) {
                 val festivalFormViewModel: FestivalFormViewModel = viewModel(
                     factory = FestivalFormViewModel.factory(festivalRepository),
@@ -503,11 +500,6 @@ fun FestivalApp(
 }
 
 @Composable
-fun FestivalFormScreen(viewModel: FestivalFormViewModel, onBack: () -> AppNavKey?) {
-    TODO("Not yet implemented")
-}
-
-@Composable
 private fun AppNavDisplay(
     backStack: NavBackStack<AppNavKey>,
     entryDecorators: List<NavEntryDecorator<AppNavKey>>,
@@ -533,8 +525,7 @@ private fun AppNavDisplay(
         entryProvider = entryProvider,
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
-            .padding(horizontal = 20.dp, vertical = 18.dp),
+            .padding(innerPadding),
     )
 }
 
