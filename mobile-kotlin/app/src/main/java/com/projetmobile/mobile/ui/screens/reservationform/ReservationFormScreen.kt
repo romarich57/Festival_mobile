@@ -1,4 +1,4 @@
-package com.projetmobile.mobile.ui.screens.reservation
+package com.projetmobile.mobile.ui.screens.reservationform
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -9,16 +9,21 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ReservationFormScreen(
     festivalId: Int,
-    viewModel: ReservationViewModel,
-    onNavigateBack: () -> Unit // L'action pour revenir au tableau de bord
+    uiState: ReservationFormUiState,
+    onNomChanged: (String) -> Unit,
+    onEmailChanged: (String) -> Unit,
+    onTypeChanged: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
-    // Les champs de saisie
-    var nom by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("editeur") }
-
     val typeOptions = listOf("editeur", "boutique", "prestataire", "animateur", "association")
     var expanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            onNavigateBack()
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
@@ -26,29 +31,29 @@ fun ReservationFormScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedTextField(
-            value = nom,
-            onValueChange = { nom = it },
+            value = uiState.nom,
+            onValueChange = onNomChanged,
             label = { Text("Nom du réservant") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = uiState.email,
+            onValueChange = onEmailChanged,
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        @OptIn(ExperimentalMaterial3Api::class) // Nécessaire pour le composant ExposedDropdownMenuBox
+        @OptIn(ExperimentalMaterial3Api::class)
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
             modifier = Modifier.fillMaxWidth()
         ) {
             OutlinedTextField(
-                value = type,
+                value = uiState.type,
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Type de réservant") },
@@ -69,16 +74,26 @@ fun ReservationFormScreen(
                     DropdownMenuItem(
                         text = { Text(selectionOption.replaceFirstChar { it.uppercase() }) },
                         onClick = {
-                            type = selectionOption
+                            onTypeChanged(selectionOption)
                             expanded = false
                         }
                     )
                 }
             }
         }
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Boutons en bas
+        if (uiState.errorMessage != null) {
+            Text(
+                text = uiState.errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -87,13 +102,18 @@ fun ReservationFormScreen(
                 Text("Annuler")
             }
 
-            Button(onClick = {
-                // 1. On lance la création dans le ViewModel
-                viewModel.createReservation(festivalId, nom, email, type)
-                // 2. On revient en arrière automatiquement
-                onNavigateBack()
-            }) {
-                Text("Créer la réservation")
+            Button(
+                onClick = onSubmit,
+                enabled = !uiState.isLoading
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Créer la réservation")
+                }
             }
         }
     }

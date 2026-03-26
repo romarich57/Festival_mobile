@@ -5,30 +5,27 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.ReservationCard
 
 @Composable
 fun ReservationDashboardScreen(
-    festivalId: Int, // Récupéré depuis la navigation
-    viewModel: ReservationViewModel,
-    onNavigateToDetails: (Int) -> Unit, //action pour changer de page vers les détails d'une réservation
-    onNavigateToCreate: () -> Unit //action pour changer de page vers le formulaire de création de réservation
+    festivalId: Int,
+    uiState: ReservationDashboardUiState,
+    filteredReservations: List<com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity>,
+    searchQuery: String,
+    onSearchQueryChanged: (String) -> Unit,
+    onLoadReservations: (Int) -> Unit,
+    onDeleteReservation: (Int, Int) -> Unit,
+    onNavigateToCreate: () -> Unit,
+    onNavigateToDetails: (Int) -> Unit,
 ) {
-    // Les états collectés depuis le ViewModel
-    val reservations by viewModel.filteredReservations.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.errorMessage.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-
     var showDeleteDialog by remember { mutableStateOf(false) }
     var idToDelete by remember { mutableStateOf<Int?>(null) }
 
-    // Lancement au démarrage de l'écran (équivalent du effect() dans le constructor)
     LaunchedEffect(festivalId) {
-        viewModel.loadReservations(festivalId)
+        onLoadReservations(festivalId)
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -39,32 +36,33 @@ fun ReservationDashboardScreen(
             Text(
                 text = "Dashboard des Réservations",
                 style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.weight(1f))
-            Button(onClick = onNavigateToCreate) { // On déclenche la navigation ici
+                modifier = Modifier.weight(1f)
+            )
+            Button(onClick = onNavigateToCreate) {
                 Text("Nouvelle Reservation")
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // La barre de recherche
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { viewModel.searchQuery.value = it },
+            onValueChange = onSearchQueryChanged,
             label = { Text("Rechercher un réservant...") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Gestion des états
         when {
-            isLoading -> CircularProgressIndicator()
-            error != null -> Text(text = "Erreur: $error", color = MaterialTheme.colorScheme.error)
-            reservations.isEmpty() -> Text("Aucune réservation trouvée.")
+            uiState.isLoading -> CircularProgressIndicator()
+            uiState.errorMessage != null -> Text(
+                text = "Erreur: ${uiState.errorMessage}",
+                color = MaterialTheme.colorScheme.error
+            )
+            filteredReservations.isEmpty() -> Text("Aucune réservation trouvée.")
             else -> {
-                // L'équivalent de ton @for d'Angular
                 LazyColumn {
-                    items(reservations, key = { it.id }) { reservation ->
+                    items(filteredReservations, key = { it.id }) { reservation ->
                         ReservationCard(
                             reservation = reservation,
                             onViewDetailsClick = { onNavigateToDetails(it) },
@@ -80,14 +78,14 @@ fun ReservationDashboardScreen(
 
         if (showDeleteDialog) {
             AlertDialog(
-                onDismissRequest = { showDeleteDialog = false }, // Si on clique à côté
+                onDismissRequest = { showDeleteDialog = false },
                 title = { Text("Confirmer la suppression") },
                 text = { Text("Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action est irréversible.") },
                 confirmButton = {
                     Button(
                         onClick = {
                             idToDelete?.let { id ->
-                                viewModel.deleteReservation(id, festivalId)
+                                onDeleteReservation(id, festivalId)
                             }
                             showDeleteDialog = false
                         },

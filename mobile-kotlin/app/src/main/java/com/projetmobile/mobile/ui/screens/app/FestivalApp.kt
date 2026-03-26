@@ -87,6 +87,14 @@ import com.projetmobile.mobile.ui.utils.navigation.visibleTabs
 import com.projetmobile.mobile.ui.utils.session.AppSessionViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+<<<<<<< Updated upstream
+=======
+import com.projetmobile.mobile.ui.utils.navigation.ReservationForm
+import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
+import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardViewModel
+import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormScreen
+import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormViewModel
+>>>>>>> Stashed changes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -212,6 +220,7 @@ fun FestivalApp(
             }
 
             is ReservationDashboard -> NavEntry(key) {
+<<<<<<< Updated upstream
                 val reservationViewModel: ReservationViewModel = viewModel(
                     factory = ReservationViewModel.factory(reservationRepository),
                 )
@@ -222,10 +231,32 @@ fun FestivalApp(
                     onNavigateToCreate = {
                         festivalsBackStack.add(ReservationForm(key.festivalId))
                     },
+=======
+                val reservationDashboardViewModel: ReservationDashboardViewModel = viewModel(
+                    factory = ReservationDashboardViewModel.factory(reservationRepository)
+                )
+                val dashboardUiState by reservationDashboardViewModel.uiState.collectAsStateWithLifecycle()
+                val filteredReservations by reservationDashboardViewModel.filteredReservations.collectAsStateWithLifecycle()
+                val searchQuery by reservationDashboardViewModel.searchQuery.collectAsStateWithLifecycle()
+
+                ReservationDashboardScreen(
+                    festivalId = key.festivalId,
+                    uiState = dashboardUiState,
+                    filteredReservations = filteredReservations,
+                    searchQuery = searchQuery,
+                    onSearchQueryChanged = { reservationDashboardViewModel.searchQuery.value = it },
+                    onLoadReservations = reservationDashboardViewModel::loadReservations,
+                    onDeleteReservation = reservationDashboardViewModel::deleteReservation,
+                    onNavigateToDetails = { },
+                    onNavigateToCreate = {
+                        festivalsBackStack.add(ReservationForm(key.festivalId))
+                    }
+>>>>>>> Stashed changes
                 )
             }
 
             is ReservationForm -> NavEntry(key) {
+<<<<<<< Updated upstream
                 val reservationViewModel: ReservationViewModel = viewModel(
                     factory = ReservationViewModel.factory(reservationRepository),
                 )
@@ -233,6 +264,23 @@ fun FestivalApp(
                     festivalId = key.festivalId,
                     viewModel = reservationViewModel,
                     onNavigateBack = { festivalsBackStack.removeLastOrNull() },
+=======
+                val reservationFormViewModel: ReservationFormViewModel = viewModel(
+                    factory = ReservationFormViewModel.factory(reservationRepository)
+                )
+                val formUiState by reservationFormViewModel.uiState.collectAsStateWithLifecycle()
+
+                ReservationFormScreen(
+                    festivalId = key.festivalId,
+                    uiState = formUiState,
+                    onNomChanged = reservationFormViewModel::onNomChanged,
+                    onEmailChanged = reservationFormViewModel::onEmailChanged,
+                    onTypeChanged = reservationFormViewModel::onTypeChanged,
+                    onSubmit = { reservationFormViewModel.createReservation(key.festivalId) },
+                    onNavigateBack = {
+                        festivalsBackStack.removeLastOrNull()
+                    }
+>>>>>>> Stashed changes
                 )
             }
 
