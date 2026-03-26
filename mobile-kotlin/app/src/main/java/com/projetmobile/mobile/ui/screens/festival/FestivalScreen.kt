@@ -1,100 +1,83 @@
 package com.projetmobile.mobile.ui.screens.festival
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.projetmobile.mobile.data.entity.festival.FestivalSummary
-import com.projetmobile.mobile.ui.components.AuthCard
-import com.projetmobile.mobile.ui.components.AuthLinkButton
-import androidx.compose.foundation.clickable
-
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
+import com.projetmobile.mobile.ui.components.AuthFeedbackTone
+import com.projetmobile.mobile.ui.components.festival.FestivalList
 
 @Composable
 fun FestivalScreen(
-    uiState: FestivalUiState,
-    onRetry: () -> Unit,
-    onFestivalClick: (Int) -> Unit,
+    viewModel: FestivalViewModel,
     modifier: Modifier = Modifier,
+    isAuthenticated: Boolean = false,
+    canDelete: Boolean = false,
+    onFestivalClick: (id: Int) -> Unit = {},
+    onAddClick: () -> Unit = {},
 ) {
-    when {
-        uiState.isLoading -> {
-            AuthCard(modifier = modifier) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(28.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-            }
-        }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val currentFestivalId by viewModel.currentFestivalId.collectAsStateWithLifecycle()
+    val pendingDeleteId by viewModel.pendingDeleteFestivalId.collectAsStateWithLifecycle()
 
-        uiState.errorMessage != null -> {
-            AuthCard(modifier = modifier) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(28.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Text(uiState.errorMessage, color = MaterialTheme.colorScheme.error)
-                    AuthLinkButton(text = "Réessayer", onClick = onRetry)
+    // Dialogue de confirmation
+    if (pendingDeleteId != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.cancelDelete() },
+            title = { Text("Supprimer le festival ?") },
+            text = { Text("Cette action est irréversible.") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmDelete() }) {
+                    Text("Supprimer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.cancelDelete() }) {
+                    Text("Annuler")
                 }
             }
-        }
-
-        else -> {
-            LazyColumn(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(uiState.festivals) { festival ->
-                    FestivalItemCard(festival, onClick = {onFestivalClick(festival.id)})
-                }
-            }
-        }
+        )
     }
-}
 
-@Composable
-private fun FestivalItemCard(festival: FestivalSummary, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {onClick()},
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = festival.name,
-                style = MaterialTheme.typography.titleLarge,
+    Column(modifier = modifier) {
+        // Affichage de l'erreur sous forme de bannière si elle existe
+        if (uiState.errorMessage != null && uiState.festivals.isNotEmpty()) {
+            AuthFeedbackBanner(
+                message = uiState.errorMessage!!,
+                tone = AuthFeedbackTone.Error,
+                modifier = Modifier.padding(16.dp)
             )
-            Text(
-                text = "Du ${festival.startDate} au ${festival.endDate}",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            Text(
-                text = "Tables standard: ${festival.stockTablesStandard} • Chaises: ${festival.stockChaises}",
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            // Optionnel : masquer l'erreur après quelques secondes ou via un clic
+            LaunchedEffect(uiState.errorMessage) {
+                kotlinx.coroutines.delay(5000)
+                viewModel.consumeError()
+            }
         }
+
+        FestivalList(
+            festivals = uiState.festivals,
+            currentFestivalId = currentFestivalId,
+            isLoading = uiState.isLoading,
+            errorMessage = if (uiState.festivals.isEmpty()) uiState.errorMessage else null,
+            canDelete = isAuthenticated,
+            canAdd = isAuthenticated,
+            onSelect = { id ->
+                if (id != null) {
+                    viewModel.selectFestival(id)
+                    onFestivalClick(id)
+                } else {
+                    viewModel.clearSelection()
+                }
+            },
+            onDeleteRequest = { id -> viewModel.requestDeleteFestival(id) },
+            onAddClick = onAddClick,
+            onRetry = { viewModel.loadFestivals() },
+        )
     }
 }

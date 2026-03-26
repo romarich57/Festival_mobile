@@ -14,16 +14,28 @@ import kotlinx.coroutines.launch
 class FestivalViewModel(
     private val festivalRepository: FestivalRepository,
 ) : ViewModel() {
+
+    // ── État liste ────────────────────────────────────────────────────────────
     private val _uiState = MutableStateFlow(FestivalUiState())
     val uiState: StateFlow<FestivalUiState> = _uiState.asStateFlow()
+
+    // ── Festival sélectionné (équivalent FestivalState.currentFestival) ───────
+    private val _currentFestivalId = MutableStateFlow<Int?>(null)
+    val currentFestivalId: StateFlow<Int?> = _currentFestivalId.asStateFlow()
+
+    // ── Suppression en attente (équivalent pendingDeleteFestivalId signal) ────
+    private val _pendingDeleteFestivalId = MutableStateFlow<Int?>(null)
+    val pendingDeleteFestivalId: StateFlow<Int?> = _pendingDeleteFestivalId.asStateFlow()
 
     init {
         loadFestivals()
     }
 
+    // ── Chargement ────────────────────────────────────────────────────────────
+
     fun loadFestivals() {
         viewModelScope.launch {
-            _uiState.value = FestivalUiState(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true)
             festivalRepository.getFestivals()
                 .onSuccess { festivals ->
                     _uiState.value = FestivalUiState(
@@ -36,19 +48,67 @@ class FestivalViewModel(
                     _uiState.value = FestivalUiState(
                         isLoading = false,
                         festivals = emptyList(),
-                        errorMessage = throwable.localizedMessage ?: "Impossible de charger les festivals.",
+                        errorMessage = throwable.localizedMessage
+                            ?: "Impossible de charger les festivals.",
                     )
                 }
         }
     }
 
-    companion object {
-        fun factory(festivalRepository: FestivalRepository): ViewModelProvider.Factory {
-            return viewModelFactory {
-                initializer {
-                    FestivalViewModel(festivalRepository)
+    // ── Sélection (équivalent festivalStore.setCurrentFestival) ──────────────
+
+    /** Sélectionne un festival par son id. */
+    fun selectFestival(id: Int) {
+        _currentFestivalId.value = id
+    }
+
+    /** Désélectionne le festival courant (émet null comme Angular). */
+    fun clearSelection() {
+        _currentFestivalId.value = null
+    }
+
+    // ── Suppression (équivalent requestDeleteFestival / confirmDeleteFestival) ─
+
+    /** Ouvre la confirmation de suppression. */
+    fun requestDeleteFestival(id: Int) {
+        _pendingDeleteFestivalId.value = id
+    }
+
+    /** Annule la suppression. */
+    fun cancelDelete() {
+        _pendingDeleteFestivalId.value = null
+    }
+
+    /**
+     * Confirme et exécute la suppression.
+     */
+    fun confirmDelete() {
+        val id = _pendingDeleteFestivalId.value ?: return
+        viewModelScope.launch {
+            festivalRepository.deleteFestival(id)
+                .onSuccess {
+                    if (_currentFestivalId.value == id) clearSelection()
+                    _pendingDeleteFestivalId.value = null
+                    loadFestivals() // Recharger la liste après suppression
                 }
-            }
+                .onFailure { throwable ->
+                    _pendingDeleteFestivalId.value = null
+                    // On garde la liste des festivals et on affiche juste l'erreur
+                    _uiState.value = _uiState.value.copy(
+                        errorMessage = "Suppression impossible : ${throwable.localizedMessage}. Vérifiez vos droits."
+                    )
+                }
         }
+    }
+
+    fun consumeError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+
+    companion object {
+        fun factory(festivalRepository: FestivalRepository): ViewModelProvider.Factory =
+            viewModelFactory {
+                initializer { FestivalViewModel(festivalRepository) }
+            }
     }
 }
