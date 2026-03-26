@@ -62,8 +62,6 @@ import com.projetmobile.mobile.ui.screens.festival.FestivalScreen
 import com.projetmobile.mobile.ui.screens.festival.FestivalViewModel
 import com.projetmobile.mobile.ui.screens.profile.ProfileScreen
 import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
-import com.projetmobile.mobile.ui.screens.reservation.ReservationFormScreen
-import com.projetmobile.mobile.ui.screens.reservation.ReservationViewModel
 import com.projetmobile.mobile.ui.utils.navigation.Admin
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.FestivalForm
@@ -87,14 +85,11 @@ import com.projetmobile.mobile.ui.utils.navigation.visibleTabs
 import com.projetmobile.mobile.ui.utils.session.AppSessionViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-<<<<<<< Updated upstream
-=======
-import com.projetmobile.mobile.ui.utils.navigation.ReservationForm
 import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
 import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardViewModel
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormScreen
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormViewModel
->>>>>>> Stashed changes
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -220,18 +215,6 @@ fun FestivalApp(
             }
 
             is ReservationDashboard -> NavEntry(key) {
-<<<<<<< Updated upstream
-                val reservationViewModel: ReservationViewModel = viewModel(
-                    factory = ReservationViewModel.factory(reservationRepository),
-                )
-                ReservationDashboardScreen(
-                    festivalId = key.festivalId,
-                    viewModel = reservationViewModel,
-                    onNavigateToDetails = { },
-                    onNavigateToCreate = {
-                        festivalsBackStack.add(ReservationForm(key.festivalId))
-                    },
-=======
                 val reservationDashboardViewModel: ReservationDashboardViewModel = viewModel(
                     factory = ReservationDashboardViewModel.factory(reservationRepository)
                 )
@@ -251,20 +234,10 @@ fun FestivalApp(
                     onNavigateToCreate = {
                         festivalsBackStack.add(ReservationForm(key.festivalId))
                     }
->>>>>>> Stashed changes
                 )
             }
 
             is ReservationForm -> NavEntry(key) {
-<<<<<<< Updated upstream
-                val reservationViewModel: ReservationViewModel = viewModel(
-                    factory = ReservationViewModel.factory(reservationRepository),
-                )
-                ReservationFormScreen(
-                    festivalId = key.festivalId,
-                    viewModel = reservationViewModel,
-                    onNavigateBack = { festivalsBackStack.removeLastOrNull() },
-=======
                 val reservationFormViewModel: ReservationFormViewModel = viewModel(
                     factory = ReservationFormViewModel.factory(reservationRepository)
                 )
@@ -280,7 +253,6 @@ fun FestivalApp(
                     onNavigateBack = {
                         festivalsBackStack.removeLastOrNull()
                     }
->>>>>>> Stashed changes
                 )
             }
 
