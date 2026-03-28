@@ -68,6 +68,8 @@ android {
 dependencies {
     implementation("androidx.compose.foundation:foundation-layout:1.10.5")
     implementation("androidx.compose.foundation:foundation:1.10.5")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.ui:ui-graphics:1.10.6")
     val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
 
     implementation("androidx.activity:activity-ktx:1.9.2")

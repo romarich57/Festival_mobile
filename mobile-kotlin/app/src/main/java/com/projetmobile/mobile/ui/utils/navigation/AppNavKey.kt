@@ -64,6 +64,8 @@ data class ReservationForm(val festivalId: Int) : AppNavKey
 @Serializable
 data object FestivalForm : AppNavKey
 
+@Serializable
+data class ReservationDetails(val reservationId: Int): AppNavKey
 
 enum class TopLevelTab {
     Festivals,
@@ -170,7 +172,7 @@ fun visibleTabs(isAuthenticated: Boolean, userRole: String?): List<TopLevelTab> 
 
 fun ownerTab(key: AppNavKey): TopLevelTab {
     return when (key) {
-        Festivals, is ReservationDashboard, is ReservationForm, FestivalForm -> TopLevelTab.Festivals
+        Festivals, is ReservationDashboard, is ReservationForm, is ReservationDetails, FestivalForm -> TopLevelTab.Festivals
         Reservants -> TopLevelTab.Reservants
         Games -> TopLevelTab.Games
         Login, ForgotPassword, is VerificationResult, is ResetPassword -> TopLevelTab.Login
@@ -206,6 +208,7 @@ fun topBarTitleFor(key: AppNavKey): String {
         Festivals -> "Festivals"
         is ReservationDashboard -> "Réservations"
         is ReservationForm -> "Nouvelle Réservation"
+        is ReservationDetails -> "Détails de la Réservation"
         FestivalForm -> "Nouveau festival"
         Reservants -> "Réservants"
         Games -> "Jeux"

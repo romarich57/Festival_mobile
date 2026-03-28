@@ -4,6 +4,7 @@ import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
 import com.projetmobile.mobile.data.mapper.toEntity
 import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
 import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
+import com.projetmobile.mobile.data.remote.reservation.WorkflowUpdatePayload
 
 class ReservationRepositoryImpl(
     private val api: ReservationApiService
@@ -22,5 +23,8 @@ class ReservationRepositoryImpl(
     override suspend fun deleteReservation(reservationId: Int) {
         api.deleteReservation(reservationId)
     }
+
+
+
 
 }

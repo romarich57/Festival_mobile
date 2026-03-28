@@ -4,6 +4,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ReservationApiService {
@@ -17,4 +18,22 @@ interface ReservationApiService {
 
     @DELETE("reservation/reservation/{id}")
     suspend fun deleteReservation(@Path("id") id: Int)
+
+    @GET("workflow/reservation/{reservationId}")
+    suspend fun getWorkflowByReservationId(
+        @Path("reservationId") reservationId: Int
+    ): WorkflowDto
+
+    // PUT /workflow/:id
+    @PUT("workflow/{id}")
+    suspend fun updateWorkflow(
+        @Path("id") id: Int,
+        @Body workflowData: WorkflowUpdatePayload
+    ): WorkflowDto
+
+    // POST /workflow/:id/contact
+    @POST("workflow/{id}/contact")
+    suspend fun addContactDate(
+        @Path("id") id: Int
+    ): List<String>
 }

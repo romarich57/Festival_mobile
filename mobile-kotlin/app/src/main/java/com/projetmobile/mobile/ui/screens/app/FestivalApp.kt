@@ -43,6 +43,7 @@ import com.projetmobile.mobile.AppContainer
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
+import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
 import com.projetmobile.mobile.ui.components.GradientScreenBackground
 import com.projetmobile.mobile.ui.components.ImplementationPlaceholder
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationScreen
@@ -87,8 +88,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
 import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardViewModel
+import com.projetmobile.mobile.ui.screens.reservationDetails.ReservationDetailsScreen
+import com.projetmobile.mobile.ui.screens.reservationDetails.WorkflowViewModel
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormScreen
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormViewModel
+import com.projetmobile.mobile.ui.utils.navigation.ReservationDetails
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,6 +105,7 @@ fun FestivalApp(
         authRepository = appContainer.authRepository,
         festivalRepository = appContainer.festivalRepository,
         reservationRepository = appContainer.reservationRepository,
+        workflowRepository = appContainer.workflowRepository,
         incomingDestinations = incomingDestinations,
     )
 }
@@ -112,7 +117,9 @@ fun FestivalApp(
     festivalRepository: FestivalRepository,
     reservationRepository: ReservationRepository,
     incomingDestinations: Flow<AppNavKey> = emptyFlow(),
-) {
+    workflowRepository: WorkflowRepository,
+
+    ) {
     val sessionViewModel: AppSessionViewModel = viewModel(
         factory = AppSessionViewModel.factory(authRepository),
     )
@@ -230,10 +237,21 @@ fun FestivalApp(
                     onSearchQueryChanged = { reservationDashboardViewModel.searchQuery.value = it },
                     onLoadReservations = reservationDashboardViewModel::loadReservations,
                     onDeleteReservation = reservationDashboardViewModel::deleteReservation,
-                    onNavigateToDetails = { },
+                    onNavigateToDetails = { reservationId -> festivalsBackStack.add(ReservationDetails(reservationId))},
                     onNavigateToCreate = {
                         festivalsBackStack.add(ReservationForm(key.festivalId))
                     }
+                )
+            }
+
+            is ReservationDetails -> NavEntry(key) {
+                val workflowViewModel: WorkflowViewModel = viewModel(
+                    factory = WorkflowViewModel.factory(workflowRepository)
+                )
+                ReservationDetailsScreen(
+                    reservationId = key.reservationId,
+                    workflowViewModel = workflowViewModel,
+                    onBackClick = { festivalsBackStack.removeLastOrNull() }
                 )
             }
 

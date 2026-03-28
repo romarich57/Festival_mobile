@@ -19,6 +19,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import com.projetmobile.mobile.data.remote.common.ApiJson
+import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
+import com.projetmobile.mobile.data.repository.workflow.WorkflowRepositoryImpl
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
@@ -89,5 +91,9 @@ class AppContainer(context: Context) {
 
     val reservationRepository: ReservationRepository by lazy {
         ReservationRepositoryImpl(reservationApiService)
+    }
+
+    val workflowRepository: WorkflowRepository by lazy {
+        WorkflowRepositoryImpl(reservationApiService)
     }
 }

@@ -26,7 +26,7 @@ fun ReservationCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(10.dp)
             .clickable { onViewDetailsClick(reservation.id) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface, // Couleur standard du thème
@@ -39,9 +39,9 @@ fun ReservationCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = reservation.reservantName ?: "Inconnu", style = MaterialTheme.typography.titleMedium)
-                Text(text = reservation.reservantType, style = MaterialTheme.typography.bodySmall)
-                Text(text = "Statut: ${reservation.workflowState}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Nom du réservant : ${reservation.reservantName}", style = MaterialTheme.typography.titleMedium)
+                Text(text = "Type de réservant : ${reservation.reservantType}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Statut de la réservation : ${reservation.workflowState}", style = MaterialTheme.typography.bodySmall)
             }
 
             // On ne laisse que la poubelle ici
