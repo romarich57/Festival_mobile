@@ -4,7 +4,9 @@ import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
 import com.projetmobile.mobile.data.mapper.toEntity
 import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
 import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
-import com.projetmobile.mobile.data.remote.reservation.WorkflowUpdatePayload
+import com.projetmobile.mobile.data.remote.reservation.ReservationDetailsDto
+import com.projetmobile.mobile.data.remote.reservation.ReservationUpdatePayloadDto
+import com.projetmobile.mobile.data.remote.reservation.ZoneTarifaireDto
 
 class ReservationRepositoryImpl(
     private val api: ReservationApiService
@@ -22,6 +24,18 @@ class ReservationRepositoryImpl(
 
     override suspend fun deleteReservation(reservationId: Int) {
         api.deleteReservation(reservationId)
+    }
+
+    override suspend fun getReservationDetails(reservationId: Int): ReservationDetailsDto {
+        return api.getReservationDetails(reservationId)
+    }
+
+    override suspend fun updateReservation(reservationId: Int, payload: ReservationUpdatePayloadDto) {
+        api.updateReservation(reservationId, payload)
+    }
+
+    override suspend fun getZonesTarifaires(festivalId: Int): List<ZoneTarifaireDto> {
+        return api.getZonesTarifaires(festivalId)
     }
 
 

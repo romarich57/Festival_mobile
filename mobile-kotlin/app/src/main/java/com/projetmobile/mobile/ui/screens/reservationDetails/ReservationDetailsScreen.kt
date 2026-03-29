@@ -3,19 +3,11 @@ package com.projetmobile.mobile.ui.screens.reservationDetails
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +23,7 @@ import com.projetmobile.mobile.ui.components.workflow.WorkflowContent
 fun ReservationDetailsScreen(
     reservationId: Int,
     workflowViewModel: WorkflowViewModel,
+    tarifaireViewModel: ReservationTarifaireViewModel,
     onBackClick: () -> Unit
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -53,7 +46,7 @@ fun ReservationDetailsScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTabIndex) {
                 0 -> WorkflowTab(reservationId, workflowViewModel)
-                1 -> CenterText("Zones Tarifaires (Bientôt)")
+                1 -> ZonesTarifairesTab(reservationId, tarifaireViewModel)
                 2 -> CenterText("Zone de Plan (Bientôt)")
             }
         }

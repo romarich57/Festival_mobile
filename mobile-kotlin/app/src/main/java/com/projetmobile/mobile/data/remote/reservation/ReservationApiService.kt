@@ -36,4 +36,20 @@ interface ReservationApiService {
     suspend fun addContactDate(
         @Path("id") id: Int
     ): List<String>
+
+    @GET("/api/reservation/detail/{reservationId}")
+    suspend fun getReservationDetails(
+        @Path("reservationId") reservationId: Int
+    ): ReservationDetailsDto
+
+    @PUT("/api/reservation/reservation/{id}")
+    suspend fun updateReservation(
+        @Path("id") id: Int,
+        @Body payload: ReservationUpdatePayloadDto
+    )
+
+    @GET("/api/zones-tarifaires/{festivalId}")
+    suspend fun getZonesTarifaires(
+        @Path("festivalId") festivalId: Int
+    ): List<ZoneTarifaireDto>
 }

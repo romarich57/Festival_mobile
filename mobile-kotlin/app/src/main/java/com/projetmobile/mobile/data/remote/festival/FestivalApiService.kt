@@ -11,6 +11,9 @@ interface FestivalApiService {
     @GET("festivals")
     suspend fun getFestivals(): List<FestivalDto>
 
+    @GET("festivals/{id}")
+    suspend fun getFestival(@Path("id") id: Int): FestivalDto
+
     @POST("festivals")
     suspend fun addFestival(@Body festival: FestivalDto): FestivalDto
 

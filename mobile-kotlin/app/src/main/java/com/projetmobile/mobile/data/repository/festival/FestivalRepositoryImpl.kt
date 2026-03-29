@@ -15,6 +15,12 @@ class FestivalRepositoryImpl(
         }
     }
 
+    override suspend fun getFestival(id: Int): Result<FestivalSummary> {
+        return runCatching {
+            festivalApiService.getFestival(id).toFestivalSummary()
+        }
+    }
+
     override suspend fun addFestival(festival: FestivalDto): Result<FestivalDto> {
         return runCatching {
             festivalApiService.addFestival(festival)

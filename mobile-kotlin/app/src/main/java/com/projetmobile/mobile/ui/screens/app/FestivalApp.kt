@@ -89,6 +89,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
 import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardViewModel
 import com.projetmobile.mobile.ui.screens.reservationDetails.ReservationDetailsScreen
+import com.projetmobile.mobile.ui.screens.reservationDetails.ReservationTarifaireViewModel
 import com.projetmobile.mobile.ui.screens.reservationDetails.WorkflowViewModel
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormScreen
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormViewModel
@@ -248,9 +249,13 @@ fun FestivalApp(
                 val workflowViewModel: WorkflowViewModel = viewModel(
                     factory = WorkflowViewModel.factory(workflowRepository)
                 )
+                val reservationTarifaireViewModel: ReservationTarifaireViewModel = viewModel(
+                    factory = ReservationTarifaireViewModel.factory(reservationRepository, festivalRepository)
+                )
                 ReservationDetailsScreen(
                     reservationId = key.reservationId,
                     workflowViewModel = workflowViewModel,
+                    tarifaireViewModel = reservationTarifaireViewModel,
                     onBackClick = { festivalsBackStack.removeLastOrNull() }
                 )
             }
