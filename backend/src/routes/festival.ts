@@ -177,19 +177,21 @@ router.post('/', requireBackoffice, async (req: Request, res: Response) => {
         start_date,
         end_date,
         zones_tarifaires,
+        zonesTarifaires,
     } = req.body
+    const rawZones = Array.isArray(zones_tarifaires) ? zones_tarifaires : zonesTarifaires
     if (!name || !start_date || !end_date) {
         return res.status(400).json({ error: 'Champs obligatoires manquants' })
     }
-    if (!Array.isArray(zones_tarifaires) || zones_tarifaires.length === 0) {
+    if (!Array.isArray(rawZones) || rawZones.length === 0) {
         return res.status(400).json({ error: 'Au moins une zone tarifaire est requise' })
     }
 
     const zoneErrors: string[] = []
-    const sanitizedZones = zones_tarifaires.map((zone: any, index: number) => {
+    const sanitizedZones = rawZones.map((zone: any, index: number) => {
         const zoneName = typeof zone?.name === 'string' ? zone.name.trim() : ''
-        const nbTables = Number(zone?.nb_tables)
-        const pricePerTable = Number(zone?.price_per_table)
+        const nbTables = Number(zone?.nb_tables ?? zone?.nbTables)
+        const pricePerTable = Number(zone?.price_per_table ?? zone?.pricePerTable)
 
         if (!zoneName) zoneErrors.push(`Zone ${index + 1} : nom obligatoire`)
         if (!Number.isFinite(nbTables) || nbTables <= 0) {
