@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import java.util.Locale
@@ -133,7 +135,11 @@ private fun ZoneTarifaireCard(
     availableForReservation: Int,
     onTablesChanged: (String) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier
+        .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = zone.name, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
@@ -173,7 +179,11 @@ private fun PrisesCard(
     prixParPrise: Double,
     onNbPrisesChanged: (String) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier
+        .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+        containerColor = Color.White
+    )) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Prises electriques", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
@@ -205,7 +215,11 @@ private fun RemisesCard(
     onDirectDiscountChanged: (String) -> Unit,
     onNoteChanged: (String) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier
+        .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Remises", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(12.dp))
@@ -243,7 +257,11 @@ private fun RemisesCard(
 
 @Composable
 private fun RecapCard(summary: ReservationPriceSummary) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(modifier = Modifier
+        .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Recapitulatif", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(12.dp))
