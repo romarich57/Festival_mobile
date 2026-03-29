@@ -14,7 +14,15 @@ data class FestivalDto(
     @SerialName("stock_tables_mairie") val stockTablesMairie: Int = 0,
     @SerialName("stock_chaises") val stockChaises: Int = 0,
     @SerialName("prix_prises") val prixPrises: Double = 0.0,
+    @SerialName("zones_tarifaires") val zonesTarifaires: List<ZoneTarifaireCreateDto> = emptyList(),
 ){
     val totalTables: Int
         get() = stockTablesStandard + stockTablesGrande + stockTablesMairie
+
+    @Serializable
+    data class ZoneTarifaireCreateDto(
+        val name: String,
+        @SerialName("nb_tables") val nbTables: Int,
+        @SerialName("price_per_table") val pricePerTable: Double,
+    )
 }

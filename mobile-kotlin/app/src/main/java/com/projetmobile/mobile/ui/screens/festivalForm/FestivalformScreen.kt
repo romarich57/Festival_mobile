@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -150,9 +151,85 @@ fun FestivalFormScreen(
             )
         }
 
-        // ── TODO : Zones tarifaires ───────────────────────────────────────────
-        // À implémenter quand le FormArray Angular sera traduit.
-        // Ajouter ici un LazyColumn de ZoneFormRow + bouton "Ajouter une zone".
+        HorizontalDivider()
+
+        // ── Zones tarifaires ─────────────────────────────────────────────────
+        Text(
+            text = "Zones tarifaires",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        if (uiState.zonesError != null) {
+            Text(
+                text = uiState.zonesError!!,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+
+        uiState.zonesTarifaires.forEachIndexed { index, zone ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    FestivalTextField(
+                        value = zone.name,
+                        onValueChange = { viewModel.onZoneNameChange(index, it) },
+                        label = "Nom de zone *",
+                        isError = zone.nameError != null,
+                        supportingText = zone.nameError,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        FestivalTextField(
+                            value = zone.nbTables,
+                            onValueChange = { viewModel.onZoneNbTablesChange(index, it) },
+                            label = "Nombre de tables *",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            isError = zone.nbTablesError != null,
+                            supportingText = zone.nbTablesError,
+                            modifier = Modifier.weight(1f),
+                        )
+                        FestivalTextField(
+                            value = zone.pricePerTable,
+                            onValueChange = { viewModel.onZonePricePerTableChange(index, it) },
+                            label = "Prix par table (€) *",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            isError = zone.pricePerTableError != null,
+                            supportingText = zone.pricePerTableError,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+
+                    if (uiState.zonesTarifaires.size > 1) {
+                        TextButton(
+                            onClick = { viewModel.removeZone(index) },
+                            modifier = Modifier.align(Alignment.End),
+                        ) {
+                            Text("Supprimer la zone")
+                        }
+                    }
+                }
+            }
+        }
+
+        OutlinedButton(
+            onClick = viewModel::addZone,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Ajouter une zone")
+        }
 
         Spacer(Modifier.height(8.dp))
 

@@ -72,6 +72,57 @@ class FestivalFormViewModel(
         _uiState.value = _uiState.value.copy(prixPrises = value)
     }
 
+    fun onZoneNameChange(index: Int, value: String) {
+        updateZone(index) { zone ->
+            val error = if (value.isBlank()) "Le nom est obligatoire" else null
+            zone.copy(name = value, nameError = error)
+        }
+    }
+
+    fun onZoneNbTablesChange(index: Int, value: String) {
+        updateZone(index) { zone ->
+            val nbTables = value.toIntOrNull()
+            val error = when {
+                value.isBlank() -> "Le nombre de tables est obligatoire"
+                nbTables == null -> "Nombre invalide"
+                nbTables <= 0 -> "Doit être supérieur à 0"
+                else -> null
+            }
+            zone.copy(nbTables = value, nbTablesError = error)
+        }
+    }
+
+    fun onZonePricePerTableChange(index: Int, value: String) {
+        updateZone(index) { zone ->
+            val price = value.toDoubleOrNull()
+            val error = when {
+                value.isBlank() -> "Le prix est obligatoire"
+                price == null -> "Prix invalide"
+                price <= 0.0 -> "Doit être supérieur à 0"
+                else -> null
+            }
+            zone.copy(pricePerTable = value, pricePerTableError = error)
+        }
+    }
+
+    fun addZone() {
+        val zones = _uiState.value.zonesTarifaires + ZoneTarifaireDraft()
+        _uiState.value = _uiState.value.copy(
+            zonesTarifaires = zones,
+            zonesError = null,
+        )
+    }
+
+    fun removeZone(index: Int) {
+        val current = _uiState.value.zonesTarifaires
+        if (current.size <= 1) return
+        val zones = current.toMutableList().also { it.removeAt(index) }
+        _uiState.value = _uiState.value.copy(
+            zonesTarifaires = zones,
+            zonesError = if (zones.isEmpty()) "Au moins une zone tarifaire est requise" else null,
+        )
+    }
+
     // ── Soumission ────────────────────────────────────────────────────────────
 
     /**
@@ -82,7 +133,7 @@ class FestivalFormViewModel(
      * - onSuccess est appelé par FestivalFormScreen pour naviguer en arrière
      */
     fun submit(onSuccess: () -> Unit) {
-        val state = _uiState.value
+        val state = validateForm()
         if (!state.isValid) return
 
         viewModelScope.launch {
@@ -98,6 +149,13 @@ class FestivalFormViewModel(
                 stockTablesMairie = state.stockTablesMairie.toIntOrNull() ?: 0,
                 stockChaises = state.stockChaises.toIntOrNull() ?: 0,
                 prixPrises = state.prixPrises.toDoubleOrNull() ?: 0.0,
+                zonesTarifaires = state.zonesTarifaires.map { zone ->
+                    FestivalDto.ZoneTarifaireCreateDto(
+                        name = zone.name.trim(),
+                        nbTables = zone.nbTables.toIntOrNull() ?: 0,
+                        pricePerTable = zone.pricePerTable.toDoubleOrNull() ?: 0.0,
+                    )
+                },
             )
 
             festivalRepository.addFestival(dto)
@@ -124,6 +182,42 @@ class FestivalFormViewModel(
 
     fun consumeError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+
+    private fun updateZone(index: Int, update: (ZoneTarifaireDraft) -> ZoneTarifaireDraft) {
+        val zones = _uiState.value.zonesTarifaires.toMutableList()
+        if (index !in zones.indices) return
+        zones[index] = update(zones[index])
+        _uiState.value = _uiState.value.copy(
+            zonesTarifaires = zones,
+            zonesError = if (zones.isEmpty()) "Au moins une zone tarifaire est requise" else null,
+        )
+    }
+
+    private fun validateForm(): FestivalFormUiState {
+        val state = _uiState.value
+        val zones = state.zonesTarifaires.map { zone ->
+            zone.copy(
+                nameError = if (zone.name.isBlank()) "Le nom est obligatoire" else null,
+                nbTablesError = when {
+                    zone.nbTables.isBlank() -> "Le nombre de tables est obligatoire"
+                    zone.nbTables.toIntOrNull() == null -> "Nombre invalide"
+                    (zone.nbTables.toIntOrNull() ?: 0) <= 0 -> "Doit être supérieur à 0"
+                    else -> null
+                },
+                pricePerTableError = when {
+                    zone.pricePerTable.isBlank() -> "Le prix est obligatoire"
+                    zone.pricePerTable.toDoubleOrNull() == null -> "Prix invalide"
+                    (zone.pricePerTable.toDoubleOrNull() ?: 0.0) <= 0.0 -> "Doit être supérieur à 0"
+                    else -> null
+                },
+            )
+        }
+
+        val zonesError = if (zones.isEmpty()) "Au moins une zone tarifaire est requise" else null
+        val updated = state.copy(zonesTarifaires = zones, zonesError = zonesError)
+        _uiState.value = updated
+        return updated
     }
 
     // ── Factory ───────────────────────────────────────────────────────────────
