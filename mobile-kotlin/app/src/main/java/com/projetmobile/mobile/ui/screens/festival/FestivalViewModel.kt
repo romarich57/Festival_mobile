@@ -15,41 +15,57 @@ class FestivalViewModel(
     private val festivalRepository: FestivalRepository,
 ) : ViewModel() {
 
-    // ── État liste ────────────────────────────────────────────────────────────
     private val _uiState = MutableStateFlow(FestivalUiState())
     val uiState: StateFlow<FestivalUiState> = _uiState.asStateFlow()
 
-    // ── Festival sélectionné (équivalent FestivalState.currentFestival) ───────
     private val _currentFestivalId = MutableStateFlow<Int?>(null)
     val currentFestivalId: StateFlow<Int?> = _currentFestivalId.asStateFlow()
 
-    // ── Suppression en attente (équivalent pendingDeleteFestivalId signal) ────
     private val _pendingDeleteFestivalId = MutableStateFlow<Int?>(null)
     val pendingDeleteFestivalId: StateFlow<Int?> = _pendingDeleteFestivalId.asStateFlow()
 
     init {
+        // 1. AJOUT : On commence à écouter Room immédiatement.
+        // Si des données existent déjà en local, elles s'affichent instantanément.
+        observeFestivals()
+
+        // 2. MODIFICATION : On lance le refresh réseau en arrière-plan.
         loadFestivals()
     }
 
-    // ── Chargement ────────────────────────────────────────────────────────────
+    // ── NOUVELLE MÉTHODE : Observation Réactive ──────────────────────────────
+
+    /**
+     * Collecte le Flow venant du Repository.
+     * Dès que Room est mis à jour (via un insert ou delete), l'UI réagit.
+     */
+    private fun observeFestivals() {
+        viewModelScope.launch {
+            festivalRepository.observeFestivals().collect { festivalsFromRoom ->
+                _uiState.value = _uiState.value.copy(festivals = festivalsFromRoom)
+            }
+        }
+    }
+
+    // ── Chargement (Modifié pour ne plus écraser l'UI brutalement) ─────────────
 
     fun loadFestivals() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+
             festivalRepository.getFestivals()
-                .onSuccess { festivals ->
-                    _uiState.value = FestivalUiState(
-                        isLoading = false,
-                        festivals = festivals,
-                        errorMessage = null,
-                    )
+                .onSuccess {
+                    // On ne met à jour QUE le statut loading.
+                    // observeFestivals() s'occupera de mettre à jour la liste.
+                    _uiState.value = _uiState.value.copy(isLoading = false)
                 }
                 .onFailure { throwable ->
-                    _uiState.value = FestivalUiState(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        festivals = emptyList(),
-                        errorMessage = throwable.localizedMessage
-                            ?: "Impossible de charger les festivals.",
+                        // On n'affiche l'erreur que si la liste est vide (vrai échec)
+                        errorMessage = if (_uiState.value.festivals.isEmpty()) {
+                            throwable.localizedMessage ?: "Impossible de charger les festivals."
+                        } else null
                     )
                 }
         }
