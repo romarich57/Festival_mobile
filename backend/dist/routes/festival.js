@@ -131,12 +131,36 @@ router.get('/:id/stock-tables', requireBackoffice, async (req, res) => {
 // Preconditions : Utilisateur authentifie avec un role backoffice, champs requis fournis.
 // Postconditions : Cree le festival ou retourne une erreur.
 router.post('/', requireBackoffice, async (req, res) => {
-    const { name, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises, start_date, end_date } = req.body;
+    const { name, stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises, prix_prises, start_date, end_date, zones_tarifaires, zonesTarifaires, } = req.body;
+    const rawZones = Array.isArray(zones_tarifaires) ? zones_tarifaires : zonesTarifaires;
     if (!name || !start_date || !end_date) {
         return res.status(400).json({ error: 'Champs obligatoires manquants' });
     }
+    if (!Array.isArray(rawZones) || rawZones.length === 0) {
+        return res.status(400).json({ error: 'Au moins une zone tarifaire est requise' });
+    }
+    const zoneErrors = [];
+    const sanitizedZones = rawZones.map((zone, index) => {
+        const zoneName = typeof zone?.name === 'string' ? zone.name.trim() : '';
+        const nbTables = Number(zone?.nb_tables ?? zone?.nbTables);
+        const pricePerTable = Number(zone?.price_per_table ?? zone?.pricePerTable);
+        if (!zoneName)
+            zoneErrors.push(`Zone ${index + 1} : nom obligatoire`);
+        if (!Number.isFinite(nbTables) || nbTables <= 0) {
+            zoneErrors.push(`Zone ${index + 1} : nb_tables invalide`);
+        }
+        if (!Number.isFinite(pricePerTable) || pricePerTable <= 0) {
+            zoneErrors.push(`Zone ${index + 1} : price_per_table invalide`);
+        }
+        return { name: zoneName, nbTables, pricePerTable };
+    });
+    if (zoneErrors.length > 0) {
+        return res.status(400).json({ error: 'Zones tarifaires invalides', details: zoneErrors });
+    }
+    const client = await pool.connect();
     try {
-        const { rows } = await pool.query(`INSERT INTO festival (
+        await client.query('BEGIN');
+        const { rows } = await client.query(`INSERT INTO festival (
                 name,
                 stock_tables_standard,
                 stock_tables_grande,
@@ -159,14 +183,33 @@ router.post('/', requireBackoffice, async (req, res) => {
             start_date,
             end_date,
         ]);
-        res.status(201).json({ message: 'Festival créé', festival: rows[0] });
+        const festival = rows[0];
+        const createdZones = [];
+        const M2_PER_TABLE = 4.5;
+        for (const zone of sanitizedZones) {
+            const priceM2 = parseFloat((zone.pricePerTable / M2_PER_TABLE).toFixed(2));
+            const zoneResult = await client.query(`INSERT INTO zone_tarifaire (name, festival_id, nb_tables, price_per_table, nb_tables_available, m2_price)
+                 VALUES ($1, $2, $3, $4, $5, $6)
+                 RETURNING id, name, festival_id, nb_tables, price_per_table, nb_tables_available, m2_price`, [zone.name, festival.id, zone.nbTables, zone.pricePerTable, zone.nbTables, priceM2]);
+            createdZones.push(zoneResult.rows[0]);
+        }
+        await client.query('COMMIT');
+        res.status(201).json({
+            message: 'Festival créé',
+            festival,
+            zones_tarifaires: createdZones,
+        });
     }
     catch (err) {
+        await client.query('ROLLBACK');
         if (err.code === '23505') {
-            return res.status(409).json({ error: 'Un festival avec ce nom existe déjà' });
+            return res.status(409).json({ error: 'Conflit de duplication (festival ou zone tarifaire)' });
         }
         console.error(err);
         res.status(500).json({ error: 'Erreur serveur' });
+    }
+    finally {
+        client.release();
     }
 });
 // Role : Mettre a jour un festival.

@@ -1,3 +1,0 @@
-# // Fichier de cookies HTTP Netscape
-# // https://curl.se/docs/http-cookies.html
-# // Ce fichier a ete genere par libcurl ! Modifiez a vos risques et perils.
