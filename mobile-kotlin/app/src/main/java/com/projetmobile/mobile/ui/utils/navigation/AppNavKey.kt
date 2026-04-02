@@ -53,6 +53,15 @@ data object Profile : AppNavKey
 data object Admin : AppNavKey
 
 @Serializable
+data class AdminUserDetail(val userId: Int) : AppNavKey
+
+@Serializable
+data object AdminUserCreate : AppNavKey
+
+@Serializable
+data class AdminUserEdit(val userId: Int) : AppNavKey
+
+@Serializable
 data object ForgotPassword : AppNavKey
 
 @Serializable

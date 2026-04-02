@@ -21,7 +21,10 @@ fun ownerTab(key: AppNavKey): TopLevelTab {
         Login, ForgotPassword, is VerificationResult, is ResetPassword -> TopLevelTab.Login
         Register, is PendingVerification -> TopLevelTab.Register
         Profile -> TopLevelTab.Profile
-        Admin -> TopLevelTab.Admin
+        Admin,
+        is AdminUserDetail,
+        AdminUserCreate,
+        is AdminUserEdit -> TopLevelTab.Admin
     }
 }
 
@@ -62,6 +65,9 @@ fun topBarTitleFor(key: AppNavKey): String {
         Register -> "Inscription"
         Profile -> "Profil"
         Admin -> "Admin"
+        is AdminUserDetail -> "Fiche utilisateur"
+        AdminUserCreate -> "Créer un utilisateur"
+        is AdminUserEdit -> "Modifier un utilisateur"
         ForgotPassword -> "Mot de passe oublié"
         is PendingVerification -> "Vérifiez votre email"
         is VerificationResult -> verificationTitleFor(key.status)

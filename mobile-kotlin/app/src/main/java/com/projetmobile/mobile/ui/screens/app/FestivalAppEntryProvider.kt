@@ -6,12 +6,16 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
+import com.projetmobile.mobile.data.repository.admin.AdminRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.games.GamesRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
-import com.projetmobile.mobile.ui.components.ImplementationPlaceholder
+import com.projetmobile.mobile.ui.screens.admin.catalog.AdminCatalogRoute
+import com.projetmobile.mobile.ui.screens.admin.detail.AdminUserDetailRoute
+import com.projetmobile.mobile.ui.screens.admin.form.AdminUserFormMode
+import com.projetmobile.mobile.ui.screens.admin.form.AdminUserFormRoute
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationScreen
 import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationViewModel
 import com.projetmobile.mobile.ui.screens.auth.emailverification.VerificationResultScreen
@@ -36,6 +40,10 @@ import com.projetmobile.mobile.ui.screens.reservants.ReservantDetailRoute
 import com.projetmobile.mobile.ui.screens.reservants.ReservantFormMode
 import com.projetmobile.mobile.ui.screens.reservants.ReservantFormRoute
 import com.projetmobile.mobile.ui.screens.reservants.ReservantsCatalogRoute
+import com.projetmobile.mobile.ui.utils.navigation.Admin
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserCreate
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserDetail
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserEdit
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
 import com.projetmobile.mobile.ui.utils.navigation.ForgotPassword
@@ -61,20 +69,25 @@ internal fun festivalAppEntryProvider(
     gamesRepository: GamesRepository,
     profileRepository: ProfileRepository,
     reservantsRepository: ReservantsRepository,
+    adminRepository: AdminRepository,
     sessionUiState: AppSessionUiState,
     sessionViewModel: AppSessionViewModel,
     gamesRefreshSignal: Int,
     gamesFlashMessage: String?,
     reservantsRefreshSignal: Int,
     reservantsFlashMessage: String?,
+    adminRefreshSignal: Int,
+    adminFlashMessage: String?,
     onOpenRoot: (TopLevelTab) -> Unit,
     onOpenSecondary: (TopLevelTab, AppNavKey) -> Unit,
     onSelectTopLevelTab: (TopLevelTab) -> Unit,
     onConsumeGamesFlashMessage: () -> Unit,
     onConsumeReservantsFlashMessage: () -> Unit,
+    onConsumeAdminFlashMessage: () -> Unit,
     onGamesSaved: (String) -> Unit,
     onReservantSaved: (Int, String) -> Unit,
     onLinkedGameCreated: (Int, String) -> Unit,
+    onAdminUserSaved: (String) -> Unit,
 ): (AppNavKey) -> NavEntry<AppNavKey> {
     return { key ->
         when (key) {
@@ -358,8 +371,43 @@ internal fun festivalAppEntryProvider(
                 )
             }
 
-            com.projetmobile.mobile.ui.utils.navigation.Admin -> NavEntry(key) {
-                ImplementationPlaceholder()
+            Admin -> NavEntry(key) {
+                AdminCatalogRoute(
+                    adminRepository = adminRepository,
+                    adminRefreshSignal = adminRefreshSignal,
+                    adminFlashMessage = adminFlashMessage,
+                    onConsumeAdminFlashMessage = onConsumeAdminFlashMessage,
+                    onCreateUser = { onOpenSecondary(TopLevelTab.Admin, AdminUserCreate) },
+                    onOpenUserDetail = { userId ->
+                        onOpenSecondary(TopLevelTab.Admin, AdminUserDetail(userId))
+                    },
+                )
+            }
+
+            is AdminUserDetail -> NavEntry(key) {
+                AdminUserDetailRoute(
+                    adminRepository = adminRepository,
+                    userId = key.userId,
+                    onEditUser = { userId ->
+                        onOpenSecondary(TopLevelTab.Admin, AdminUserEdit(userId))
+                    },
+                )
+            }
+
+            AdminUserCreate -> NavEntry(key) {
+                AdminUserFormRoute(
+                    adminRepository = adminRepository,
+                    mode = AdminUserFormMode.Create,
+                    onUserSaved = onAdminUserSaved,
+                )
+            }
+
+            is AdminUserEdit -> NavEntry(key) {
+                AdminUserFormRoute(
+                    adminRepository = adminRepository,
+                    mode = AdminUserFormMode.Edit(key.userId),
+                    onUserSaved = onAdminUserSaved,
+                )
             }
 
             is ResetPassword -> NavEntry(key) {

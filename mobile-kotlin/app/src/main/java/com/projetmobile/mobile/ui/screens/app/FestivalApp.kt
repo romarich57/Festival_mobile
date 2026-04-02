@@ -17,12 +17,16 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import com.projetmobile.mobile.AppContainer
+import com.projetmobile.mobile.data.repository.admin.AdminRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.games.GamesRepository
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.ui.utils.navigation.Admin
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserCreate
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserDetail
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserEdit
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
 import com.projetmobile.mobile.ui.utils.navigation.GameCreate
@@ -58,6 +62,7 @@ fun FestivalApp(
         gamesRepository = appContainer.gamesRepository,
         profileRepository = appContainer.profileRepository,
         reservantsRepository = appContainer.reservantsRepository,
+        adminRepository = appContainer.adminRepository,
         incomingDestinations = incomingDestinations,
     )
 }
@@ -70,6 +75,7 @@ fun FestivalApp(
     gamesRepository: GamesRepository,
     profileRepository: ProfileRepository,
     reservantsRepository: ReservantsRepository,
+    adminRepository: AdminRepository,
     incomingDestinations: Flow<AppNavKey> = emptyFlow(),
 ) {
     val sessionViewModel: AppSessionViewModel = viewModel(
@@ -91,6 +97,8 @@ fun FestivalApp(
     var gamesFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var reservantsRefreshSignal by rememberSaveable { mutableStateOf(0) }
     var reservantsFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var adminRefreshSignal by rememberSaveable { mutableStateOf(0) }
+    var adminFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     val isAuthenticated = sessionUiState.currentUser != null
     val userRole = sessionUiState.currentUser?.role
@@ -155,17 +163,21 @@ fun FestivalApp(
         gamesRepository = gamesRepository,
         profileRepository = profileRepository,
         reservantsRepository = reservantsRepository,
+        adminRepository = adminRepository,
         sessionUiState = sessionUiState,
         sessionViewModel = sessionViewModel,
         gamesRefreshSignal = gamesRefreshSignal,
         gamesFlashMessage = gamesFlashMessage,
         reservantsRefreshSignal = reservantsRefreshSignal,
         reservantsFlashMessage = reservantsFlashMessage,
+        adminRefreshSignal = adminRefreshSignal,
+        adminFlashMessage = adminFlashMessage,
         onOpenRoot = ::openRoot,
         onOpenSecondary = ::openSecondary,
         onSelectTopLevelTab = { selectedTopLevelTab = it },
         onConsumeGamesFlashMessage = { gamesFlashMessage = null },
         onConsumeReservantsFlashMessage = { reservantsFlashMessage = null },
+        onConsumeAdminFlashMessage = { adminFlashMessage = null },
         onGamesSaved = { message ->
             gamesFlashMessage = message
             gamesRefreshSignal += 1
@@ -180,6 +192,11 @@ fun FestivalApp(
             reservantsFlashMessage = message
             reservantsRefreshSignal += 1
             openSecondary(TopLevelTab.Reservants, ReservantDetails(reservantId))
+        },
+        onAdminUserSaved = { message ->
+            adminFlashMessage = message
+            adminRefreshSignal += 1
+            openRoot(TopLevelTab.Admin)
         },
     )
 
@@ -264,7 +281,13 @@ fun FestivalApp(
                 TopLevelTab.Login -> openSecondary(TopLevelTab.Login, destination)
                 TopLevelTab.Register -> openSecondary(TopLevelTab.Register, destination)
                 TopLevelTab.Profile -> openRoot(TopLevelTab.Profile)
-                TopLevelTab.Admin -> openRoot(TopLevelTab.Admin)
+                TopLevelTab.Admin -> when (destination) {
+                    Admin -> openRoot(TopLevelTab.Admin)
+                    AdminUserCreate -> openSecondary(TopLevelTab.Admin, AdminUserCreate)
+                    is AdminUserDetail -> openSecondary(TopLevelTab.Admin, destination)
+                    is AdminUserEdit -> openSecondary(TopLevelTab.Admin, destination)
+                    else -> openRoot(TopLevelTab.Admin)
+                }
             }
         }
     }

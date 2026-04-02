@@ -1,6 +1,7 @@
 package com.projetmobile.mobile
 
 import android.content.Context
+import com.projetmobile.mobile.data.remote.admin.AdminApiService
 import com.projetmobile.mobile.data.remote.auth.AuthApiService
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.festival.FestivalApiService
@@ -10,6 +11,8 @@ import com.projetmobile.mobile.data.remote.reservants.ReservantsApiService
 import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.database.PersistentCookieJar
 import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
+import com.projetmobile.mobile.data.repository.admin.AdminRepository
+import com.projetmobile.mobile.data.repository.admin.AdminRepositoryImpl
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepositoryImpl
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
@@ -92,6 +95,10 @@ class AppContainer(context: Context) {
         retrofit.create(ReservantsApiService::class.java)
     }
 
+    private val adminApiService by lazy {
+        retrofit.create(AdminApiService::class.java)
+    }
+
     val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(
             authApiService = authApiService,
@@ -116,5 +123,9 @@ class AppContainer(context: Context) {
 
     val reservantsRepository: ReservantsRepository by lazy {
         ReservantsRepositoryImpl(reservantsApiService)
+    }
+
+    val adminRepository: AdminRepository by lazy {
+        AdminRepositoryImpl(adminApiService)
     }
 }
