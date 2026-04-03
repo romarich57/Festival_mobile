@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: projet_mobile_db_prod
+    restart: always
+    environment:
+      POSTGRES_USER: secureapp
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secureapp_prod_password_CHANGEME}
+      POSTGRES_DB: secureapp
+    # Le port de la DB n'est pas exposé vers la machine hôte. Il est privé pour le backend.
+    volumes:
+      - projet_mobile_pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U secureapp -d secureapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: projet_mobile_backend_prod
+    restart: always
+    # On expose le port 4000 uniquement sur localhost (127.0.0.1)
+    # Ainsi, le port n'est pas accessible depuis internet directement.
+    # C'est votre Nginx (installé sur la machine hôte) qui reliera les requêtes vers 127.0.0.1:4000
+    ports:
+      - "127.0.0.1:4000:4000"
+    env_file:
+      - ./backend/.env.prod # Fichier .env dedie pour la prod conseillé
+    environment:
+      - NODE_ENV=production
+      # Surcharge l'URL pour pointer vers le conteneur DB sur le réseau interne docker
+      - DATABASE_URL=postgresql://secureapp:${DB_PASSWORD:-secureapp_prod_password_CHANGEME}@db:5432/secureapp
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  projet_mobile_pgdata_prod:

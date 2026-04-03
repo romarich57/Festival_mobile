@@ -17,5 +17,30 @@ services:
       timeout: 5s
       retries: 5
 
+  # (Optionnel) Le backend en local avec rechargement automatique (npm run dev)
+  # Si vous préférez exécuter le backend sur votre machine (npm run dev), vous pouvez mettre ce service en commentaire.
+  backend:
+    build:
+      context: ./backend
+      # On utilise une image basique node pour le dev pour éviter de passer par le Dockerfile de prod complet
+      dockerfile: Dockerfile.dev
+    image: node:20-alpine
+    container_name: projet_mobile_backend_dev
+    working_dir: /app
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules # Sécurise le node_modules du conteneur
+    command: sh -c "npm install && npm run dev"
+    env_file:
+      - ./backend/.env
+    # Surcharge de la variable d'environnement pour qu'il pointe vers le conteneur DB, pas localhost
+    environment:
+      - DATABASE_URL=postgresql://secureapp:secureapp_dev_password@db:5432/secureapp
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   projet_mobile_pgdata:
