@@ -11,6 +11,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -32,8 +35,33 @@ internal class GamesCatalogViewModel(
     private var hasPendingFilterRefresh: Boolean = false
 
     init {
+        startObservingRoom()
         loadLookups()
         refreshGames()
+    }
+
+    /**
+     * Observe Room en continu (SSOT offline-first).
+     * Utilise flatMapLatest pour redémarrer l'observation quand le filtre titre change.
+     * Items mis à jour dès qu'une écriture locale ou réseau modifie Room.
+     */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private fun startObservingRoom() {
+        viewModelScope.launch {
+            _uiState
+                .map { it.filters.title }
+                .distinctUntilChanged()
+                .flatMapLatest { title -> gamesRepository.observeGames(titleSearch = title) }
+                .collect { roomItems ->
+                    _uiState.update { state ->
+                        state.copy(
+                            items = roomItems,
+                            // Affiche les données Room immédiatement si le cache est peuplé
+                            isLoading = if (roomItems.isNotEmpty()) false else state.isLoading,
+                        )
+                    }
+                }
+        }
     }
 
     fun onTitleChanged(value: String) {
@@ -126,7 +154,7 @@ internal class GamesCatalogViewModel(
             val version = nextRequestVersion()
             _uiState.update { state -> stateReducer.onRefreshStarted(state, infoMessage) }
 
-            gamesRepository.getGames(
+            gamesRepository.refreshGames(
                 filters = filtersSnapshot,
                 page = 1,
                 limit = pageSize,
@@ -166,7 +194,7 @@ internal class GamesCatalogViewModel(
             val version = requestVersion
             _uiState.update { state -> stateReducer.onLoadNextPageStarted(state) }
 
-            gamesRepository.getGames(
+            gamesRepository.refreshGames(
                 filters = filtersSnapshot,
                 page = expectedPage,
                 limit = currentState.pageSize,

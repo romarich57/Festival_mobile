@@ -35,21 +35,22 @@ class ReservationFormViewModel(
         val state = _uiState.value
         viewModelScope.launch {
             _uiState.value = state.copy(isLoading = true, errorMessage = null)
-            try {
-                val payload = ReservationCreatePayloadDto(
-                    reservantName = state.nom,
-                    reservantEmail = state.email,
-                    reservantType = state.type,
-                    festivalId = festivalId
-                )
-                repository.createReservation(payload)
-                _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = "Erreur création : ${e.message}"
-                )
-            }
+            val payload = ReservationCreatePayloadDto(
+                reservantName = state.nom,
+                reservantEmail = state.email,
+                reservantType = state.type,
+                festivalId = festivalId,
+            )
+            repository.createReservation(payload)
+                .onSuccess {
+                    _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true)
+                }
+                .onFailure { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Erreur création : ${e.message}",
+                    )
+                }
         }
     }
 

@@ -195,7 +195,8 @@ internal fun festivalAppEntryProvider(
 
             com.projetmobile.mobile.ui.utils.navigation.Reservants -> NavEntry(key) {
                 ReservantsCatalogRoute(
-                    loadReservants = reservantsRepository::getReservants,
+                    loadReservants = reservantsRepository::refreshReservants,
+                    observeReservants = reservantsRepository.observeReservants(),
                     loadDeleteSummary = reservantsRepository::getDeleteSummary,
                     deleteReservant = reservantsRepository::deleteReservant,
                     currentUserRole = sessionUiState.currentUser?.role,
@@ -260,7 +261,7 @@ internal fun festivalAppEntryProvider(
                     loadContacts = reservantsRepository::getContacts,
                     addContact = reservantsRepository::addContact,
                     loadGames = { editorId ->
-                        gamesRepository.getGames(
+                        gamesRepository.refreshGames(
                             filters = com.projetmobile.mobile.data.entity.games.GameFilters(editorId = editorId),
                             page = 1,
                             limit = 50,

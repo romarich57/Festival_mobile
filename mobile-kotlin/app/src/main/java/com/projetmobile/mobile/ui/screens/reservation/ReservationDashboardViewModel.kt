@@ -39,29 +39,44 @@ class ReservationDashboardViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private var observationFestivalId: Int? = null
+
     fun loadReservations(festivalId: Int) {
+        // Lance l'observation Room si pas encore démarrée pour ce festival
+        if (observationFestivalId != festivalId) {
+            observationFestivalId = festivalId
+            viewModelScope.launch {
+                repository.observeReservations(festivalId).collect { reservations ->
+                    _uiState.value = _uiState.value.copy(
+                        reservations = reservations,
+                        isLoading = if (reservations.isNotEmpty()) false else _uiState.value.isLoading,
+                    )
+                }
+            }
+        }
+        // Déclenche le refresh réseau → Room → Flow émet
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            try {
-                val reservations = repository.getReservations(festivalId)
-                _uiState.value = _uiState.value.copy(isLoading = false, reservations = reservations)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    errorMessage = e.message ?: "Erreur inconnue"
-                )
-            }
+            repository.refreshReservations(festivalId)
+                .onSuccess { _uiState.value = _uiState.value.copy(isLoading = false) }
+                .onFailure { e ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = if (_uiState.value.reservations.isEmpty())
+                            e.message ?: "Impossible de charger les réservations."
+                        else null,
+                    )
+                }
         }
     }
 
     fun deleteReservation(reservationId: Int, festivalId: Int) {
         viewModelScope.launch {
-            try {
-                repository.deleteReservation(reservationId)
-                loadReservations(festivalId)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(errorMessage = "Erreur lors de la suppression")
-            }
+            repository.deleteReservation(reservationId)
+                .onFailure {
+                    _uiState.value = _uiState.value.copy(errorMessage = "Erreur lors de la suppression")
+                }
+            // Pas besoin de recharger : Room Flow met à jour la liste automatiquement
         }
     }
 

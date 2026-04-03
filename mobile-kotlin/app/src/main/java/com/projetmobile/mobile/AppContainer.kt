@@ -1,6 +1,8 @@
 package com.projetmobile.mobile
 
 import android.content.Context
+import com.projetmobile.mobile.data.database.AppDatabase
+import com.projetmobile.mobile.data.database.SyncPreferenceStore
 import com.projetmobile.mobile.data.remote.admin.AdminApiService
 import com.projetmobile.mobile.data.remote.auth.AuthApiService
 import com.projetmobile.mobile.data.remote.common.ApiJson
@@ -36,6 +38,18 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class AppContainer(context: Context) {
     private val applicationContext = context.applicationContext
+
+    // ── Base de données locale (SSOT offline-first) ──────────────────────────
+
+    private val appDatabase by lazy {
+        AppDatabase.getInstance(applicationContext)
+    }
+
+    private val syncPreferenceStore by lazy {
+        SyncPreferenceStore(applicationContext)
+    }
+
+    // ── Auth preferences ─────────────────────────────────────────────────────
 
     private val authPreferenceStore by lazy {
         AuthPreferenceStore(applicationContext)
@@ -116,7 +130,11 @@ class AppContainer(context: Context) {
     }
 
     val festivalRepository: FestivalRepository by lazy {
-        FestivalRepositoryImpl(festivalApiService)
+        FestivalRepositoryImpl(
+            festivalApiService = festivalApiService,
+            festivalDao = appDatabase.festivalDao(),
+            syncPreferenceStore = syncPreferenceStore,
+        )
     }
 
     val profileRepository: ProfileRepository by lazy {
@@ -127,11 +145,21 @@ class AppContainer(context: Context) {
     }
 
     val gamesRepository: GamesRepository by lazy {
-        GamesRepositoryImpl(gamesApiService)
+        GamesRepositoryImpl(
+            gamesApiService = gamesApiService,
+            gameDao = appDatabase.gameDao(),
+            syncPreferenceStore = syncPreferenceStore,
+            context = applicationContext,
+        )
     }
 
     val reservantsRepository: ReservantsRepository by lazy {
-        ReservantsRepositoryImpl(reservantsApiService)
+        ReservantsRepositoryImpl(
+            reservantsApiService = reservantsApiService,
+            reservantDao = appDatabase.reservantDao(),
+            syncPreferenceStore = syncPreferenceStore,
+            context = applicationContext,
+        )
     }
 
     val adminRepository: AdminRepository by lazy {
@@ -139,7 +167,12 @@ class AppContainer(context: Context) {
     }
 
     val reservationRepository: ReservationRepository by lazy {
-        ReservationRepositoryImpl(reservationApiService)
+        ReservationRepositoryImpl(
+            api = reservationApiService,
+            reservationDao = appDatabase.reservationDao(),
+            syncPreferenceStore = syncPreferenceStore,
+            context = applicationContext,
+        )
     }
 
     val workflowRepository: WorkflowRepository by lazy {

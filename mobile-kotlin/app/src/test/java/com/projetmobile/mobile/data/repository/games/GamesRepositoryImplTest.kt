@@ -1,5 +1,8 @@
 package com.projetmobile.mobile.data.repository.games
 
+import android.content.Context
+import com.projetmobile.mobile.data.dao.GameDao
+import com.projetmobile.mobile.data.database.SyncPreferenceStore
 import com.projetmobile.mobile.data.entity.games.GameFilters
 import com.projetmobile.mobile.data.entity.games.GameSort
 import com.projetmobile.mobile.data.remote.games.DeleteGameResponseDto
@@ -11,18 +14,31 @@ import com.projetmobile.mobile.data.remote.games.GamesPageResponseDto
 import com.projetmobile.mobile.data.remote.games.GameUpsertRequestDto
 import com.projetmobile.mobile.data.remote.games.MechanismDto
 import com.projetmobile.mobile.data.remote.games.UploadGameImageResponseDto
+import com.projetmobile.mobile.data.room.GameRoomEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import okhttp3.MultipartBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GamesRepositoryImplTest {
 
+    private fun buildRepository(service: FakeGamesApiService): GamesRepositoryImpl {
+        return GamesRepositoryImpl(
+            gamesApiService = service,
+            gameDao = FakeGameDao(),
+            syncPreferenceStore = FakeSyncPreferenceStore(),
+            context = mock<Context>(),
+        )
+    }
+
     @Test
-    fun getGames_forwardsFiltersAndServerPagination() = runTest {
+    fun refreshGames_forwardsFiltersAndServerPagination() = runTest {
         val service = FakeGamesApiService(
             gamesPage = GamesPageResponseDto(
                 items = listOf(
@@ -39,9 +55,9 @@ class GamesRepositoryImplTest {
                 ),
             ),
         )
-        val repository = GamesRepositoryImpl(service)
+        val repository = buildRepository(service)
 
-        val result = repository.getGames(
+        val result = repository.refreshGames(
             filters = GameFilters(
                 title = "Ark",
                 type = "Experts",
@@ -70,70 +86,58 @@ class GamesRepositoryImplTest {
     }
 
     @Test
-    fun getGames_derivesHasNextWhenCurrentPageIsBeforeLastPage() = runTest {
-        val repository = GamesRepositoryImpl(
+    fun refreshGames_derivesHasNextWhenCurrentPageIsBeforeLastPage() = runTest {
+        val repository = buildRepository(
             FakeGamesApiService(
                 gamesPage = GamesPageResponseDto(
                     items = listOf(gameDto(id = 1, title = "Akropolis")),
                     pagination = GamesPaginationDto(
-                        page = 1,
-                        limit = 20,
-                        total = 40,
-                        totalPages = 2,
-                        sortBy = "title",
-                        sortOrder = "asc",
+                        page = 1, limit = 20, total = 40, totalPages = 2,
+                        sortBy = "title", sortOrder = "asc",
                     ),
                 ),
             ),
         )
 
-        val page = repository.getGames(GameFilters(), page = 1, limit = 20).getOrThrow()
+        val page = repository.refreshGames(GameFilters(), page = 1, limit = 20).getOrThrow()
 
         assertTrue(page.hasNext)
     }
 
     @Test
-    fun getGames_derivesNoNextPageWhenCurrentPageMatchesLastPage() = runTest {
-        val repository = GamesRepositoryImpl(
+    fun refreshGames_derivesNoNextPageWhenCurrentPageMatchesLastPage() = runTest {
+        val repository = buildRepository(
             FakeGamesApiService(
                 gamesPage = GamesPageResponseDto(
                     items = listOf(gameDto(id = 1, title = "Akropolis")),
                     pagination = GamesPaginationDto(
-                        page = 2,
-                        limit = 20,
-                        total = 40,
-                        totalPages = 2,
-                        sortBy = "title",
-                        sortOrder = "asc",
+                        page = 2, limit = 20, total = 40, totalPages = 2,
+                        sortBy = "title", sortOrder = "asc",
                     ),
                 ),
             ),
         )
 
-        val page = repository.getGames(GameFilters(), page = 2, limit = 20).getOrThrow()
+        val page = repository.refreshGames(GameFilters(), page = 2, limit = 20).getOrThrow()
 
         assertTrue(!page.hasNext)
     }
 
     @Test
-    fun getGames_derivesNoNextPageForEmptyResults() = runTest {
-        val repository = GamesRepositoryImpl(
+    fun refreshGames_derivesNoNextPageForEmptyResults() = runTest {
+        val repository = buildRepository(
             FakeGamesApiService(
                 gamesPage = GamesPageResponseDto(
                     items = emptyList(),
                     pagination = GamesPaginationDto(
-                        page = 1,
-                        limit = 20,
-                        total = 0,
-                        totalPages = 0,
-                        sortBy = "title",
-                        sortOrder = "asc",
+                        page = 1, limit = 20, total = 0, totalPages = 0,
+                        sortBy = "title", sortOrder = "asc",
                     ),
                 ),
             ),
         )
 
-        val page = repository.getGames(GameFilters(), page = 1, limit = 20).getOrThrow()
+        val page = repository.refreshGames(GameFilters(), page = 1, limit = 20).getOrThrow()
 
         assertTrue(!page.hasNext)
         assertTrue(page.items.isEmpty())
@@ -141,13 +145,8 @@ class GamesRepositoryImplTest {
 
     @Test
     fun getGameTypes_mapsServerValues() = runTest {
-        val repository = GamesRepositoryImpl(
-            FakeGamesApiService(
-                gameTypes = listOf(
-                    "Ambiance",
-                    "Experts",
-                ),
-            ),
+        val repository = buildRepository(
+            FakeGamesApiService(gameTypes = listOf("Ambiance", "Experts")),
         )
 
         val lookups = repository.getGameTypes().getOrThrow()
@@ -159,7 +158,7 @@ class GamesRepositoryImplTest {
 
     @Test
     fun uploadGameImage_returnsUploadedUrl() = runTest {
-        val repository = GamesRepositoryImpl(FakeGamesApiService())
+        val repository = buildRepository(FakeGamesApiService())
 
         val result = repository.uploadGameImage(
             fileName = "akropolis.png",
@@ -172,16 +171,42 @@ class GamesRepositoryImplTest {
     }
 }
 
+// ── Fakes ────────────────────────────────────────────────────────────────────
+
+private class FakeGameDao : GameDao {
+    private val store = MutableStateFlow<List<GameRoomEntity>>(emptyList())
+
+    override fun observeAll(): Flow<List<GameRoomEntity>> = store
+    override fun observeByTitle(search: String): Flow<List<GameRoomEntity>> = store
+    override fun observeById(id: Int): Flow<GameRoomEntity?> = MutableStateFlow(null)
+    override suspend fun getById(id: Int): GameRoomEntity? = null
+    override suspend fun getPending(): List<GameRoomEntity> = emptyList()
+    override suspend fun upsertAll(games: List<GameRoomEntity>) {
+        store.value = games
+    }
+    override suspend fun upsert(game: GameRoomEntity) {
+        store.value = store.value + game
+    }
+    override suspend fun deleteById(id: Int) {
+        store.value = store.value.filter { it.id != id }
+    }
+    override suspend fun markForDeletion(id: Int) {}
+    override suspend fun updateSyncStatus(id: Int, status: String) {}
+}
+
+private class FakeSyncPreferenceStore : SyncPreferenceStore(mock<android.content.Context>()) {
+    override suspend fun getLastSyncedAt(key: String): Long? = null
+    override suspend fun setLastSyncedAt(key: String, timestamp: Long) {}
+    override suspend fun needsRefresh(key: String, ttlMs: Long): Boolean = true
+    override suspend fun invalidate(key: String) {}
+}
+
 private class FakeGamesApiService(
     private val gamesPage: GamesPageResponseDto = GamesPageResponseDto(
         items = emptyList(),
         pagination = GamesPaginationDto(
-            page = 1,
-            limit = 20,
-            total = 0,
-            totalPages = 0,
-            sortBy = "title",
-            sortOrder = "asc",
+            page = 1, limit = 20, total = 0, totalPages = 0,
+            sortBy = "title", sortOrder = "asc",
         ),
     ),
     private val gameTypes: List<String> = emptyList(),
@@ -195,73 +220,31 @@ private class FakeGamesApiService(
     var lastSort: String? = null
 
     override suspend fun getGames(
-        page: Int,
-        limit: Int,
-        title: String?,
-        type: String?,
-        editorId: Int?,
-        minAge: Int?,
-        sort: String,
+        page: Int, limit: Int, title: String?, type: String?,
+        editorId: Int?, minAge: Int?, sort: String,
     ): GamesPageResponseDto {
-        lastPage = page
-        lastLimit = limit
-        lastTitle = title
-        lastType = type
-        lastEditorId = editorId
-        lastMinAge = minAge
-        lastSort = sort
+        lastPage = page; lastLimit = limit; lastTitle = title
+        lastType = type; lastEditorId = editorId; lastMinAge = minAge; lastSort = sort
         return gamesPage
     }
 
     override suspend fun getGameTypes(): List<String> = gameTypes
-
     override suspend fun getGame(gameId: Int): GameDto = gameDto(id = gameId, title = "Game $gameId")
-
-    override suspend fun createGame(request: GameUpsertRequestDto): GameDto {
-        return gameDto(id = 99, title = request.title)
-    }
-
-    override suspend fun updateGame(
-        gameId: Int,
-        request: GameUpsertRequestDto,
-    ): GameDto {
-        return gameDto(id = gameId, title = request.title)
-    }
-
-    override suspend fun deleteGame(gameId: Int): DeleteGameResponseDto {
-        return DeleteGameResponseDto(message = "deleted:$gameId")
-    }
-
+    override suspend fun createGame(request: GameUpsertRequestDto): GameDto =
+        gameDto(id = 99, title = request.title)
+    override suspend fun updateGame(gameId: Int, request: GameUpsertRequestDto): GameDto =
+        gameDto(id = gameId, title = request.title)
+    override suspend fun deleteGame(gameId: Int): DeleteGameResponseDto =
+        DeleteGameResponseDto(message = "deleted:$gameId")
     override suspend fun getEditors(): List<EditorDto> = emptyList()
-
     override suspend fun getMechanisms(): List<MechanismDto> = emptyList()
-
-    override suspend fun uploadGameImage(image: MultipartBody.Part): UploadGameImageResponseDto {
-        return UploadGameImageResponseDto(
-            url = "/uploads/games/test.png",
-            message = "ok",
-        )
-    }
+    override suspend fun uploadGameImage(image: MultipartBody.Part): UploadGameImageResponseDto =
+        UploadGameImageResponseDto(url = "/uploads/games/test.png", message = "ok")
 }
 
-private fun gameDto(
-    id: Int,
-    title: String,
-) = GameDto(
-    id = id,
-    title = title,
-    type = "Experts",
-    editorId = 9,
-    editorName = "Super Meeple",
-    minAge = 12,
-    authors = "Designer",
-    minPlayers = 1,
-    maxPlayers = 4,
-    prototype = false,
-    durationMinutes = 90,
-    theme = null,
-    description = null,
-    imageUrl = null,
-    rulesVideoUrl = null,
-    mechanisms = emptyList(),
+private fun gameDto(id: Int, title: String) = GameDto(
+    id = id, title = title, type = "Experts", editorId = 9, editorName = "Super Meeple",
+    minAge = 12, authors = "Designer", minPlayers = 1, maxPlayers = 4, prototype = false,
+    durationMinutes = 90, theme = null, description = null, imageUrl = null,
+    rulesVideoUrl = null, mechanisms = emptyList(),
 )

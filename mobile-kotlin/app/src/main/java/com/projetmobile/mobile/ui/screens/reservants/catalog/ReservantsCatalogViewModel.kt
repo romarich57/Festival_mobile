@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
 import com.projetmobile.mobile.data.entity.reservants.canDeleteReservants
 import com.projetmobile.mobile.data.entity.reservants.canManageReservants
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 
 internal class ReservantsCatalogViewModel(
     private val loadReservants: ReservantsLoader,
+    private val observeReservants: Flow<List<ReservantListItem>>,
     private val loadDeleteSummary: ReservantDeleteSummaryLoader,
     private val deleteReservant: ReservantDelete,
     private val stateReducer: ReservantsCatalogStateReducer,
@@ -28,6 +30,12 @@ internal class ReservantsCatalogViewModel(
     val uiState: StateFlow<ReservantsCatalogUiState> = _uiState.asStateFlow()
 
     init {
+        // Observation Room (SSOT) — données dispo immédiatement si cache peuplé
+        viewModelScope.launch {
+            observeReservants.collect { items ->
+                _uiState.update { state -> stateReducer.onLoadSucceeded(state, items) }
+            }
+        }
         refreshReservants()
     }
 
@@ -140,6 +148,7 @@ internal class ReservantsCatalogViewModel(
 
 internal fun reservantsCatalogViewModelFactory(
     loadReservants: ReservantsLoader,
+    observeReservants: Flow<List<ReservantListItem>>,
     loadDeleteSummary: ReservantDeleteSummaryLoader,
     deleteReservant: ReservantDelete,
     currentUserRole: String?,
@@ -149,6 +158,7 @@ internal fun reservantsCatalogViewModelFactory(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return ReservantsCatalogViewModel(
                 loadReservants = loadReservants,
+                observeReservants = observeReservants,
                 loadDeleteSummary = loadDeleteSummary,
                 deleteReservant = deleteReservant,
                 stateReducer = DefaultReservantsCatalogStateReducer(),

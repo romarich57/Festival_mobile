@@ -1,5 +1,8 @@
 package com.projetmobile.mobile.data.entity.games
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GameDraft(
     val title: String,
     val type: String,

@@ -1,5 +1,8 @@
 package com.projetmobile.mobile.data.entity.reservants
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ReservantDraft(
     val name: String,
     val email: String,

@@ -9,6 +9,7 @@ import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FestivalViewModel(
@@ -25,6 +26,17 @@ class FestivalViewModel(
     val pendingDeleteFestivalId: StateFlow<Int?> = _pendingDeleteFestivalId.asStateFlow()
 
     init {
+        // Observation Room (SSOT) — données disponibles immédiatement si cache peuplé
+        viewModelScope.launch {
+            festivalRepository.observeFestivals().collect { festivals ->
+                _uiState.update { state ->
+                    state.copy(
+                        festivals = festivals,
+                        isLoading = if (festivals.isNotEmpty()) false else state.isLoading,
+                    )
+                }
+            }
+        }
         loadFestivals()
     }
 
@@ -34,19 +46,16 @@ class FestivalViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
-            festivalRepository.getFestivals()
-                .onSuccess { festivals ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        festivals = festivals
-                    )
+            festivalRepository.refreshFestivals()
+                .onSuccess {
+                    _uiState.value = _uiState.value.copy(isLoading = false)
                 }
                 .onFailure { throwable ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         errorMessage = if (_uiState.value.festivals.isEmpty()) {
                             throwable.localizedMessage ?: "Impossible de charger les festivals."
-                        } else null
+                        } else null,
                     )
                 }
         }

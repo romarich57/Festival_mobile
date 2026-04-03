@@ -528,23 +528,38 @@ class FestivalAppNavigationInstrumentationTest {
 }
 
 private class FakeFestivalRepository : FestivalRepository {
-    override suspend fun getFestivals(): Result<List<FestivalSummary>> {
-        return Result.success(
-            listOf(
-                FestivalSummary(
-                    id = 1,
-                    name = "Festival Lumiere",
-                    startDate = "2026-06-10",
-                    endDate = "2026-06-12",
-                    stockTablesStandard = 10,
-                    stockTablesGrande = 2,
-                    stockTablesMairie = 1,
-                    stockChaises = 48,
-                    prixPrises = 18.0,
-                ),
-            ),
-        )
-    }
+    private val festivals = listOf(
+        FestivalSummary(
+            id = 1,
+            name = "Festival Lumiere",
+            startDate = "2026-06-10",
+            endDate = "2026-06-12",
+            stockTablesStandard = 10,
+            stockTablesGrande = 2,
+            stockTablesMairie = 1,
+            stockChaises = 48,
+            prixPrises = 18.0,
+        ),
+    )
+
+    override fun observeFestivals(): kotlinx.coroutines.flow.Flow<List<FestivalSummary>> =
+        kotlinx.coroutines.flow.MutableStateFlow(festivals)
+
+    override fun observeFestival(id: Int): kotlinx.coroutines.flow.Flow<FestivalSummary?> =
+        kotlinx.coroutines.flow.MutableStateFlow(festivals.firstOrNull { it.id == id })
+
+    override suspend fun refreshFestivals(): Result<List<FestivalSummary>> =
+        Result.success(festivals)
+
+    override suspend fun getFestival(id: Int): Result<FestivalSummary> =
+        festivals.firstOrNull { it.id == id }
+            ?.let { Result.success(it) }
+            ?: Result.failure(IllegalStateException("Festival not found"))
+
+    override suspend fun addFestival(festival: com.projetmobile.mobile.data.remote.festival.FestivalDto): Result<com.projetmobile.mobile.data.remote.festival.FestivalDto> =
+        Result.success(festival)
+
+    override suspend fun deleteFestival(id: Int): Result<Unit> = Result.success(Unit)
 }
 
 private class FakeGamesRepository(
@@ -589,7 +604,15 @@ private class FakeGamesRepository(
         ),
     )
 
-    override suspend fun getGames(
+    private val _gamesFlow = kotlinx.coroutines.flow.MutableStateFlow(games.toList())
+
+    override fun observeGames(titleSearch: String): kotlinx.coroutines.flow.Flow<List<GameListItem>> =
+        _gamesFlow
+
+    override fun observeGame(gameId: Int): kotlinx.coroutines.flow.Flow<com.projetmobile.mobile.data.entity.games.GameDetail?> =
+        kotlinx.coroutines.flow.MutableStateFlow(null)
+
+    override suspend fun refreshGames(
         filters: GameFilters,
         page: Int,
         limit: Int,

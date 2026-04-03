@@ -6,10 +6,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 internal fun ReservantsCatalogRoute(
     loadReservants: ReservantsLoader,
+    observeReservants: Flow<List<ReservantListItem>>,
     loadDeleteSummary: ReservantDeleteSummaryLoader,
     deleteReservant: ReservantDelete,
     currentUserRole: String?,
@@ -24,6 +27,7 @@ internal fun ReservantsCatalogRoute(
     val viewModel: ReservantsCatalogViewModel = viewModel(
         factory = reservantsCatalogViewModelFactory(
             loadReservants = loadReservants,
+            observeReservants = observeReservants,
             loadDeleteSummary = loadDeleteSummary,
             deleteReservant = deleteReservant,
             currentUserRole = currentUserRole,
