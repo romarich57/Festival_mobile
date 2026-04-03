@@ -25,44 +25,25 @@ class FestivalViewModel(
     val pendingDeleteFestivalId: StateFlow<Int?> = _pendingDeleteFestivalId.asStateFlow()
 
     init {
-        // 1. AJOUT : On commence à écouter Room immédiatement.
-        // Si des données existent déjà en local, elles s'affichent instantanément.
-        observeFestivals()
-
-        // 2. MODIFICATION : On lance le refresh réseau en arrière-plan.
         loadFestivals()
     }
 
-    // ── NOUVELLE MÉTHODE : Observation Réactive ──────────────────────────────
-
-    /**
-     * Collecte le Flow venant du Repository.
-     * Dès que Room est mis à jour (via un insert ou delete), l'UI réagit.
-     */
-    private fun observeFestivals() {
-        viewModelScope.launch {
-            festivalRepository.observeFestivals().collect { festivalsFromRoom ->
-                _uiState.value = _uiState.value.copy(festivals = festivalsFromRoom)
-            }
-        }
-    }
-
-    // ── Chargement (Modifié pour ne plus écraser l'UI brutalement) ─────────────
+    // ── Chargement ─────────────
 
     fun loadFestivals() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
             festivalRepository.getFestivals()
-                .onSuccess {
-                    // On ne met à jour QUE le statut loading.
-                    // observeFestivals() s'occupera de mettre à jour la liste.
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                .onSuccess { festivals ->
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        festivals = festivals
+                    )
                 }
                 .onFailure { throwable ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        // On n'affiche l'erreur que si la liste est vide (vrai échec)
                         errorMessage = if (_uiState.value.festivals.isEmpty()) {
                             throwable.localizedMessage ?: "Impossible de charger les festivals."
                         } else null
