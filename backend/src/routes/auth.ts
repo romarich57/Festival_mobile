@@ -6,6 +6,11 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import pool from '../db/database.js'
 import {
+  createAuthAccessCookieOptions,
+  createAuthCookieBaseOptions,
+  createAuthRefreshCookieOptions,
+} from '../config/auth-cookie-options.js'
+import {
   verifyToken,
   createAccessToken,
   createRefreshToken,
@@ -54,21 +59,7 @@ type VerificationFlowStatus = 'success' | 'expired' | 'invalid' | 'error'
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PASSWORD_RESET_EXPIRATION_MS = 60 * 60 * 1000
 
-const HTTPS_ENABLED = process.env.HTTPS_ENABLED !== 'false'
 
-const COOKIE_BASE_OPTIONS = {
-  httpOnly: true,
-  secure: HTTPS_ENABLED,
-  sameSite: 'lax' as const,
-}
-const ACCESS_COOKIE_OPTIONS = {
-  ...COOKIE_BASE_OPTIONS,
-  maxAge: 15 * 60 * 1000,
-}
-const REFRESH_COOKIE_OPTIONS = {
-  ...COOKIE_BASE_OPTIONS,
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-}
 const router = Router()
 
 // Role : Construire un utilisateur sans champs sensibles.
@@ -450,8 +441,8 @@ router.post('/login', async (req, res) => {
       [user.id, hashRefreshTokenId(refreshTokenId), refreshExpiresAt],
     )
 
-    res.cookie('access_token', accessToken, ACCESS_COOKIE_OPTIONS)
-    res.cookie('refresh_token', refreshToken, REFRESH_COOKIE_OPTIONS)
+    res.cookie('access_token', accessToken, createAuthAccessCookieOptions())
+    res.cookie('refresh_token', refreshToken, createAuthRefreshCookieOptions())
 
     res.json({
       message: 'Authentification réussie',
@@ -872,8 +863,8 @@ router.post('/logout', async (req, res) => {
     }
   }
 
-  res.clearCookie('access_token', COOKIE_BASE_OPTIONS)
-  res.clearCookie('refresh_token', COOKIE_BASE_OPTIONS)
+  res.clearCookie('access_token', createAuthCookieBaseOptions())
+  res.clearCookie('refresh_token', createAuthCookieBaseOptions())
   res.json({ message: 'Déconnexion réussie' })
 })
 
@@ -973,8 +964,8 @@ router.post('/refresh', async (req, res) => {
       login: decoded.login,
       role: decoded.role,
     })
-    res.cookie('access_token', newAccess, ACCESS_COOKIE_OPTIONS)
-    res.cookie('refresh_token', newRefreshToken, REFRESH_COOKIE_OPTIONS)
+    res.cookie('access_token', newAccess, createAuthAccessCookieOptions())
+    res.cookie('refresh_token', newRefreshToken, createAuthRefreshCookieOptions())
     res.json({ message: 'Token renouvelé' })
   } catch (error) {
     console.error('Erreur lors du refresh token', error)

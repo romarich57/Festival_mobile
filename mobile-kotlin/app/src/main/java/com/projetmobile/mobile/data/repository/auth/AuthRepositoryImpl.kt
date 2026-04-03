@@ -10,7 +10,8 @@ import com.projetmobile.mobile.data.remote.auth.ResendVerificationRequestDto
 import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 import com.projetmobile.mobile.data.entity.auth.RegisterAccountInput
-import org.json.JSONObject
+import com.projetmobile.mobile.data.repository.runRepositoryCall
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import retrofit2.HttpException
 
 class AuthRepositoryImpl(
@@ -130,37 +131,5 @@ class AuthRepositoryImpl(
 
     override suspend fun setLastLoginIdentifier(identifier: String) {
         authPreferenceStore.setLastLoginIdentifier(identifier)
-    }
-
-    private suspend fun <T> runRepositoryCall(
-        defaultMessage: String,
-        block: suspend () -> T,
-    ): Result<T> {
-        return try {
-            Result.success(block())
-        } catch (throwable: Throwable) {
-            Result.failure(throwable.toRepositoryException(defaultMessage))
-        }
-    }
-
-    private fun Throwable.toRepositoryException(defaultMessage: String): Throwable {
-        val message = when (this) {
-            is HttpException -> parseBackendErrorMessage() ?: defaultMessage
-            else -> localizedMessage?.takeIf { it.isNotBlank() } ?: defaultMessage
-        }
-        return IllegalStateException(message, this)
-    }
-
-    private fun HttpException.parseBackendErrorMessage(): String? {
-        val errorBody = response()?.errorBody()?.string().orEmpty()
-        if (errorBody.isBlank()) {
-            return null
-        }
-
-        return runCatching {
-            val json = JSONObject(errorBody)
-            json.optString("error").takeIf { it.isNotBlank() }
-                ?: json.optString("message").takeIf { it.isNotBlank() }
-        }.getOrNull()
     }
 }

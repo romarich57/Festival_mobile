@@ -4,19 +4,35 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 import com.projetmobile.mobile.data.entity.auth.VerificationResultStatus
 import com.projetmobile.mobile.data.entity.auth.RegisterAccountInput
 import com.projetmobile.mobile.data.entity.festival.FestivalSummary
+import com.projetmobile.mobile.data.entity.games.EditorOption
+import com.projetmobile.mobile.data.entity.games.GameDetail
+import com.projetmobile.mobile.data.entity.games.GameDraft
+import com.projetmobile.mobile.data.entity.games.GameFilters
+import com.projetmobile.mobile.data.entity.games.GameListItem
+import com.projetmobile.mobile.data.entity.games.GameTypeOption
+import com.projetmobile.mobile.data.entity.games.MechanismOption
+import com.projetmobile.mobile.data.entity.games.PagedResult
+import com.projetmobile.mobile.data.entity.profile.AvatarUploadResult
+import com.projetmobile.mobile.data.entity.profile.OptionalField
+import com.projetmobile.mobile.data.entity.profile.ProfileUpdateInput
+import com.projetmobile.mobile.data.entity.profile.ProfileUpdateResult
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
+import com.projetmobile.mobile.data.repository.games.GamesRepository
+import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.ui.screens.app.FestivalApp
 import com.projetmobile.mobile.ui.theme.FestivalMobileTheme
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
@@ -131,6 +147,71 @@ class FestivalAppNavigationInstrumentationTest {
     }
 
     @Test
+    fun profileScreen_showsAccountSections_andPasswordResetAction() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+            profileRepository = FakeProfileRepository(initialProfile = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Profile").performClick()
+
+        waitForTag("profile-summary-card")
+
+        composeRule.onNodeWithTag("profile-summary-card").assertIsDisplayed()
+        composeRule.onNodeWithText("Romain").assertIsDisplayed()
+        composeRule.onNodeWithText("Richard").assertIsDisplayed()
+        composeRule.onNodeWithText("@romain").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-login-edit-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-email-edit-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-password-card").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-password-reset-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("logout-button").assertIsDisplayed()
+    }
+
+    @Test
+    fun profileScreen_allowsInlineEditingFromFieldActions() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+            profileRepository = FakeProfileRepository(initialProfile = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Profile").performClick()
+        waitForTag("profile-login-edit-button")
+
+        composeRule.onNodeWithTag("profile-login-edit-button").performClick()
+
+        waitForTag("profile-login-field")
+
+        composeRule.onNodeWithTag("profile-login-field").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-save-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("profile-cancel-button").assertIsDisplayed()
+
+        composeRule.onNodeWithTag("profile-email-edit-button").performClick()
+        waitForTag("profile-email-field")
+        composeRule.onNodeWithTag("profile-email-field").assertIsDisplayed()
+    }
+
+    @Test
+    fun profileScreen_successBanner_disappearsAfterDelay() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+            profileRepository = FakeProfileRepository(initialProfile = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Profile").performClick()
+        waitForTag("profile-first-name-edit-button")
+
+        composeRule.onNodeWithTag("profile-first-name-edit-button").performClick()
+        waitForTag("profile-first-name-field")
+        composeRule.onNodeWithTag("profile-first-name-field").performTextInput(" Jr")
+        composeRule.onNodeWithTag("profile-save-button").performClick()
+
+        waitForText("Profil mis a jour.")
+        composeRule.onNodeWithText("Profil mis a jour.").assertIsDisplayed()
+        waitForTextGone("Profil mis a jour.", timeoutMillis = 6_000)
+    }
+
+    @Test
     fun registerSuccess_routesToPendingVerification_andKeepsRegisterTabSelected() {
         setFestivalAppContent(
             authRepository = FakeAuthRepository(),
@@ -234,6 +315,165 @@ class FestivalAppNavigationInstrumentationTest {
     }
 
     @Test
+    fun gamesTab_benevoleSeesReadOnlyCatalog() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "benevole")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("games-catalog-root")
+
+        composeRule.onNodeWithTag("games-catalog-root").assertIsDisplayed()
+        composeRule.onNodeWithTag("game-card-1").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("games-create-button").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("game-edit-1").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("game-delete-1").assertCountEquals(0)
+    }
+
+    @Test
+    fun gamesTab_organizerSeesCrudActions() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("games-catalog-root")
+
+        composeRule.onNodeWithTag("games-create-button").assertIsDisplayed()
+        composeRule.onNodeWithTag("game-edit-1").assertIsDisplayed()
+        composeRule.onNodeWithTag("game-delete-1").assertIsDisplayed()
+    }
+
+    @Test
+    fun gamesTab_cardTap_opensDetailScreen() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "benevole")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("game-card-1")
+
+        composeRule.onNodeWithTag("game-card-1").performClick()
+
+        waitForTag("game-detail-root")
+
+        composeRule.onNodeWithTag("game-detail-root").assertIsDisplayed()
+        composeRule.onNodeWithText("Achète ma merde !").assertIsDisplayed()
+    }
+
+    @Test
+    fun gamesTab_editButton_opensFormNotDetailScreen() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("game-edit-1")
+
+        composeRule.onNodeWithTag("game-edit-1").performClick()
+
+        waitForTag("game-form-root")
+
+        composeRule.onNodeWithTag("game-form-root").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("game-detail-root").assertCountEquals(0)
+    }
+
+    @Test
+    fun gamesTab_deleteButton_opensDialogNotDetailScreen() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("game-delete-1")
+
+        composeRule.onNodeWithTag("game-delete-1").performClick()
+
+        waitForText("Supprimer le jeu")
+
+        composeRule.onNodeWithText("Supprimer le jeu").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("game-detail-root").assertCountEquals(0)
+    }
+
+    @Test
+    fun gamesTab_compactFiltersAreCollapsedByDefault() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("games-filters-toggle")
+
+        composeRule.onAllNodesWithTag("games-title-filter").assertCountEquals(0)
+
+        composeRule.onNodeWithTag("games-filters-toggle").performClick()
+
+        waitForTag("games-title-filter")
+        composeRule.onNodeWithTag("games-title-filter").assertIsDisplayed()
+    }
+
+    @Test
+    fun gameForm_createScreen_usesSimplifiedCopy() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "organizer")),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("games-create-button")
+
+        composeRule.onNodeWithTag("games-create-button").performClick()
+
+        waitForTag("game-form-root")
+
+        composeRule.onNodeWithTag("game-form-root").assertIsDisplayed()
+        composeRule.onNodeWithText("Retour").assertIsDisplayed()
+        composeRule.onAllNodesWithText("Retour à la liste").assertCountEquals(0)
+        composeRule.onAllNodesWithText("Ajouter un jeu au catalogue maître.").assertCountEquals(0)
+        composeRule.onAllNodesWithText("Mettre à jour les informations du catalogue maître.").assertCountEquals(0)
+    }
+
+    @Test
+    fun gameDetail_validYoutubeUrl_opensEmbeddedPlayer() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "benevole")),
+            gamesRepository = FakeGamesRepository(
+                initialRulesVideoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            ),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("game-card-1")
+        composeRule.onNodeWithTag("game-card-1").performClick()
+        waitForTag("game-detail-list")
+
+        composeRule.onNodeWithTag("game-detail-list")
+            .performScrollToNode(hasTestTag("games-rules-video-play-button"))
+        composeRule.onNodeWithTag("games-rules-video-play-button").performClick()
+
+        waitForTag("games-youtube-player-dialog")
+        composeRule.onNodeWithTag("games-youtube-player-dialog").assertIsDisplayed()
+    }
+
+    @Test
+    fun gameDetail_invalidYoutubeUrl_showsFallbackMessage() {
+        setFestivalAppContent(
+            authRepository = FakeAuthRepository(initialUser = sampleUser(role = "benevole")),
+            gamesRepository = FakeGamesRepository(
+                initialRulesVideoUrl = "https://example.com/not-youtube",
+            ),
+        )
+
+        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
+        waitForTag("game-card-1")
+        composeRule.onNodeWithTag("game-card-1").performClick()
+        waitForTag("game-detail-list")
+
+        composeRule.onNodeWithTag("game-detail-list")
+            .performScrollToNode(hasTestTag("games-rules-video-invalid"))
+        composeRule.onNodeWithTag("games-rules-video-invalid").assertIsDisplayed()
+    }
+
+    @Test
     fun placeholderTabs_showImplementationMessage() {
         setFestivalAppContent(
             authRepository = FakeAuthRepository(initialUser = sampleUser(role = "admin")),
@@ -243,10 +483,6 @@ class FestivalAppNavigationInstrumentationTest {
         waitForText("Section en cours d'implémentation")
         composeRule.onNodeWithTag("bottom-tab-Reservants").assertIsSelected()
 
-        composeRule.onNodeWithTag("bottom-tab-Games").performClick()
-        waitForText("Section en cours d'implémentation")
-        composeRule.onNodeWithTag("bottom-tab-Games").assertIsSelected()
-
         composeRule.onNodeWithTag("bottom-tab-Admin").performClick()
         waitForText("Section en cours d'implémentation")
         composeRule.onNodeWithTag("bottom-tab-Admin").assertIsSelected()
@@ -255,6 +491,8 @@ class FestivalAppNavigationInstrumentationTest {
     private fun setFestivalAppContent(
         authRepository: FakeAuthRepository = FakeAuthRepository(),
         festivalRepository: FestivalRepository = FakeFestivalRepository(),
+        gamesRepository: GamesRepository = FakeGamesRepository(),
+        profileRepository: ProfileRepository = FakeProfileRepository(),
         incomingDestinations: MutableSharedFlow<AppNavKey> = MutableSharedFlow(extraBufferCapacity = 1),
     ) {
         composeRule.setContent {
@@ -262,6 +500,8 @@ class FestivalAppNavigationInstrumentationTest {
                 FestivalApp(
                     authRepository = authRepository,
                     festivalRepository = festivalRepository,
+                    gamesRepository = gamesRepository,
+                    profileRepository = profileRepository,
                     incomingDestinations = incomingDestinations,
                 )
             }
@@ -277,6 +517,12 @@ class FestivalAppNavigationInstrumentationTest {
     private fun waitForText(text: String) {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    private fun waitForTextGone(text: String, timeoutMillis: Long) {
+        composeRule.waitUntil(timeoutMillis = timeoutMillis) {
+            composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty()
         }
     }
 }
@@ -299,6 +545,196 @@ private class FakeFestivalRepository : FestivalRepository {
             ),
         )
     }
+}
+
+private class FakeGamesRepository(
+    private val initialRulesVideoUrl: String? = null,
+) : GamesRepository {
+    private val mechanisms = listOf(
+        MechanismOption(id = 1, name = "Bluff", description = null),
+        MechanismOption(id = 2, name = "Rôles cachés", description = null),
+    )
+
+    private val editors = listOf(
+        EditorOption(
+            id = 10,
+            name = "Black Sheep Laboratory",
+            email = null,
+            website = null,
+            description = null,
+            logoUrl = null,
+            isExhibitor = true,
+            isDistributor = false,
+        ),
+    )
+
+    private val games = mutableListOf(
+        GameListItem(
+            id = 1,
+            title = "Achète ma merde !",
+            type = "Ambiance",
+            editorId = 10,
+            editorName = "Black Sheep Laboratory",
+            minAge = 8,
+            authors = "Achète ma merde !",
+            minPlayers = 5,
+            maxPlayers = 14,
+            prototype = false,
+            durationMinutes = 20,
+            theme = "Moutons",
+            description = "Test instrumentation catalogue jeux.",
+            imageUrl = null,
+            rulesVideoUrl = initialRulesVideoUrl,
+            mechanisms = mechanisms,
+        ),
+    )
+
+    override suspend fun getGames(
+        filters: GameFilters,
+        page: Int,
+        limit: Int,
+    ): Result<PagedResult<GameListItem>> {
+        val filteredItems = games.filter { game ->
+            val matchesTitle = filters.title.isBlank() || game.title.contains(filters.title, ignoreCase = true)
+            val matchesType = filters.type.isNullOrBlank() || game.type == filters.type
+            val matchesEditor = filters.editorId == null || game.editorId == filters.editorId
+            val matchesAge = filters.minAge == null || game.minAge >= filters.minAge
+            matchesTitle && matchesType && matchesEditor && matchesAge
+        }
+
+        return Result.success(
+            PagedResult(
+                items = filteredItems,
+                page = page,
+                limit = limit,
+                total = filteredItems.size,
+                hasNext = false,
+            ),
+        )
+    }
+
+    override suspend fun getGame(gameId: Int): Result<GameDetail> {
+        val game = games.firstOrNull { it.id == gameId }
+            ?: return Result.failure(IllegalStateException("Game not found"))
+
+        return Result.success(
+            GameDetail(
+                id = game.id,
+                title = game.title,
+                type = game.type,
+                editorId = game.editorId,
+                editorName = game.editorName,
+                minAge = game.minAge,
+                authors = game.authors,
+                minPlayers = game.minPlayers,
+                maxPlayers = game.maxPlayers,
+                prototype = game.prototype,
+                durationMinutes = game.durationMinutes,
+                theme = game.theme,
+                description = game.description,
+                imageUrl = game.imageUrl,
+                rulesVideoUrl = game.rulesVideoUrl,
+                mechanisms = game.mechanisms,
+            ),
+        )
+    }
+
+    override suspend fun getGameTypes(): Result<List<GameTypeOption>> {
+        return Result.success(listOf(GameTypeOption("Ambiance"), GameTypeOption("Expert")))
+    }
+
+    override suspend fun getEditors(): Result<List<EditorOption>> = Result.success(editors)
+
+    override suspend fun getMechanisms(): Result<List<MechanismOption>> = Result.success(mechanisms)
+
+    override suspend fun createGame(draft: GameDraft): Result<GameDetail> {
+        val newId = (games.maxOfOrNull { it.id } ?: 0) + 1
+        val created = draft.toGameDetail(
+            id = newId,
+            editorName = editors.firstOrNull { it.id == draft.editorId }?.name,
+            mechanisms = mechanisms.filter { it.id in draft.mechanismIds },
+        )
+        games += created.toListItem()
+        return Result.success(created)
+    }
+
+    override suspend fun updateGame(
+        gameId: Int,
+        draft: GameDraft,
+    ): Result<GameDetail> {
+        val updated = draft.toGameDetail(
+            id = gameId,
+            editorName = editors.firstOrNull { it.id == draft.editorId }?.name,
+            mechanisms = mechanisms.filter { it.id in draft.mechanismIds },
+        )
+        games.replaceAll { existing ->
+            if (existing.id == gameId) {
+                updated.toListItem()
+            } else {
+                existing
+            }
+        }
+        return Result.success(updated)
+    }
+
+    override suspend fun deleteGame(gameId: Int): Result<String> {
+        games.removeAll { it.id == gameId }
+        return Result.success("deleted")
+    }
+
+    override suspend fun uploadGameImage(
+        fileName: String,
+        mimeType: String,
+        bytes: ByteArray,
+    ): Result<String> {
+        return Result.success("/uploads/games/$fileName")
+    }
+}
+
+private fun GameDraft.toGameDetail(
+    id: Int,
+    editorName: String?,
+    mechanisms: List<MechanismOption>,
+): GameDetail {
+    return GameDetail(
+        id = id,
+        title = title,
+        type = type,
+        editorId = editorId,
+        editorName = editorName,
+        minAge = minAge ?: 0,
+        authors = authors,
+        minPlayers = minPlayers,
+        maxPlayers = maxPlayers,
+        prototype = prototype,
+        durationMinutes = durationMinutes,
+        theme = theme,
+        description = description,
+        imageUrl = imageUrl,
+        rulesVideoUrl = rulesVideoUrl,
+        mechanisms = mechanisms,
+    )
+}
+
+private fun GameDetail.toListItem(): GameListItem {
+    return GameListItem(
+        id = id,
+        title = title,
+        type = type,
+        editorId = editorId,
+        editorName = editorName,
+        minAge = minAge,
+        authors = authors,
+        minPlayers = minPlayers,
+        maxPlayers = maxPlayers,
+        prototype = prototype,
+        durationMinutes = durationMinutes,
+        theme = theme,
+        description = description,
+        imageUrl = imageUrl,
+        rulesVideoUrl = rulesVideoUrl,
+        mechanisms = mechanisms,
+    )
 }
 
 private class FakeAuthRepository(
@@ -392,4 +828,61 @@ private fun sampleUser(
         emailVerified = true,
         createdAt = "2026-03-18T09:00:00Z",
     )
+}
+
+private class FakeProfileRepository(
+    initialProfile: AuthUser = sampleUser(),
+) : ProfileRepository {
+    private var currentProfile: AuthUser = initialProfile
+
+    override suspend fun getProfile(): Result<AuthUser> = Result.success(currentProfile)
+
+    override suspend fun updateProfile(input: ProfileUpdateInput): Result<ProfileUpdateResult> {
+        val previousEmail = currentProfile.email
+        val emailChanged = input.email != null && input.email != previousEmail
+        currentProfile = currentProfile.copy(
+            login = input.login ?: currentProfile.login,
+            firstName = input.firstName ?: currentProfile.firstName,
+            lastName = input.lastName ?: currentProfile.lastName,
+            email = input.email ?: currentProfile.email,
+            phone = when (val phone = input.phone) {
+                OptionalField.Unchanged -> currentProfile.phone
+                is OptionalField.Value -> phone.value
+            },
+            avatarUrl = when (val avatar = input.avatarUrl) {
+                OptionalField.Unchanged -> currentProfile.avatarUrl
+                is OptionalField.Value -> avatar.value
+            },
+            emailVerified = if (emailChanged) {
+                false
+            } else {
+                currentProfile.emailVerified
+            },
+        )
+
+        return Result.success(
+            ProfileUpdateResult(
+                message = "Profil mis a jour.",
+                user = currentProfile,
+                emailVerificationSent = emailChanged,
+            ),
+        )
+    }
+
+    override suspend fun uploadAvatar(
+        fileName: String,
+        mimeType: String,
+        bytes: ByteArray,
+    ): Result<AvatarUploadResult> {
+        return Result.success(
+            AvatarUploadResult(
+                url = "/uploads/avatars/$fileName",
+                message = "Avatar uploade.",
+            ),
+        )
+    }
+
+    override suspend fun requestPasswordReset(email: String): Result<String> {
+        return Result.success("Si un compte existe, un email a ete envoye.")
+    }
 }

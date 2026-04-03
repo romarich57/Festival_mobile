@@ -98,6 +98,31 @@ object AuthFormValidator {
             confirmationError = confirmationError,
         )
     }
+
+    fun validateProfileUpdate(
+        username: String,
+        firstName: String,
+        lastName: String,
+        email: String,
+        phone: String,
+    ): ProfileUpdateValidationResult {
+        val registerValidation = validateRegister(
+            username = username,
+            firstName = firstName,
+            lastName = lastName,
+            email = email,
+            password = "temporary-pass",
+            phone = phone,
+        )
+
+        return ProfileUpdateValidationResult(
+            usernameError = registerValidation.usernameError,
+            firstNameError = registerValidation.firstNameError,
+            lastNameError = registerValidation.lastNameError,
+            emailError = registerValidation.emailError,
+            phoneError = registerValidation.phoneError,
+        )
+    }
 }
 
 data class LoginValidationResult(
@@ -146,5 +171,22 @@ data class ResetPasswordValidationResult(
     val confirmationError: String?,
 ) {
     val isValid: Boolean = passwordError == null && confirmationError == null
+    val isInvalid: Boolean = !isValid
+}
+
+data class ProfileUpdateValidationResult(
+    val usernameError: String?,
+    val firstNameError: String?,
+    val lastNameError: String?,
+    val emailError: String?,
+    val phoneError: String?,
+) {
+    val isValid: Boolean = listOf(
+        usernameError,
+        firstNameError,
+        lastNameError,
+        emailError,
+        phoneError,
+    ).all { error -> error == null }
     val isInvalid: Boolean = !isValid
 }

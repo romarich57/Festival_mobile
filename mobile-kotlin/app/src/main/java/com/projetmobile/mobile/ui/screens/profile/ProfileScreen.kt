@@ -1,75 +1,104 @@
 package com.projetmobile.mobile.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.projetmobile.mobile.data.entity.auth.AuthUser
-import com.projetmobile.mobile.ui.components.AuthCard
 import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
-import com.projetmobile.mobile.ui.components.PrimaryAuthButton
+import kotlinx.coroutines.delay
 
 @Composable
 fun ProfileScreen(
-    currentUser: AuthUser?,
+    uiState: ProfileUiState,
     isLoggingOut: Boolean,
-    errorMessage: String?,
+    onStartEditingField: (ProfileEditableField) -> Unit,
+    onCancelEditing: () -> Unit,
+    onLoginChanged: (String) -> Unit,
+    onFirstNameChanged: (String) -> Unit,
+    onLastNameChanged: (String) -> Unit,
+    onEmailChanged: (String) -> Unit,
+    onPhoneChanged: (String) -> Unit,
+    onSaveProfile: () -> Unit,
+    onDismissInfoMessage: () -> Unit,
+    onSendPasswordReset: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    AuthCard(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(28.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+    LaunchedEffect(uiState.infoMessage) {
+        if (uiState.infoMessage == null) {
+            return@LaunchedEffect
+        }
+        delay(4_000)
+        onDismissInfoMessage()
+    }
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .testTag("profile-screen-root"),
+    ) {
+        val showHorizontalActions = maxWidth >= 360.dp
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (currentUser != null) {
-                Text(
-                    text = "${currentUser.firstName} ${currentUser.lastName}",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = currentUser.email,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "Connecté en tant que ${currentUser.login}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                Text(
-                    text = "Aucune session active.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
+            if (uiState.errorMessage != null) {
+                item {
+                    AuthFeedbackBanner(
+                        message = uiState.errorMessage,
+                        tone = AuthFeedbackTone.Error,
+                    )
+                }
+            }
+            if (uiState.infoMessage != null) {
+                item {
+                    AuthFeedbackBanner(
+                        message = uiState.infoMessage,
+                        tone = AuthFeedbackTone.Success,
+                    )
+                }
             }
 
-            errorMessage?.let { message ->
-                AuthFeedbackBanner(
-                    message = message,
-                    tone = AuthFeedbackTone.Error,
-                )
+            item {
+                when {
+                    uiState.isLoading && uiState.profile == null -> LoadingProfileCard()
+                    uiState.profile != null -> ProfileOverviewCard(
+                        uiState = uiState,
+                        isLoggingOut = isLoggingOut,
+                        showHorizontalActions = showHorizontalActions,
+                        onStartEditingField = onStartEditingField,
+                        onCancelEditing = onCancelEditing,
+                        onLoginChanged = onLoginChanged,
+                        onFirstNameChanged = onFirstNameChanged,
+                        onLastNameChanged = onLastNameChanged,
+                        onEmailChanged = onEmailChanged,
+                        onPhoneChanged = onPhoneChanged,
+                        onSaveProfile = onSaveProfile,
+                        onLogout = onLogout,
+                    )
+
+                    else -> EmptyProfileCard()
+                }
             }
 
-            PrimaryAuthButton(
-                text = if (isLoggingOut) "Déconnexion..." else "Se déconnecter",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("logout-button"),
-                enabled = currentUser != null && !isLoggingOut,
-                onClick = onLogout,
-            )
+            item {
+                if (uiState.profile != null) {
+                    PasswordResetCard(
+                        email = uiState.profile.email,
+                        isSending = uiState.isSendingPasswordReset,
+                        onSendPasswordReset = onSendPasswordReset,
+                    )
+                }
+            }
         }
     }
 }

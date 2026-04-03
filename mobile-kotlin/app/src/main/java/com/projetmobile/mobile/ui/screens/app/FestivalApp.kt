@@ -1,21 +1,6 @@
 package com.projetmobile.mobile.ui.screens.app
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,62 +8,46 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.ViewModelStoreNavEntryDecoratorDefaults
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavEntryDecorator
-import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
 import com.projetmobile.mobile.AppContainer
-import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
+import com.projetmobile.mobile.data.repository.admin.AdminRepository
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
+import com.projetmobile.mobile.data.repository.games.GamesRepository
+import com.projetmobile.mobile.data.repository.profile.ProfileRepository
+import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
+import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
-import com.projetmobile.mobile.ui.components.GradientScreenBackground
-import com.projetmobile.mobile.ui.components.ImplementationPlaceholder
-import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationScreen
-import com.projetmobile.mobile.ui.screens.auth.emailverification.PendingVerificationViewModel
-import com.projetmobile.mobile.ui.screens.auth.emailverification.VerificationResultScreen
-import com.projetmobile.mobile.ui.screens.auth.forgotpassword.ForgotPasswordScreen
-import com.projetmobile.mobile.ui.screens.auth.forgotpassword.ForgotPasswordViewModel
-import com.projetmobile.mobile.ui.screens.auth.login.LoginScreen
-import com.projetmobile.mobile.ui.screens.auth.login.LoginViewModel
-import com.projetmobile.mobile.ui.screens.auth.register.RegisterScreen
-import com.projetmobile.mobile.ui.screens.auth.register.RegisterViewModel
-import com.projetmobile.mobile.ui.screens.auth.resetpassword.ResetPasswordScreen
-import com.projetmobile.mobile.ui.screens.auth.resetpassword.ResetPasswordViewModel
-import com.projetmobile.mobile.ui.screens.festivalForm.FestivalFormScreen
-import com.projetmobile.mobile.ui.screens.festivalForm.FestivalFormViewModel
-import com.projetmobile.mobile.ui.screens.festival.FestivalScreen
-import com.projetmobile.mobile.ui.screens.festival.FestivalViewModel
-import com.projetmobile.mobile.ui.screens.profile.ProfileScreen
-import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
 import com.projetmobile.mobile.ui.utils.navigation.Admin
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserCreate
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserDetail
+import com.projetmobile.mobile.ui.utils.navigation.AdminUserEdit
 import com.projetmobile.mobile.ui.utils.navigation.AppNavKey
 import com.projetmobile.mobile.ui.utils.navigation.FestivalForm
 import com.projetmobile.mobile.ui.utils.navigation.Festivals
-import com.projetmobile.mobile.ui.utils.navigation.ForgotPassword
+import com.projetmobile.mobile.ui.utils.navigation.GameCreate
+import com.projetmobile.mobile.ui.utils.navigation.GameDetails
+import com.projetmobile.mobile.ui.utils.navigation.GameEdit
 import com.projetmobile.mobile.ui.utils.navigation.Games
 import com.projetmobile.mobile.ui.utils.navigation.Login
-import com.projetmobile.mobile.ui.utils.navigation.PendingVerification
 import com.projetmobile.mobile.ui.utils.navigation.Profile
-import com.projetmobile.mobile.ui.utils.navigation.Reservants
 import com.projetmobile.mobile.ui.utils.navigation.Register
+import com.projetmobile.mobile.ui.utils.navigation.ReservantCreate
+import com.projetmobile.mobile.ui.utils.navigation.ReservantDetails
+import com.projetmobile.mobile.ui.utils.navigation.ReservantEdit
+import com.projetmobile.mobile.ui.utils.navigation.ReservantGameCreate
+import com.projetmobile.mobile.ui.utils.navigation.Reservants
 import com.projetmobile.mobile.ui.utils.navigation.ReservationDashboard
+import com.projetmobile.mobile.ui.utils.navigation.ReservationDetails
 import com.projetmobile.mobile.ui.utils.navigation.ReservationForm
-import com.projetmobile.mobile.ui.utils.navigation.ResetPassword
 import com.projetmobile.mobile.ui.utils.navigation.TopLevelTab
-import com.projetmobile.mobile.ui.utils.navigation.VerificationResult
 import com.projetmobile.mobile.ui.utils.navigation.chromeFor
 import com.projetmobile.mobile.ui.utils.navigation.ownerTab
 import com.projetmobile.mobile.ui.utils.navigation.specFor
@@ -86,14 +55,6 @@ import com.projetmobile.mobile.ui.utils.navigation.visibleTabs
 import com.projetmobile.mobile.ui.utils.session.AppSessionViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardScreen
-import com.projetmobile.mobile.ui.screens.reservation.ReservationDashboardViewModel
-import com.projetmobile.mobile.ui.screens.reservationDetails.ReservationDetailsScreen
-import com.projetmobile.mobile.ui.screens.reservationDetails.ReservationTarifaireViewModel
-import com.projetmobile.mobile.ui.screens.reservationDetails.WorkflowViewModel
-import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormScreen
-import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormViewModel
-import com.projetmobile.mobile.ui.utils.navigation.ReservationDetails
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,6 +66,10 @@ fun FestivalApp(
     FestivalApp(
         authRepository = appContainer.authRepository,
         festivalRepository = appContainer.festivalRepository,
+        gamesRepository = appContainer.gamesRepository,
+        profileRepository = appContainer.profileRepository,
+        reservantsRepository = appContainer.reservantsRepository,
+        adminRepository = appContainer.adminRepository,
         reservationRepository = appContainer.reservationRepository,
         workflowRepository = appContainer.workflowRepository,
         incomingDestinations = incomingDestinations,
@@ -116,11 +81,14 @@ fun FestivalApp(
 fun FestivalApp(
     authRepository: AuthRepository,
     festivalRepository: FestivalRepository,
+    gamesRepository: GamesRepository,
+    profileRepository: ProfileRepository,
+    reservantsRepository: ReservantsRepository,
+    adminRepository: AdminRepository,
     reservationRepository: ReservationRepository,
-    incomingDestinations: Flow<AppNavKey> = emptyFlow(),
     workflowRepository: WorkflowRepository,
-
-    ) {
+    incomingDestinations: Flow<AppNavKey> = emptyFlow(),
+) {
     val sessionViewModel: AppSessionViewModel = viewModel(
         factory = AppSessionViewModel.factory(authRepository),
     )
@@ -136,6 +104,12 @@ fun FestivalApp(
 
     var selectedTopLevelTab by rememberSaveable { mutableStateOf(TopLevelTab.Festivals) }
     var previousAuthenticationState by rememberSaveable { mutableStateOf<Boolean?>(null) }
+    var gamesRefreshSignal by rememberSaveable { mutableStateOf(0) }
+    var gamesFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var reservantsRefreshSignal by rememberSaveable { mutableStateOf(0) }
+    var reservantsFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var adminRefreshSignal by rememberSaveable { mutableStateOf(0) }
+    var adminFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
 
     val isAuthenticated = sessionUiState.currentUser != null
     val userRole = sessionUiState.currentUser?.role
@@ -194,214 +168,51 @@ fun FestivalApp(
         ).forEach(::resetToRoot)
     }
 
-    val entryProvider: (AppNavKey) -> NavEntry<AppNavKey> = { key ->
-        when (key) {
-            Festivals -> NavEntry(key) {
-                val festivalViewModel: FestivalViewModel = viewModel(
-                    factory = FestivalViewModel.factory(festivalRepository),
-                )
-                FestivalScreen(
-                    viewModel = festivalViewModel,
-                    isAuthenticated = isAuthenticated,
-                    onFestivalClick = { festivalId ->
-                        festivalsBackStack.add(ReservationDashboard(festivalId))
-                    },
-                    onAddClick = {
-                        festivalsBackStack.add(FestivalForm)
-                    },
-                )
-            }
-
-            FestivalForm -> NavEntry(key) {
-                val festivalFormViewModel: FestivalFormViewModel = viewModel(
-                    factory = FestivalFormViewModel.factory(festivalRepository),
-                )
-                FestivalFormScreen(
-                    viewModel = festivalFormViewModel,
-                    onBack = { festivalsBackStack.removeLastOrNull() },
-                )
-            }
-
-            is ReservationDashboard -> NavEntry(key) {
-                val reservationDashboardViewModel: ReservationDashboardViewModel = viewModel(
-                    factory = ReservationDashboardViewModel.factory(reservationRepository)
-                )
-                val dashboardUiState by reservationDashboardViewModel.uiState.collectAsStateWithLifecycle()
-                val filteredReservations by reservationDashboardViewModel.filteredReservations.collectAsStateWithLifecycle()
-                val searchQuery by reservationDashboardViewModel.searchQuery.collectAsStateWithLifecycle()
-
-                ReservationDashboardScreen(
-                    festivalId = key.festivalId,
-                    uiState = dashboardUiState,
-                    filteredReservations = filteredReservations,
-                    searchQuery = searchQuery,
-                    onSearchQueryChanged = { reservationDashboardViewModel.searchQuery.value = it },
-                    onLoadReservations = reservationDashboardViewModel::loadReservations,
-                    onDeleteReservation = reservationDashboardViewModel::deleteReservation,
-                    onNavigateToDetails = { reservationId -> festivalsBackStack.add(ReservationDetails(reservationId))},
-                    onNavigateToCreate = {
-                        festivalsBackStack.add(ReservationForm(key.festivalId))
-                    }
-                )
-            }
-
-            is ReservationDetails -> NavEntry(key) {
-                val workflowViewModel: WorkflowViewModel = viewModel(
-                    factory = WorkflowViewModel.factory(workflowRepository)
-                )
-                val reservationTarifaireViewModel: ReservationTarifaireViewModel = viewModel(
-                    factory = ReservationTarifaireViewModel.factory(reservationRepository, festivalRepository)
-                )
-                ReservationDetailsScreen(
-                    reservationId = key.reservationId,
-                    workflowViewModel = workflowViewModel,
-                    tarifaireViewModel = reservationTarifaireViewModel,
-                    onBackClick = { festivalsBackStack.removeLastOrNull() }
-                )
-            }
-
-            is ReservationForm -> NavEntry(key) {
-                val reservationFormViewModel: ReservationFormViewModel = viewModel(
-                    factory = ReservationFormViewModel.factory(reservationRepository)
-                )
-                val formUiState by reservationFormViewModel.uiState.collectAsStateWithLifecycle()
-
-                ReservationFormScreen(
-                    festivalId = key.festivalId,
-                    uiState = formUiState,
-                    onNomChanged = reservationFormViewModel::onNomChanged,
-                    onEmailChanged = reservationFormViewModel::onEmailChanged,
-                    onTypeChanged = reservationFormViewModel::onTypeChanged,
-                    onSubmit = { reservationFormViewModel.createReservation(key.festivalId) },
-                    onNavigateBack = {
-                        festivalsBackStack.removeLastOrNull()
-                    }
-                )
-            }
-
-            Reservants -> NavEntry(key) { ImplementationPlaceholder() }
-
-            Games -> NavEntry(key) { ImplementationPlaceholder() }
-
-            Login -> NavEntry(key) {
-                val loginViewModel: LoginViewModel = viewModel(
-                    factory = LoginViewModel.factory(authRepository),
-                )
-                val loginUiState by loginViewModel.uiState.collectAsStateWithLifecycle()
-
-                LaunchedEffect(loginUiState.authenticatedUser?.id) {
-                    val user = loginUiState.authenticatedUser ?: return@LaunchedEffect
-                    sessionViewModel.onUserAuthenticated(user)
-                    loginViewModel.consumeAuthenticatedUser()
-                    resetToRoot(TopLevelTab.Login)
-                    selectedTopLevelTab = TopLevelTab.Festivals
-                }
-
-                LoginScreen(
-                    uiState = loginUiState,
-                    sessionUser = sessionUiState.currentUser,
-                    onIdentifierChanged = loginViewModel::onIdentifierChanged,
-                    onPasswordChanged = loginViewModel::onPasswordChanged,
-                    onSubmit = loginViewModel::submitLogin,
-                    onNavigateRegister = { openRoot(TopLevelTab.Register) },
-                    onResendVerification = loginViewModel::resendVerification,
-                    onNavigateForgotPassword = { openSecondary(TopLevelTab.Login, ForgotPassword) },
-                    onNavigateFestivals = { selectedTopLevelTab = TopLevelTab.Festivals },
-                )
-            }
-
-            Register -> NavEntry(key) {
-                val registerViewModel: RegisterViewModel = viewModel(
-                    factory = RegisterViewModel.factory(authRepository),
-                )
-                val registerUiState by registerViewModel.uiState.collectAsStateWithLifecycle()
-
-                LaunchedEffect(registerUiState.pendingVerificationEmail) {
-                    val pendingEmail = registerUiState.pendingVerificationEmail ?: return@LaunchedEffect
-                    registerViewModel.consumePendingVerificationEmail()
-                    openSecondary(
-                        tab = TopLevelTab.Register,
-                        destination = PendingVerification(pendingEmail),
-                    )
-                }
-
-                RegisterScreen(
-                    uiState = registerUiState,
-                    onUsernameChanged = registerViewModel::onUsernameChanged,
-                    onFirstNameChanged = registerViewModel::onFirstNameChanged,
-                    onLastNameChanged = registerViewModel::onLastNameChanged,
-                    onEmailChanged = registerViewModel::onEmailChanged,
-                    onPasswordChanged = registerViewModel::onPasswordChanged,
-                    onPhoneChanged = registerViewModel::onPhoneChanged,
-                    onSubmit = registerViewModel::submitRegistration,
-                    onNavigateLogin = { openRoot(TopLevelTab.Login) },
-                )
-            }
-
-            is PendingVerification -> NavEntry(key) {
-                val pendingViewModel: PendingVerificationViewModel = viewModel(
-                    factory = PendingVerificationViewModel.factory(
-                        authRepository = authRepository,
-                        initialEmail = key.email,
-                    ),
-                )
-                val pendingUiState by pendingViewModel.uiState.collectAsStateWithLifecycle()
-                PendingVerificationScreen(
-                    uiState = pendingUiState,
-                    onResendVerification = pendingViewModel::resendVerification,
-                    onBackToLogin = { openRoot(TopLevelTab.Login) },
-                )
-            }
-
-            is VerificationResult -> NavEntry(key) {
-                VerificationResultScreen(
-                    status = key.status,
-                    onNavigateLogin = { openRoot(TopLevelTab.Login) },
-                )
-            }
-
-            ForgotPassword -> NavEntry(key) {
-                val forgotPasswordViewModel: ForgotPasswordViewModel = viewModel(
-                    factory = ForgotPasswordViewModel.factory(authRepository),
-                )
-                val forgotPasswordUiState by forgotPasswordViewModel.uiState.collectAsStateWithLifecycle()
-                ForgotPasswordScreen(
-                    uiState = forgotPasswordUiState,
-                    onEmailChanged = forgotPasswordViewModel::onEmailChanged,
-                    onSubmit = forgotPasswordViewModel::submitPasswordResetRequest,
-                    onBackToLogin = { openRoot(TopLevelTab.Login) },
-                )
-            }
-
-            Profile -> NavEntry(key) {
-                ProfileScreen(
-                    currentUser = sessionUiState.currentUser,
-                    isLoggingOut = sessionUiState.isLoggingOut,
-                    errorMessage = sessionUiState.errorMessage,
-                    onLogout = sessionViewModel::logout,
-                )
-            }
-
-            Admin -> NavEntry(key) { ImplementationPlaceholder() }
-
-            is ResetPassword -> NavEntry(key) {
-                val resetPasswordViewModel: ResetPasswordViewModel = viewModel(
-                    factory = ResetPasswordViewModel.factory(
-                        authRepository = authRepository,
-                        initialToken = key.token,
-                    ),
-                )
-                val resetPasswordUiState by resetPasswordViewModel.uiState.collectAsStateWithLifecycle()
-                ResetPasswordScreen(
-                    uiState = resetPasswordUiState,
-                    onPasswordChanged = resetPasswordViewModel::onPasswordChanged,
-                    onConfirmationChanged = resetPasswordViewModel::onConfirmationChanged,
-                    onSubmit = resetPasswordViewModel::submitPasswordReset,
-                    onBackToLogin = { openRoot(TopLevelTab.Login) },
-                )
-            }
-        }
-    }
+    val entryProvider = festivalAppEntryProvider(
+        authRepository = authRepository,
+        festivalRepository = festivalRepository,
+        gamesRepository = gamesRepository,
+        profileRepository = profileRepository,
+        reservantsRepository = reservantsRepository,
+        adminRepository = adminRepository,
+        reservationRepository = reservationRepository,
+        workflowRepository = workflowRepository,
+        sessionUiState = sessionUiState,
+        sessionViewModel = sessionViewModel,
+        gamesRefreshSignal = gamesRefreshSignal,
+        gamesFlashMessage = gamesFlashMessage,
+        reservantsRefreshSignal = reservantsRefreshSignal,
+        reservantsFlashMessage = reservantsFlashMessage,
+        adminRefreshSignal = adminRefreshSignal,
+        adminFlashMessage = adminFlashMessage,
+        onOpenRoot = ::openRoot,
+        onOpenSecondary = ::openSecondary,
+        onSelectTopLevelTab = { selectedTopLevelTab = it },
+        onConsumeGamesFlashMessage = { gamesFlashMessage = null },
+        onConsumeReservantsFlashMessage = { reservantsFlashMessage = null },
+        onConsumeAdminFlashMessage = { adminFlashMessage = null },
+        onGamesSaved = { message ->
+            gamesFlashMessage = message
+            gamesRefreshSignal += 1
+            openRoot(TopLevelTab.Games)
+        },
+        onReservantSaved = { reservantId, message ->
+            reservantsFlashMessage = message
+            reservantsRefreshSignal += 1
+            openSecondary(TopLevelTab.Reservants, ReservantDetails(reservantId))
+        },
+        onLinkedGameCreated = { reservantId, message ->
+            reservantsFlashMessage = message
+            reservantsRefreshSignal += 1
+            openSecondary(TopLevelTab.Reservants, ReservantDetails(reservantId))
+        },
+        onAdminUserSaved = { message ->
+            adminFlashMessage = message
+            adminRefreshSignal += 1
+            openRoot(TopLevelTab.Admin)
+        },
+        festivalsBackStack = festivalsBackStack,
+    )
 
     val entryDecorators: List<NavEntryDecorator<AppNavKey>> = listOf(
         rememberSaveableStateHolderNavEntryDecorator<AppNavKey>(saveableStateHolder),
@@ -413,7 +224,10 @@ fun FestivalApp(
 
     val resolvedSelectedTopLevelTab = selectedTopLevelTab
         .takeIf { it in tabsToShow }
-        ?: tabsToShow.first()
+        ?: when {
+            !isAuthenticated && TopLevelTab.Login in tabsToShow -> TopLevelTab.Login
+            else -> tabsToShow.first()
+        }
     val activeBackStack = backStackFor(resolvedSelectedTopLevelTab)
     val activeKey = activeBackStack.lastOrNull() ?: specFor(resolvedSelectedTopLevelTab).rootKey
     val chrome = chromeFor(
@@ -428,17 +242,20 @@ fun FestivalApp(
             previousAuthenticationState == null -> {
                 previousAuthenticationState = isAuthenticated
             }
+
             previousAuthenticationState == true && !isAuthenticated -> {
                 resetPrivateStacks()
                 resetToRoot(TopLevelTab.Login)
                 selectedTopLevelTab = TopLevelTab.Login
                 previousAuthenticationState = false
             }
+
             previousAuthenticationState == false && isAuthenticated -> {
                 resetToRoot(TopLevelTab.Login)
                 selectedTopLevelTab = TopLevelTab.Festivals
                 previousAuthenticationState = true
             }
+
             else -> {
                 previousAuthenticationState = isAuthenticated
             }
@@ -457,123 +274,47 @@ fun FestivalApp(
                 selectedTopLevelTab = TopLevelTab.Festivals
                 return@collect
             }
+
             when (ownerTab(destination)) {
                 TopLevelTab.Festivals -> openRoot(TopLevelTab.Festivals)
-                TopLevelTab.Reservants -> openRoot(TopLevelTab.Reservants)
-                TopLevelTab.Games -> openRoot(TopLevelTab.Games)
+                TopLevelTab.Reservants -> when (destination) {
+                    Reservants -> openRoot(TopLevelTab.Reservants)
+                    ReservantCreate -> openSecondary(TopLevelTab.Reservants, ReservantCreate)
+                    is ReservantDetails -> openSecondary(TopLevelTab.Reservants, destination)
+                    is ReservantEdit -> openSecondary(TopLevelTab.Reservants, destination)
+                    is ReservantGameCreate -> openSecondary(TopLevelTab.Reservants, destination)
+                    else -> openRoot(TopLevelTab.Reservants)
+                }
+                TopLevelTab.Games -> when (destination) {
+                    Games -> openRoot(TopLevelTab.Games)
+                    GameCreate -> openSecondary(TopLevelTab.Games, GameCreate)
+                    is GameDetails -> openSecondary(TopLevelTab.Games, destination)
+                    is GameEdit -> openSecondary(TopLevelTab.Games, destination)
+                    else -> openRoot(TopLevelTab.Games)
+                }
                 TopLevelTab.Login -> openSecondary(TopLevelTab.Login, destination)
                 TopLevelTab.Register -> openSecondary(TopLevelTab.Register, destination)
                 TopLevelTab.Profile -> openRoot(TopLevelTab.Profile)
-                TopLevelTab.Admin -> openRoot(TopLevelTab.Admin)
+                TopLevelTab.Admin -> when (destination) {
+                    Admin -> openRoot(TopLevelTab.Admin)
+                    AdminUserCreate -> openSecondary(TopLevelTab.Admin, AdminUserCreate)
+                    is AdminUserDetail -> openSecondary(TopLevelTab.Admin, destination)
+                    is AdminUserEdit -> openSecondary(TopLevelTab.Admin, destination)
+                    else -> openRoot(TopLevelTab.Admin)
+                }
             }
         }
     }
 
-    GradientScreenBackground {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = chrome.title,
-                            modifier = Modifier.testTag("app-top-bar-title"),
-                        )
-                    },
-                    navigationIcon = {
-                        if (chrome.showBack) {
-                            IconButton(
-                                modifier = Modifier.testTag("app-back-button"),
-                                onClick = { activeBackStack.removeLastOrNull() },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Retour",
-                                )
-                            }
-                        }
-                    },
-                )
-            },
-            bottomBar = {
-                if (chrome.showBottomBar) {
-                    NavigationBar(containerColor = Color(0xFF20293E)) {
-                        tabsToShow.forEach { tab ->
-                            val destination = specFor(tab)
-                            NavigationBarItem(
-                                modifier = Modifier.testTag("bottom-tab-${tab.name}"),
-                                selected = chrome.selectedTab == tab,
-                                onClick = { selectedTopLevelTab = tab },
-                                icon = {
-                                    Icon(
-                                        imageVector = destination.icon,
-                                        contentDescription = destination.label,
-                                    )
-                                },
-                                label = { Text(destination.label) },
-                            )
-                        }
-                    }
-                }
-            },
-        ) { innerPadding ->
-            if (sessionUiState.isRestoring) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-            } else {
-                AppNavDisplay(
-                    backStack = activeBackStack,
-                    entryDecorators = entryDecorators,
-                    entryProvider = entryProvider,
-                    selectedTopLevelTab = resolvedSelectedTopLevelTab,
-                    innerPadding = innerPadding,
-                    isAuthenticated = isAuthenticated,
-                    onSelectTopLevelTab = { selectedTopLevelTab = it },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppNavDisplay(
-    backStack: NavBackStack<AppNavKey>,
-    entryDecorators: List<NavEntryDecorator<AppNavKey>>,
-    entryProvider: (AppNavKey) -> NavEntry<AppNavKey>,
-    selectedTopLevelTab: TopLevelTab,
-    innerPadding: PaddingValues,
-    isAuthenticated: Boolean,
-    onSelectTopLevelTab: (TopLevelTab) -> Unit,
-) {
-    NavDisplay(
-        backStack = backStack,
-        onBack = {
-            when {
-                backStack.size > 1 -> backStack.removeLastOrNull()
-                selectedTopLevelTab != TopLevelTab.Festivals -> {
-                    onSelectTopLevelTab(TopLevelTab.Festivals)
-                }
-                isAuthenticated -> Unit
-                else -> Unit
-            }
-        },
+    FestivalAppScaffold(
+        chrome = chrome,
+        tabsToShow = tabsToShow,
+        activeBackStack = activeBackStack,
         entryDecorators = entryDecorators,
         entryProvider = entryProvider,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding),
+        selectedTopLevelTab = resolvedSelectedTopLevelTab,
+        isRestoring = sessionUiState.isRestoring,
+        isAuthenticated = isAuthenticated,
+        onSelectTopLevelTab = { selectedTopLevelTab = it },
     )
-}
-
-@Composable
-@Suppress("UNCHECKED_CAST")
-private fun rememberAppNavBackStack(startKey: AppNavKey): NavBackStack<AppNavKey> {
-    return rememberNavBackStack(startKey) as NavBackStack<AppNavKey>
 }

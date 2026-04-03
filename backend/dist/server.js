@@ -114,10 +114,10 @@ app.use('/api/festivals', festivalRouter); // Pas de verifyToken pour acces publ
 app.use('/api/zones-tarifaires', verifyToken, requireRole(BACKOFFICE_ROLES), zoneTarifaireRouter);
 app.use('/api/reservation', verifyToken, requireRole(BACKOFFICE_ROLES), reservationRouter);
 app.use('/api/reservant', verifyToken, requireRole(BACKOFFICE_ROLES), reservantRouter);
-app.use('/api/games', verifyToken, requireRole(BACKOFFICE_ROLES), gamesRouter);
-app.use('/api/mechanisms', verifyToken, requireRole(BACKOFFICE_ROLES), mechanismsRouter);
+app.use('/api/games', verifyToken, gamesRouter);
+app.use('/api/mechanisms', verifyToken, mechanismsRouter);
 app.use('/api/jeux_alloues', verifyToken, requireRole(BACKOFFICE_ROLES), allocatedGamesRouter);
-app.use('/api/editors', verifyToken, requireRole(BACKOFFICE_ROLES), editorRouter);
+app.use('/api/editors', verifyToken, editorRouter);
 app.use('/api/zone-plan', verifyToken, requireRole(BACKOFFICE_ROLES), zonePlanRouter);
 app.use('/api/workflow', verifyToken, requireRole(BACKOFFICE_ROLES), workflowRouter);
 app.use('/api/admin', verifyToken, requireAdmin, (_req, res) => {

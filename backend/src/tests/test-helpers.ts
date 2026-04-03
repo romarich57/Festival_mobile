@@ -83,7 +83,9 @@ export async function createTestReservant(overrides: {
     siret?: string
     notes?: string
 } = {}) {
+    testCounter++
     const email = overrides.email || generateTestEmail()
+    const name = overrides.name || `Test Reservant ${testCounter}_${Date.now()}`
 
     const { rows } = await pool.query(
         `INSERT INTO reservant (
@@ -97,7 +99,7 @@ export async function createTestReservant(overrides: {
     ) VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *`,
         [
-            overrides.name || 'Test Reservant',
+            name,
             email,
             overrides.type || 'editeur',
             overrides.phone_number || null,
@@ -194,10 +196,91 @@ export async function deleteTestFestivals() {
     await pool.query(`DELETE FROM festival WHERE name LIKE 'Test Festival%'`)
 }
 
+// Role : Supprimer toutes les fixtures de tests du catalogue jeux.
+// Preconditions : Aucune.
+// Postconditions : Les jeux, mécanismes et éditeurs games_test sont supprimés.
+export async function deleteTestGameFixtures() {
+    await pool.query(`
+        DELETE FROM game_mechanism
+        WHERE game_id IN (
+            SELECT id FROM games WHERE title LIKE 'games_test_%'
+        )
+        OR mechanism_id IN (
+            SELECT id FROM mechanism WHERE name LIKE 'games_test_%'
+        )
+    `)
+    await pool.query(`
+        DELETE FROM jeux_alloues
+        WHERE game_id IN (
+            SELECT id FROM games WHERE title LIKE 'games_test_%'
+        )
+    `)
+    await pool.query(`
+        DELETE FROM games
+        WHERE title LIKE 'games_test_%'
+           OR type LIKE 'games_test_%'
+    `)
+    await pool.query(`DELETE FROM mechanism WHERE name LIKE 'games_test_%'`)
+    await pool.query(`
+        DELETE FROM editor
+        WHERE email LIKE 'games_test_%@editor.test.com'
+           OR name LIKE 'games_test_%_editor'
+    `)
+    await pool.query(`
+        DELETE FROM reservant
+        WHERE email LIKE 'games_test_%@reservant.test.com'
+    `)
+    await pool.query(`DELETE FROM festival WHERE name LIKE 'games_test_%'`)
+}
+
 // Role : Nettoyer toutes les donnees de test.
 // Preconditions : Aucune.
 // Postconditions : Toutes les donnees de test sont supprimees.
 export async function cleanupTestData() {
+    await pool.query(`
+        DELETE FROM suivi_contact
+        WHERE contact_id IN (
+            SELECT id FROM contact WHERE email LIKE '%@test.com'
+        )
+        OR workflow_id IN (
+            SELECT id
+            FROM suivi_workflow
+            WHERE reservant_id IN (
+                SELECT id FROM reservant WHERE email LIKE '%@test.com'
+            )
+            OR festival_id IN (
+                SELECT id FROM festival WHERE name LIKE 'Test Festival%'
+            )
+        )
+    `)
+    await pool.query(`
+        DELETE FROM reservation
+        WHERE reservant_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+        OR represented_editor_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+        OR festival_id IN (
+            SELECT id FROM festival WHERE name LIKE 'Test Festival%'
+        )
+    `)
+    await pool.query(`
+        DELETE FROM suivi_workflow
+        WHERE reservant_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+        OR festival_id IN (
+            SELECT id FROM festival WHERE name LIKE 'Test Festival%'
+        )
+    `)
+    await pool.query(`
+        DELETE FROM contact
+        WHERE reservant_id IN (
+            SELECT id FROM reservant WHERE email LIKE '%@test.com'
+        )
+    `)
+    await deleteTestGameFixtures()
     await deleteTestFestivals()
     await deleteTestReservants()
     await deleteTestUsers()

@@ -18,10 +18,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 import com.projetmobile.mobile.ui.components.AuthCard
+import com.projetmobile.mobile.ui.components.FestivalPasswordField
 import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.components.InlineAuthLinkButton
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
@@ -76,7 +76,7 @@ fun LoginScreen(
                 ),
             )
 
-            FestivalTextField(
+            FestivalPasswordField(
                 value = uiState.password,
                 onValueChange = onPasswordChanged,
                 label = "Mot de passe",
@@ -85,10 +85,6 @@ fun LoginScreen(
                     .testTag("login-password-field"),
                 isError = uiState.passwordError != null,
                 supportingText = uiState.passwordError,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                ),
             )
 
             uiState.errorMessage?.let { message ->
