@@ -50,11 +50,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ZonePlanTab(
     reservationId: Int,
-    festivalId: Int?,
     viewModel: ZonePlanViewModel,
 ) {
-    LaunchedEffect(reservationId, festivalId) {
-        viewModel.loadContext(reservationId, festivalId)
+    LaunchedEffect(reservationId) {
+        viewModel.loadContext(reservationId)
     }
 
     when (val state = viewModel.uiState) {

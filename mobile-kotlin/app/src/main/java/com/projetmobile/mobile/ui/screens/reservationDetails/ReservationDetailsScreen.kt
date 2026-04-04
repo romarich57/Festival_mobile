@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import com.projetmobile.mobile.ui.components.workflow.WorkflowContent
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanTab
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanViewModel
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanTab
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +54,7 @@ fun ReservationDetailsScreen(
             when (selectedTabIndex) {
                 0 -> WorkflowTab(reservationId, workflowViewModel)
                 1 -> ZonesTarifairesTab(reservationId, tarifaireViewModel)
-                2 -> ZonePlanTab(reservationId, fId, zonePlanViewModel )
+                2 -> ZonePlanTab(reservationId, zonePlanViewModel)
             }
         }
     }

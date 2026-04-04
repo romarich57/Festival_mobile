@@ -9,7 +9,7 @@ class ZonePlanRepositoryImpl(
     private val api: ZonePlanApiService,
 ) : ZonePlanRepository {
 
-    override suspend fun getZonePlanContext(reservationId: Int, festivalId: Int?): ZonePlanContextDto {
+    override suspend fun getZonePlanContext(reservationId: Int, festivalId: Int): ZonePlanContextDto {
         return api.getZonePlanContext(reservationId, festivalId)
     }
 

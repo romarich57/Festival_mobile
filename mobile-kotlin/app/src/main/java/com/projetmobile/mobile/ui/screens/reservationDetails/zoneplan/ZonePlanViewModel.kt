@@ -10,21 +10,26 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.remote.zoneplan.GameAllocationUpdateDto
 import com.projetmobile.mobile.data.remote.zoneplan.SimpleAllocationPayloadDto
+import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepository
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
 class ZonePlanViewModel(
     private val zonePlanRepository: ZonePlanRepository,
+    private val reservationRepository: ReservationRepository,
 ) : ViewModel() {
 
     var uiState: ZonePlanUiState by mutableStateOf(ZonePlanUiState.Loading)
         private set
 
-    fun loadContext(reservationId: Int, festivalId: Int?) {
+    fun loadContext(reservationId: Int) {
         viewModelScope.launch {
             uiState = ZonePlanUiState.Loading
             try {
+                // Fetch reservation details to get the festivalId
+                val reservationDetails = reservationRepository.getReservationDetails(reservationId)
+                val festivalId = reservationDetails.festivalId
                 uiState = fetchState(reservationId, festivalId)
             } catch (e: Exception) {
                 uiState = ZonePlanUiState.Error("Erreur réseau : ${e.message}")
@@ -233,7 +238,7 @@ class ZonePlanViewModel(
         )
     }
 
-    private suspend fun fetchState(reservationId: Int, festivalId: Int?): ZonePlanUiState.Success {
+    private suspend fun fetchState(reservationId: Int, festivalId: Int): ZonePlanUiState.Success {
         val context = zonePlanRepository.getZonePlanContext(reservationId, festivalId)
         val reservedZtIds = context.reservedZonesTarifaires.map { it.zoneTarifaireId }.toSet()
 
@@ -300,8 +305,9 @@ class ZonePlanViewModel(
 
         fun factory(
             zonePlanRepository: ZonePlanRepository,
+            reservationRepository: ReservationRepository,
         ): ViewModelProvider.Factory = viewModelFactory {
-            initializer { ZonePlanViewModel(zonePlanRepository) }
+            initializer { ZonePlanViewModel(zonePlanRepository, reservationRepository) }
         }
     }
 }

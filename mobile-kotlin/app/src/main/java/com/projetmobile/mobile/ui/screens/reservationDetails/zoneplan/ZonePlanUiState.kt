@@ -65,7 +65,7 @@ sealed interface ZonePlanUiState {
 
     data class Success(
         val reservationId: Int,
-        val festivalId: Int?,
+        val festivalId: Int,
         val zones: List<ZonePlanZoneState>,
         val games: List<GameAllocationState>,
         val stock: StockState,

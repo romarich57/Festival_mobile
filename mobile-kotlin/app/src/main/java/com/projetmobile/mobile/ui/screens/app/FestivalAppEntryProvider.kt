@@ -170,7 +170,7 @@ internal fun festivalAppEntryProvider(
                     factory = ReservationTarifaireViewModel.factory(reservationRepository, festivalRepository)
                 )
                 val zonePlanViewModel: ZonePlanViewModel = viewModel(
-                    factory = ZonePlanViewModel.factory(zonePlanRepository)
+                    factory = ZonePlanViewModel.factory(zonePlanRepository, reservationRepository)
                 )
                 ReservationDetailsScreen(
                     reservationId = key.reservationId,
