@@ -1,3 +1,23 @@
-node_modules/
-.gradle/
+@(
+# IDE
 .idea/
+.DS_Store
+*.iml
+
+# Gradle & Android
+.gradle/
+build/
+mobile-kotlin/build/
+local.properties
+.cxx/
+captures/
+
+# Backend (Node.js)
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/npm-debug.log*
+
+# Logs
+*.log
+)

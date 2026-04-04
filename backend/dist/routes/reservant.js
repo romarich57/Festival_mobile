@@ -4,7 +4,22 @@ import pool from '../db/database.js';
 import { requireRole } from '../middleware/require-role.js';
 const router = Router();
 const RESERVANT_DELETE_ROLES = ['admin', 'super-organizer'];
-const buildErrorBody = (error, details) => details ? { error, details } : { error };
+const buildErrorBody = (error, details) => {
+    const normalizedDetails = (Array.isArray(details) ? details : details ? [details] : [])
+        .map((item) => item?.trim())
+        .filter((item) => Boolean(item));
+    return normalizedDetails.length > 0
+        ? { error, details: normalizedDetails }
+        : { error };
+};
+const parseEntityId = (value) => {
+    const parsedValue = Number(value);
+    return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+};
+async function reservantExists(reservantId) {
+    const { rowCount } = await pool.query('SELECT 1 FROM reservant WHERE id = $1', [reservantId]);
+    return rowCount !== null && rowCount > 0;
+}
 // Role : Normaliser les erreurs Postgres vers des reponses HTTP propres.
 // Preconditions : err est une erreur issue d'une requete pg.
 // Postconditions : Retourne une reponse HTTP ou null si non geree.
@@ -77,13 +92,12 @@ router.get('/', async (_req, res) => {
 // Postconditions : Retourne la liste des elements supprimes par cascade.
 router.get('/:id/delete-summary', async (req, res) => {
     const { id } = req.params;
-    const reservantId = Number(id);
-    if (!Number.isFinite(reservantId)) {
+    const reservantId = parseEntityId(id);
+    if (reservantId == null) {
         return res.status(400).json({ error: 'Identifiant de réservant invalide' });
     }
     try {
-        const { rowCount } = await pool.query('SELECT 1 FROM reservant WHERE id = $1', [reservantId]);
-        if (rowCount === 0) {
+        if (!(await reservantExists(reservantId))) {
             return res.status(404).json({ error: 'Réservant non trouvé' });
         }
         const contactsResult = await pool.query(`SELECT id, name, email
@@ -124,8 +138,12 @@ router.get('/:id/delete-summary', async (req, res) => {
 // Postconditions : Retourne le reservant ou une erreur.
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
+    const reservantId = parseEntityId(id);
+    if (reservantId == null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
     try {
-        const { rows } = await pool.query('SELECT id, name, email, type, editor_id, phone_number, address, siret, notes FROM reservant WHERE id = $1', [id]);
+        const { rows } = await pool.query('SELECT id, name, email, type, editor_id, phone_number, address, siret, notes FROM reservant WHERE id = $1', [reservantId]);
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Réservant non trouvé' });
         }
@@ -184,11 +202,15 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { name, email, type, editor_id, phone_number, address, siret, notes } = req.body;
-    const reservantId = Number(id);
-    if (!Number.isFinite(reservantId)) {
+    const reservantId = parseEntityId(id);
+    if (reservantId == null) {
         return res.status(400).json({ error: 'Identifiant de réservant invalide' });
     }
     try {
+        const { rowCount: reservantRowCount } = await pool.query('SELECT 1 FROM reservant WHERE id = $1', [reservantId]);
+        if (reservantRowCount === 0) {
+            return res.status(404).json({ error: 'Réservant non trouvé' });
+        }
         const { rows: conflictRows } = await pool.query('SELECT id, name, email FROM reservant WHERE (name = $1 OR email = $2) AND id <> $3', [name, email, reservantId]);
         if (conflictRows.length > 0) {
             const nameTaken = conflictRows.some((row) => row.name === name);
@@ -207,9 +229,6 @@ router.put('/:id', async (req, res) => {
              SET name = $1, email = $2, type = $3, editor_id = $4, phone_number = $5, address = $6, siret = $7, notes = $8
              WHERE id = $9
              RETURNING id, name, email, type, editor_id, phone_number, address, siret, notes`, [name, email, type, editor_id || null, phone_number || null, address || null, siret || null, notes || null, reservantId]);
-        if (rowCount === 0) {
-            return res.status(404).json({ error: 'Réservant non trouvé' });
-        }
         res.json(rows[0]);
     }
     catch (err) {
@@ -226,8 +245,12 @@ router.put('/:id', async (req, res) => {
 // Postconditions : Supprime le reservant ou retourne une erreur.
 router.delete('/:id', requireRole(RESERVANT_DELETE_ROLES), async (req, res) => {
     const { id } = req.params;
+    const reservantId = parseEntityId(id);
+    if (reservantId == null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
     try {
-        const { rowCount } = await pool.query('DELETE FROM reservant WHERE id = $1', [id]);
+        const { rowCount } = await pool.query('DELETE FROM reservant WHERE id = $1', [reservantId]);
         if (rowCount === 0) {
             return res.status(404).json({ error: 'Réservant non trouvé' });
         }
@@ -241,7 +264,7 @@ router.delete('/:id', requireRole(RESERVANT_DELETE_ROLES), async (req, res) => {
                 error: 'Impossible de supprimer ce réservant car il est référencé par d\'autres entités (contacts, workflows, réservations)'
             });
         }
-        res.status(500).json({ error: 'Erreur serveur', details: err.message });
+        res.status(500).json(buildErrorBody('Erreur serveur', err.message));
     }
 });
 // Role : Mettre a jour l'etat de workflow d'un reservant (R3).
@@ -313,11 +336,18 @@ router.patch('/:id/workflow/flags', async (req, res) => {
 // Postconditions : Retourne la liste des contacts.
 router.get('/:id/contacts', async (req, res) => {
     const { id } = req.params;
+    const reservantId = parseEntityId(id);
+    if (reservantId == null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
     try {
+        if (!(await reservantExists(reservantId))) {
+            return res.status(404).json({ error: 'Réservant non trouvé' });
+        }
         const { rows } = await pool.query(`SELECT id, name, email, phone_number, job_title, priority
              FROM contact
              WHERE reservant_id = $1
-             ORDER BY priority ASC, name ASC`, [id]);
+             ORDER BY priority ASC, name ASC`, [reservantId]);
         res.json(rows);
     }
     catch (err) {
@@ -331,13 +361,20 @@ router.get('/:id/contacts', async (req, res) => {
 router.post('/:id/contacts', async (req, res) => {
     const { id } = req.params;
     const { name, email, phone_number, job_title, priority } = req.body;
+    const reservantId = parseEntityId(id);
+    if (reservantId == null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
     if (!name || !email || !phone_number || !job_title || priority === undefined) {
         return res.status(400).json({ error: 'Champs obligatoires manquants pour le contact' });
     }
     try {
+        if (!(await reservantExists(reservantId))) {
+            return res.status(404).json({ error: 'Réservant non trouvé' });
+        }
         const { rows } = await pool.query(`INSERT INTO contact (name, email, phone_number, job_title, reservant_id, priority)
              VALUES ($1, $2, $3, $4, $5, $6)
-             RETURNING id, name, email, phone_number, job_title, priority`, [name, email, phone_number, job_title, id, priority]);
+             RETURNING id, name, email, phone_number, job_title, priority`, [name, email, phone_number, job_title, reservantId, priority]);
         res.status(201).json(rows[0]);
     }
     catch (err) {
@@ -379,11 +416,32 @@ router.get('/:id/contacts/timeline', async (req, res) => {
 router.post('/:id/contacts/events', async (req, res) => {
     const { id } = req.params;
     const { contactId, dateContact } = req.body;
+    const reservantId = parseEntityId(id);
+    const parsedContactId = parseEntityId(String(contactId));
+    if (reservantId == null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
     if (!contactId) {
         return res.status(400).json({ error: 'contactId requis' });
     }
+    if (parsedContactId == null) {
+        return res.status(400).json({ error: 'Identifiant de contact invalide' });
+    }
+    if (dateContact) {
+        const parsedDate = new Date(dateContact);
+        if (Number.isNaN(parsedDate.getTime())) {
+            return res.status(400).json({ error: 'dateContact invalide' });
+        }
+    }
     try {
-        const { rows: workflowRows } = await pool.query('SELECT id, festival_id FROM suivi_workflow WHERE reservant_id = $1 ORDER BY id DESC LIMIT 1', [id]);
+        const { rows: contactRows } = await pool.query('SELECT reservant_id FROM contact WHERE id = $1', [parsedContactId]);
+        if (contactRows.length === 0) {
+            return res.status(404).json({ error: 'Contact introuvable' });
+        }
+        if (contactRows[0].reservant_id !== reservantId) {
+            return res.status(409).json({ error: 'Ce contact n’appartient pas à ce réservant' });
+        }
+        const { rows: workflowRows } = await pool.query('SELECT id, festival_id FROM suivi_workflow WHERE reservant_id = $1 ORDER BY id DESC LIMIT 1', [reservantId]);
         if (workflowRows.length === 0) {
             return res.status(404).json({ error: 'Workflow introuvable pour enregistrer le contact' });
         }
@@ -391,7 +449,7 @@ router.post('/:id/contacts/events', async (req, res) => {
         const contactDate = dateContact ? new Date(dateContact) : new Date();
         const { rows: inserted } = await pool.query(`INSERT INTO suivi_contact (contact_id, workflow_id, date_contact)
              VALUES ($1, $2, $3)
-             RETURNING id, contact_id, workflow_id, date_contact`, [contactId, workflowId, contactDate]);
+             RETURNING id, contact_id, workflow_id, date_contact`, [parsedContactId, workflowId, contactDate]);
         const { rows } = await pool.query(`SELECT sc.id,
                     c.id as contact_id,
                     sw.reservant_id,
@@ -418,12 +476,23 @@ router.post('/:id/contacts/events', async (req, res) => {
 // Postconditions : Supprime le contact ou retourne une erreur.
 router.delete('/:id/contacts/:contactId', async (req, res) => {
     const { id, contactId } = req.params;
+    const reservantId = parseEntityId(id);
+    const parsedContactId = parseEntityId(contactId);
+    if (reservantId == null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
+    if (parsedContactId == null) {
+        return res.status(400).json({ error: 'Identifiant de contact invalide' });
+    }
     try {
-        // Vérifier que le contact appartient bien au réservant
-        const { rowCount } = await pool.query('DELETE FROM contact WHERE id = $1 AND reservant_id = $2', [contactId, id]);
-        if (rowCount === 0) {
-            return res.status(404).json({ error: 'Contact introuvable pour ce réservant' });
+        const { rows } = await pool.query('SELECT reservant_id FROM contact WHERE id = $1', [parsedContactId]);
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Contact introuvable' });
         }
+        if (rows[0].reservant_id !== reservantId) {
+            return res.status(409).json({ error: 'Ce contact n’appartient pas à ce réservant' });
+        }
+        await pool.query('DELETE FROM contact WHERE id = $1', [parsedContactId]);
         res.json({ message: 'Contact supprimé' });
     }
     catch (err) {
@@ -436,16 +505,26 @@ router.delete('/:id/contacts/:contactId', async (req, res) => {
 // Postconditions : Supprime l'evenement ou retourne une erreur.
 router.delete('/:id/contacts/events/:eventId', async (req, res) => {
     const { id, eventId } = req.params;
+    const reservantId = parseEntityId(id);
+    const parsedEventId = parseEntityId(eventId);
+    if (reservantId == null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
+    if (parsedEventId == null) {
+        return res.status(400).json({ error: 'Identifiant d’événement invalide' });
+    }
     try {
-        // Vérifier que l'événement appartient bien au réservant
-        const { rows } = await pool.query(`SELECT sc.id
+        const { rows } = await pool.query(`SELECT sc.id, sw.reservant_id
              FROM suivi_contact sc
              JOIN suivi_workflow sw ON sc.workflow_id = sw.id
-             WHERE sc.id = $1 AND sw.reservant_id = $2`, [eventId, id]);
+             WHERE sc.id = $1`, [parsedEventId]);
         if (rows.length === 0) {
-            return res.status(404).json({ error: 'Evénement de contact introuvable pour ce réservant' });
+            return res.status(404).json({ error: 'Événement de contact introuvable' });
         }
-        await pool.query('DELETE FROM suivi_contact WHERE id = $1', [eventId]);
+        if (rows[0].reservant_id !== reservantId) {
+            return res.status(409).json({ error: 'Cet événement n’appartient pas à ce réservant' });
+        }
+        await pool.query('DELETE FROM suivi_contact WHERE id = $1', [parsedEventId]);
         res.json({ message: 'Evénement supprimé' });
     }
     catch (err) {
