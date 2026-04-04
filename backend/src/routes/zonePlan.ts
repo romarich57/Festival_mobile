@@ -36,18 +36,26 @@ router.put('/reservation/:reservation_id/allocations/:zone_plan_id', async (req,
     const zonePlanId = Number(req.params.zone_plan_id);
     const nbTables = Number(req.body?.nb_tables ?? 0);
     const nbChaises = Number(req.body?.nb_chaises ?? 0);
+    const tailleTable = req.body?.taille_table ?? 'aucun';
 
     if (!Number.isFinite(reservationId) || !Number.isFinite(zonePlanId)) {
         return res.status(400).json({ error: 'Identifiant invalide' });
     }
-    // Au moins une table ou une chaise doit être allouée
     if ((nbTables <= 0 && nbChaises <= 0) || nbTables < 0 || nbChaises < 0) {
         return res.status(400).json({ error: 'nb_tables ou nb_chaises doit être positif' });
     }
+    if (!['standard', 'grande', 'mairie', 'aucun'].includes(tailleTable)) {
+        return res.status(400).json({ error: 'taille_table invalide' });
+    }
 
+    const client = await pool.connect();
     try {
-        const { rows: validationRows } = await pool.query(
-            `SELECT r.festival_id AS reservation_festival, zp.festival_id AS zone_festival
+        await client.query('BEGIN');
+
+        // Valider réservation + zone plan + même festival
+        const { rows: validationRows } = await client.query(
+            `SELECT r.festival_id AS reservation_festival, r.reservant_id,
+                    zp.festival_id AS zone_festival, zp.id_zone_tarifaire, zp.nb_tables AS zone_plan_capacity
              FROM reservation r
              JOIN zone_plan zp ON zp.id = $2
              WHERE r.id = $1`,
@@ -55,61 +63,116 @@ router.put('/reservation/:reservation_id/allocations/:zone_plan_id', async (req,
         );
 
         if (validationRows.length === 0) {
+            await client.query('ROLLBACK');
             return res.status(404).json({ error: 'Réservation ou zone de plan introuvable' });
         }
 
         if (validationRows[0].reservation_festival !== validationRows[0].zone_festival) {
+            await client.query('ROLLBACK');
             return res.status(400).json({
                 error: 'La zone de plan ne correspond pas au festival de la réservation'
             });
         }
 
-        // Vérifier que les chaises allouées ne dépassent pas le stock global du festival
         const festivalId = validationRows[0].reservation_festival;
-        const { rows: festivalRows } = await pool.query(
+        const zoneTarifaireId = validationRows[0].id_zone_tarifaire;
+        const zonePlanCapacity = Number(validationRows[0].zone_plan_capacity);
+
+        // Vérifier que le réservant a réservé dans la zone tarifaire liée
+        const { rows: rztRows } = await client.query(
+            `SELECT nb_tables_reservees FROM reservation_zones_tarifaires
+             WHERE reservation_id = $1 AND zone_tarifaire_id = $2`,
+            [reservationId, zoneTarifaireId]
+        );
+        if (rztRows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                error: 'Le réservant n\'a pas de tables réservées dans la zone tarifaire liée à cette zone de plan'
+            });
+        }
+
+        // Vérifier la capacité de la zone de plan (tables restantes)
+        const { rows: allocRows } = await client.query(
+            `SELECT
+                COALESCE((SELECT SUM(rzp.nb_tables) FROM reservation_zone_plan rzp WHERE rzp.zone_plan_id = $1), 0)
+                + COALESCE((SELECT SUM(ja.nb_tables_occupees * ja.nb_exemplaires) FROM jeux_alloues ja WHERE ja.zone_plan_id = $1), 0)
+                AS total_allocated`,
+            [zonePlanId]
+        );
+        const currentAllocTables = await client.query(
+            `SELECT COALESCE(nb_tables, 0) as current_tables FROM reservation_zone_plan WHERE reservation_id = $1 AND zone_plan_id = $2`,
+            [reservationId, zonePlanId]
+        );
+        const totalAllocated = Number(allocRows[0]?.total_allocated || 0);
+        const myCurrentTables = Number(currentAllocTables.rows[0]?.current_tables || 0);
+        const tablesRestantes = zonePlanCapacity - totalAllocated + myCurrentTables;
+
+        if (nbTables > tablesRestantes) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                error: `Pas assez de tables dans cette zone de plan. Disponibles: ${tablesRestantes}, Demandées: ${nbTables}`
+            });
+        }
+
+        // Vérifier le stock de tables par type au niveau du festival
+        if (tailleTable !== 'aucun') {
+            const stockCol = `stock_tables_${tailleTable}`;
+            const { rows: festivalStockRows } = await client.query(
+                `SELECT ${stockCol} as stock FROM festival WHERE id = $1`,
+                [festivalId]
+            );
+            const totalStock = Number(festivalStockRows[0]?.stock || 0);
+
+            const { rows: occupiedRows } = await client.query(
+                `SELECT COALESCE(SUM(ja.nb_tables_occupees * ja.nb_exemplaires), 0) as occupied
+                 FROM jeux_alloues ja
+                 JOIN reservation r ON r.id = ja.reservation_id
+                 WHERE r.festival_id = $1 AND ja.zone_plan_id IS NOT NULL AND ja.taille_table_requise = $2`,
+                [festivalId, tailleTable]
+            );
+            // On compte aussi les allocations simples qui utilisent ce type de table
+            // (les allocations simples n'ont pas de type de table en DB, on skip cette vérif pour elles)
+            const totalOccupied = Number(occupiedRows[0]?.occupied || 0);
+            if (totalOccupied + nbTables > totalStock + myCurrentTables) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({
+                    error: `Pas assez de tables ${tailleTable} disponibles au festival. Stock: ${totalStock}, Occupées: ${totalOccupied}`
+                });
+            }
+        }
+
+        // Vérifier les chaises
+        const { rows: festivalRows } = await client.query(
             `SELECT stock_chaises FROM festival WHERE id = $1`,
             [festivalId]
         );
         const totalChaises = Number(festivalRows[0]?.stock_chaises || 0);
 
-        const { rows: alloueesRows } = await pool.query(
+        const { rows: alloueesRows } = await client.query(
             `SELECT (
-                COALESCE((
-                    SELECT SUM(rzp.nb_chaises)
-                    FROM reservation_zone_plan rzp
-                    JOIN zone_plan zp ON rzp.zone_plan_id = zp.id
-                    WHERE zp.festival_id = $1
-                ), 0)
-                +
-                COALESCE((
-                    SELECT SUM(ja.nb_chaises)
-                    FROM jeux_alloues ja
-                    JOIN reservation r ON ja.reservation_id = r.id
-                    WHERE r.festival_id = $1 AND ja.zone_plan_id IS NOT NULL
-                ), 0)
+                COALESCE((SELECT SUM(rzp.nb_chaises) FROM reservation_zone_plan rzp JOIN zone_plan zp ON rzp.zone_plan_id = zp.id WHERE zp.festival_id = $1), 0)
+                + COALESCE((SELECT SUM(ja.nb_chaises) FROM jeux_alloues ja JOIN reservation r ON ja.reservation_id = r.id WHERE r.festival_id = $1 AND ja.zone_plan_id IS NOT NULL), 0)
             ) as total_allouees`,
             [festivalId]
         );
 
-        const { rows: currentRows } = await pool.query(
-            `SELECT nb_chaises
-             FROM reservation_zone_plan
-             WHERE reservation_id = $1 AND zone_plan_id = $2`,
+        const { rows: currentChaisesRows } = await client.query(
+            `SELECT nb_chaises FROM reservation_zone_plan WHERE reservation_id = $1 AND zone_plan_id = $2`,
             [reservationId, zonePlanId]
         );
 
         const totalAllouees = Number(alloueesRows[0]?.total_allouees || 0);
-        const currentAllocation = Number(currentRows[0]?.nb_chaises || 0);
-        const disponiblesBase = Math.max(0, totalChaises - totalAllouees);
-        const maxChaises = disponiblesBase + currentAllocation;
+        const currentChaisesAlloc = Number(currentChaisesRows[0]?.nb_chaises || 0);
+        const maxChaises = Math.max(0, totalChaises - totalAllouees) + currentChaisesAlloc;
 
         if (nbChaises > maxChaises) {
+            await client.query('ROLLBACK');
             return res.status(400).json({
                 error: `Pas assez de chaises disponibles. Disponibles: ${maxChaises}, Demandées: ${nbChaises}`
             });
         }
 
-        const { rows } = await pool.query(
+        const { rows } = await client.query(
             `INSERT INTO reservation_zone_plan (reservation_id, zone_plan_id, nb_tables, nb_chaises)
              VALUES ($1, $2, $3, $4)
              ON CONFLICT (reservation_id, zone_plan_id)
@@ -118,10 +181,14 @@ router.put('/reservation/:reservation_id/allocations/:zone_plan_id', async (req,
             [reservationId, zonePlanId, nbTables, nbChaises]
         );
 
+        await client.query('COMMIT');
         res.json(rows[0]);
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error('Erreur lors de la mise à jour de l\'allocation simple:', err);
         res.status(500).json({ error: 'Erreur serveur' });
+    } finally {
+        client.release();
     }
 });
 
@@ -247,15 +314,19 @@ router.get('/:zone_plan_id/allocations-simples', async (req, res) => {
     }
 });
 
-// Role : Recuperer toutes les zones de plan d'un festival.
+// Role : Recuperer toutes les zones de plan d'un festival avec tables allouees.
 // Preconditions : festival_id est valide.
-// Postconditions : Retourne la liste des zones ou une erreur.
+// Postconditions : Retourne la liste des zones avec nb_tables_allocated ou une erreur.
 router.get('/:festival_id', async (req, res) => {
     const { festival_id } = req.params;
     try {
         const { rows } = await pool.query(
             `SELECT zp.id, zp.name, zp.festival_id, zp.id_zone_tarifaire, zp.nb_tables,
-                    zt.name as zone_tarifaire_name, zt.price_per_table, zt.m2_price
+                    zt.name as zone_tarifaire_name, zt.price_per_table, zt.m2_price,
+                    (
+                        COALESCE((SELECT SUM(rzp.nb_tables) FROM reservation_zone_plan rzp WHERE rzp.zone_plan_id = zp.id), 0)
+                        + COALESCE((SELECT SUM(ja.nb_tables_occupees * ja.nb_exemplaires) FROM jeux_alloues ja WHERE ja.zone_plan_id = zp.id), 0)
+                    )::int AS nb_tables_allocated
              FROM zone_plan zp
              LEFT JOIN zone_tarifaire zt ON zp.id_zone_tarifaire = zt.id
              WHERE zp.festival_id = $1 
@@ -265,6 +336,111 @@ router.get('/:festival_id', async (req, res) => {
         res.json(rows);
     } catch (err) {
         console.error('Erreur lors de la récupération des zones de plan:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// Role : Recuperer le contexte complet pour l'onglet Plan d'une reservation.
+// Preconditions : reservation_id et festival_id sont valides.
+// Postconditions : Retourne zones, jeux, stocks, zones tarifaires reservees.
+router.get('/reservation/:reservation_id/context/:festival_id', async (req, res) => {
+    const reservationId = Number(req.params.reservation_id);
+    const festivalId = Number(req.params.festival_id);
+    if (!Number.isFinite(reservationId) || !Number.isFinite(festivalId)) {
+        return res.status(400).json({ error: 'Identifiant invalide' });
+    }
+
+    try {
+        // 1. Zones de plan avec tables allouees
+        const { rows: zones } = await pool.query(
+            `SELECT zp.id, zp.name, zp.festival_id, zp.id_zone_tarifaire, zp.nb_tables,
+                    zt.name as zone_tarifaire_name, zt.price_per_table, zt.m2_price,
+                    (
+                        COALESCE((SELECT SUM(rzp.nb_tables) FROM reservation_zone_plan rzp WHERE rzp.zone_plan_id = zp.id), 0)
+                        + COALESCE((SELECT SUM(ja.nb_tables_occupees * ja.nb_exemplaires) FROM jeux_alloues ja WHERE ja.zone_plan_id = zp.id), 0)
+                    )::int AS nb_tables_allocated
+             FROM zone_plan zp
+             LEFT JOIN zone_tarifaire zt ON zp.id_zone_tarifaire = zt.id
+             WHERE zp.festival_id = $1
+             ORDER BY zp.id ASC`,
+            [festivalId]
+        );
+
+        // 2. Jeux alloues du reservant (non encore places dans une zone de plan)
+        const { rows: unplacedGames } = await pool.query(
+            `SELECT ja.id AS allocation_id, ja.game_id, ja.nb_tables_occupees, ja.nb_exemplaires,
+                    ja.nb_chaises, ja.taille_table_requise, ja.zone_plan_id,
+                    g.title AS game_title, g.type AS game_type
+             FROM jeux_alloues ja
+             JOIN games g ON g.id = ja.game_id
+             WHERE ja.reservation_id = $1
+             ORDER BY g.title ASC`,
+            [reservationId]
+        );
+
+        // 3. Allocations simples du reservant
+        const { rows: simpleAllocations } = await pool.query(
+            `SELECT reservation_id, zone_plan_id, nb_tables, nb_chaises
+             FROM reservation_zone_plan
+             WHERE reservation_id = $1
+             ORDER BY zone_plan_id`,
+            [reservationId]
+        );
+
+        // 4. Zones tarifaires reservees par ce reservant
+        const { rows: reservedZonesTarifaires } = await pool.query(
+            `SELECT rzt.zone_tarifaire_id, rzt.nb_tables_reservees, zt.name as zone_name
+             FROM reservation_zones_tarifaires rzt
+             JOIN zone_tarifaire zt ON zt.id = rzt.zone_tarifaire_id
+             WHERE rzt.reservation_id = $1`,
+            [reservationId]
+        );
+
+        // 5. Stock tables et chaises du festival
+        const { rows: festivalRows } = await pool.query(
+            `SELECT stock_tables_standard, stock_tables_grande, stock_tables_mairie, stock_chaises FROM festival WHERE id = $1`,
+            [festivalId]
+        );
+        const festival = festivalRows[0] || {};
+
+        // 6. Tables occupees par type
+        const { rows: occupiedRows } = await pool.query(
+            `SELECT ja.taille_table_requise AS table_type,
+                    COALESCE(SUM(ja.nb_tables_occupees * ja.nb_exemplaires), 0)::int AS occupied
+             FROM jeux_alloues ja
+             JOIN reservation r ON r.id = ja.reservation_id
+             WHERE r.festival_id = $1 AND ja.zone_plan_id IS NOT NULL AND ja.taille_table_requise != 'aucun'
+             GROUP BY ja.taille_table_requise`,
+            [festivalId]
+        );
+        const occupiedByType: Record<string, number> = {};
+        for (const row of occupiedRows) {
+            occupiedByType[row.table_type] = Number(row.occupied);
+        }
+
+        // 7. Chaises totales allouees
+        const { rows: chaisesRows } = await pool.query(
+            `SELECT (
+                COALESCE((SELECT SUM(rzp.nb_chaises) FROM reservation_zone_plan rzp JOIN zone_plan zp ON rzp.zone_plan_id = zp.id WHERE zp.festival_id = $1), 0)
+                + COALESCE((SELECT SUM(ja.nb_chaises) FROM jeux_alloues ja JOIN reservation r ON ja.reservation_id = r.id WHERE r.festival_id = $1 AND ja.zone_plan_id IS NOT NULL), 0)
+            )::int as total_chaises_allouees`,
+            [festivalId]
+        );
+
+        res.json({
+            zones,
+            unplaced_games: unplacedGames,
+            simple_allocations: simpleAllocations,
+            reserved_zones_tarifaires: reservedZonesTarifaires,
+            stock: {
+                tables_standard: { total: Number(festival.stock_tables_standard || 0), occupied: occupiedByType['standard'] || 0 },
+                tables_grande: { total: Number(festival.stock_tables_grande || 0), occupied: occupiedByType['grande'] || 0 },
+                tables_mairie: { total: Number(festival.stock_tables_mairie || 0), occupied: occupiedByType['mairie'] || 0 },
+                chaises: { total: Number(festival.stock_chaises || 0), allocated: Number(chaisesRows[0]?.total_chaises_allouees || 0) },
+            },
+        });
+    } catch (err) {
+        console.error('Erreur lors de la récupération du contexte zone plan:', err);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
