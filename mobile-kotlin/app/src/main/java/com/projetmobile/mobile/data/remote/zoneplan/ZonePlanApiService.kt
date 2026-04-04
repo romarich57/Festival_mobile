@@ -12,7 +12,7 @@ interface ZonePlanApiService {
     @GET("/api/zone-plan/reservation/{reservationId}/context/{festivalId}")
     suspend fun getZonePlanContext(
         @Path("reservationId") reservationId: Int,
-        @Path("festivalId") festivalId: Int,
+        @Path("festivalId") festivalId: Int?,
     ): ZonePlanContextDto
 
     @PUT("/api/zone-plan/reservation/{reservationId}/allocations/{zonePlanId}")

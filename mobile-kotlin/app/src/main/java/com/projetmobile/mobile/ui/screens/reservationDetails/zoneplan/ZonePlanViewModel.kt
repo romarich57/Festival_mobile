@@ -21,7 +21,7 @@ class ZonePlanViewModel(
     var uiState: ZonePlanUiState by mutableStateOf(ZonePlanUiState.Loading)
         private set
 
-    fun loadContext(reservationId: Int, festivalId: Int) {
+    fun loadContext(reservationId: Int, festivalId: Int?) {
         viewModelScope.launch {
             uiState = ZonePlanUiState.Loading
             try {
@@ -233,7 +233,7 @@ class ZonePlanViewModel(
         )
     }
 
-    private suspend fun fetchState(reservationId: Int, festivalId: Int): ZonePlanUiState.Success {
+    private suspend fun fetchState(reservationId: Int, festivalId: Int?): ZonePlanUiState.Success {
         val context = zonePlanRepository.getZonePlanContext(reservationId, festivalId)
         val reservedZtIds = context.reservedZonesTarifaires.map { it.zoneTarifaireId }.toSet()
 

@@ -14,6 +14,7 @@ import com.projetmobile.mobile.data.database.AuthPreferenceStore
 import com.projetmobile.mobile.data.database.PersistentCookieJar
 import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
 import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
+import com.projetmobile.mobile.data.remote.zoneplan.ZonePlanApiService
 import com.projetmobile.mobile.data.repository.admin.AdminRepository
 import com.projetmobile.mobile.data.repository.admin.AdminRepositoryImpl
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
@@ -30,6 +31,8 @@ import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.data.repository.reservants.ReservantsRepositoryImpl
 import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
 import com.projetmobile.mobile.data.repository.workflow.WorkflowRepositoryImpl
+import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepository
+import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepositoryImpl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -122,6 +125,10 @@ class AppContainer(context: Context) {
         retrofit.create(ReservationApiService::class.java)
     }
 
+    private val zonePlanApiService: ZonePlanApiService by lazy {
+        retrofit.create(ZonePlanApiService::class.java)
+    }
+
     val authRepository: AuthRepository by lazy {
         AuthRepositoryImpl(
             authApiService = authApiService,
@@ -177,5 +184,11 @@ class AppContainer(context: Context) {
 
     val workflowRepository: WorkflowRepository by lazy {
         WorkflowRepositoryImpl(reservationApiService)
+    }
+
+    val zonePlanRepository: ZonePlanRepository by lazy {
+        ZonePlanRepositoryImpl(
+            zonePlanApiService
+        )
     }
 }

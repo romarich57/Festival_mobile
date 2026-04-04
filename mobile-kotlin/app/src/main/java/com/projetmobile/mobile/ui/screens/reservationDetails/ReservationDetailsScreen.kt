@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.projetmobile.mobile.ui.components.workflow.WorkflowContent
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanTab
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +26,7 @@ fun ReservationDetailsScreen(
     reservationId: Int,
     workflowViewModel: WorkflowViewModel,
     tarifaireViewModel: ReservationTarifaireViewModel,
+    zonePlanViewModel: ZonePlanViewModel,
     onBackClick: () -> Unit
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -41,13 +44,15 @@ fun ReservationDetailsScreen(
                 )
             }
         }
+        val successState = tarifaireViewModel.uiState as? ReservationTarifaireUiState.Success
+        val fId = successState?.festivalId
 
         // Contenu dynamique selon l'onglet
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTabIndex) {
                 0 -> WorkflowTab(reservationId, workflowViewModel)
                 1 -> ZonesTarifairesTab(reservationId, tarifaireViewModel)
-                2 -> CenterText("Zone de Plan (Bientôt)")
+                2 -> ZonePlanTab(reservationId, fId, zonePlanViewModel )
             }
         }
     }

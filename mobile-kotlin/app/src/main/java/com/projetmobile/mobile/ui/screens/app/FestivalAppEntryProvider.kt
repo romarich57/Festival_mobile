@@ -15,6 +15,7 @@ import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
+import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepository
 import com.projetmobile.mobile.ui.screens.admin.catalog.AdminCatalogRoute
 import com.projetmobile.mobile.ui.screens.admin.detail.AdminUserDetailRoute
 import com.projetmobile.mobile.ui.screens.admin.form.AdminUserFormMode
@@ -50,6 +51,7 @@ import com.projetmobile.mobile.ui.screens.reservants.ReservantsCatalogRoute
 import com.projetmobile.mobile.ui.screens.reservationDetails.ReservationDetailsScreen
 import com.projetmobile.mobile.ui.screens.reservationDetails.ReservationTarifaireViewModel
 import com.projetmobile.mobile.ui.screens.reservationDetails.WorkflowViewModel
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanViewModel
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormScreen
 import com.projetmobile.mobile.ui.screens.reservationform.ReservationFormViewModel
 import com.projetmobile.mobile.ui.utils.navigation.Admin
@@ -88,6 +90,7 @@ internal fun festivalAppEntryProvider(
     adminRepository: AdminRepository,
     reservationRepository: ReservationRepository,
     workflowRepository: WorkflowRepository,
+    zonePlanRepository: ZonePlanRepository,
     sessionUiState: AppSessionUiState,
     sessionViewModel: AppSessionViewModel,
     gamesRefreshSignal: Int,
@@ -166,10 +169,14 @@ internal fun festivalAppEntryProvider(
                 val reservationTarifaireViewModel: ReservationTarifaireViewModel = viewModel(
                     factory = ReservationTarifaireViewModel.factory(reservationRepository, festivalRepository)
                 )
+                val zonePlanViewModel: ZonePlanViewModel = viewModel(
+                    factory = ZonePlanViewModel.factory(zonePlanRepository)
+                )
                 ReservationDetailsScreen(
                     reservationId = key.reservationId,
                     workflowViewModel = workflowViewModel,
                     tarifaireViewModel = reservationTarifaireViewModel,
+                    zonePlanViewModel = zonePlanViewModel,
                     onBackClick = { festivalsBackStack.removeLastOrNull() }
                 )
             }

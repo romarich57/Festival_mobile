@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ZonePlanTab(
     reservationId: Int,
-    festivalId: Int,
+    festivalId: Int?,
     viewModel: ZonePlanViewModel,
 ) {
     LaunchedEffect(reservationId, festivalId) {

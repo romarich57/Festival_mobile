@@ -6,7 +6,7 @@ import com.projetmobile.mobile.data.remote.zoneplan.ZonePlanContextDto
 
 interface ZonePlanRepository {
 
-    suspend fun getZonePlanContext(reservationId: Int, festivalId: Int): ZonePlanContextDto
+    suspend fun getZonePlanContext(reservationId: Int, festivalId: Int?): ZonePlanContextDto
 
     suspend fun upsertSimpleAllocation(
         reservationId: Int,

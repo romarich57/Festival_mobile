@@ -25,6 +25,7 @@ import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
+import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepository
 import com.projetmobile.mobile.ui.utils.navigation.Admin
 import com.projetmobile.mobile.ui.utils.navigation.AdminUserCreate
 import com.projetmobile.mobile.ui.utils.navigation.AdminUserDetail
@@ -72,6 +73,7 @@ fun FestivalApp(
         adminRepository = appContainer.adminRepository,
         reservationRepository = appContainer.reservationRepository,
         workflowRepository = appContainer.workflowRepository,
+        zonePlanRepository = appContainer.zonePlanRepository,
         incomingDestinations = incomingDestinations,
     )
 }
@@ -87,6 +89,7 @@ fun FestivalApp(
     adminRepository: AdminRepository,
     reservationRepository: ReservationRepository,
     workflowRepository: WorkflowRepository,
+    zonePlanRepository: ZonePlanRepository,
     incomingDestinations: Flow<AppNavKey> = emptyFlow(),
 ) {
     val sessionViewModel: AppSessionViewModel = viewModel(
@@ -177,6 +180,7 @@ fun FestivalApp(
         adminRepository = adminRepository,
         reservationRepository = reservationRepository,
         workflowRepository = workflowRepository,
+        zonePlanRepository = zonePlanRepository,
         sessionUiState = sessionUiState,
         sessionViewModel = sessionViewModel,
         gamesRefreshSignal = gamesRefreshSignal,
