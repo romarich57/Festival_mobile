@@ -67,6 +67,7 @@ fun ZonesTarifairesTab(
                         zone = zone,
                         reservedTablesPrice = zoneTablesPrice(zone),
                         availableForReservation = zone.availableTables + zone.reservedTablesInitial,
+                        displayedAvailable = zone.availableTables,
                         onTablesChanged = { viewModel.onZoneTablesChanged(zone.id, it) },
                     )
                 }
@@ -133,6 +134,7 @@ private fun ZoneTarifaireCard(
     zone: ZoneTarifaireFormState,
     reservedTablesPrice: Double,
     availableForReservation: Int,
+    displayedAvailable: Int,
     onTablesChanged: (String) -> Unit,
 ) {
     Card(modifier = Modifier
@@ -149,7 +151,7 @@ private fun ZoneTarifaireCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Disponibles : $availableForReservation / ${zone.totalTables} tables",
+                text = "Disponibles : $displayedAvailable / ${zone.totalTables} tables",
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(modifier = Modifier.height(12.dp))
