@@ -3,6 +3,20 @@ package com.projetmobile.mobile.data.remote.zoneplan
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+
+@Serializable
+data class CreateZonePlanDto(
+    val name: String,
+    @SerialName("festival_id") val festivalId: Int,
+    @SerialName("id_zone_tarifaire") val idZoneTarifaire: Int,
+    @SerialName("nb_tables") val nbTables: Int,
+)
+
+@Serializable
+data class CreateZonePlanResponseDto(
+    val message: String,
+    @SerialName("zone_plan") val zonePlan: ZonePlanDto,
+)
 @Serializable
 data class ZonePlanDto(
     val id: Int,

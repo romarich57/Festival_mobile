@@ -73,7 +73,23 @@ sealed interface ZonePlanUiState {
         val userMessage: String? = null,
         val showPlacementForm: Boolean = false,
         val placementForm: PlacementFormState = PlacementFormState(),
+        val zonesTarifaires: List<ZoneTarifaireOptionState> = emptyList(), // toutes les ZT du festival
+        val showAddZoneForm: Boolean = false,
+        val addZoneForm: AddZoneFormState = AddZoneFormState(),
     ) : ZonePlanUiState
 
     data class Error(val message: String) : ZonePlanUiState
 }
+data class ZoneTarifaireOptionState(
+    val id: Int,
+    val name: String,
+    val nbTables: Int,
+)
+
+data class AddZoneFormState(
+    val name: String = "",
+    val selectedZoneTarifaireId: Int? = null,
+    val nbTables: String = "",
+    // Max tables autorisé selon la zone tarifaire sélectionnée
+    val maxTables: Int = Int.MAX_VALUE,
+)

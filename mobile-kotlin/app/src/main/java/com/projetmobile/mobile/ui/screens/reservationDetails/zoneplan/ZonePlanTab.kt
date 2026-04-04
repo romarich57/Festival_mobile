@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -127,6 +128,32 @@ private fun ZonePlanContent(
             )
         }
 
+        item {
+            Button(
+                onClick = { viewModel.openAddZoneForm() },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Ajouter une zone de plan")
+            }
+        }
+
+        if (state.showAddZoneForm) {
+            item {
+                AddZoneFormCard(
+                    form = state.addZoneForm,
+                    zonesTarifaires = state.zonesTarifaires,
+                    isSaving = state.isSaving,
+                    onNameChanged = viewModel::onAddZoneNameChanged,
+                    onZoneTarifaireSelected = viewModel::onAddZoneZoneTarifaireSelected,
+                    onNbTablesChanged = viewModel::onAddZoneNbTablesChanged,
+                    onSave = viewModel::saveAddZone,
+                    onCancel = viewModel::closeAddZoneForm,
+                )
+            }
+        }
+
         // Placement form (if open)
         if (state.showPlacementForm) {
             item {
@@ -186,6 +213,78 @@ private fun StockItem(label: String, available: Int, total: Int) {
         )
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddZoneFormCard(
+    form: AddZoneFormState,
+    zonesTarifaires: List<ZoneTarifaireOptionState>,
+    isSaving: Boolean,
+    onNameChanged: (String) -> Unit,
+    onZoneTarifaireSelected: (Int) -> Unit,
+    onNbTablesChanged: (String) -> Unit,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedZt = zonesTarifaires.find { it.id == form.selectedZoneTarifaireId }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Nouvelle zone de plan", style = MaterialTheme.typography.titleMedium)
+
+            OutlinedTextField(
+                value = form.name,
+                onValueChange = onNameChanged,
+                label = { Text("Nom") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+
+            ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+                OutlinedTextField(
+                    value = selectedZt?.name ?: "Zone tarifaire",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Zone tarifaire") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                )
+                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    zonesTarifaires.forEach { zt ->
+                        DropdownMenuItem(
+                            text = { Text(zt.name) },
+                            onClick = { onZoneTarifaireSelected(zt.id); expanded = false },
+                        )
+                    }
+                }
+            }
+
+            OutlinedTextField(
+                value = form.nbTables,
+                onValueChange = onNbTablesChanged,
+                label = { Text("Nombre de tables") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = selectedZt?.let { { Text("Max : ${it.nbTables}") } },
+                isError = form.nbTables.toIntOrNull()?.let { it > form.maxTables } == true,
+            )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = onCancel, modifier = Modifier.weight(1f), enabled = !isSaving,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                    Text("Annuler")
+                }
+                Button(onClick = onSave, modifier = Modifier.weight(1f), enabled = !isSaving) {
+                    if (isSaving) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    else Text("Créer")
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun ZonePlanCard(

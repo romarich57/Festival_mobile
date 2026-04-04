@@ -19,8 +19,6 @@ import androidx.compose.ui.Modifier
 import com.projetmobile.mobile.ui.components.workflow.WorkflowContent
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanTab
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanViewModel
-import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanTab
-import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

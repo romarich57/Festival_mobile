@@ -241,7 +241,6 @@ class ZonePlanViewModel(
     private suspend fun fetchState(reservationId: Int, festivalId: Int): ZonePlanUiState.Success {
         val context = zonePlanRepository.getZonePlanContext(reservationId, festivalId)
         val reservedZtIds = context.reservedZonesTarifaires.map { it.zoneTarifaireId }.toSet()
-
         val simpleByZone = context.simpleAllocations.associateBy { it.zonePlanId }
 
         val zones = context.zones.map { zp ->
@@ -287,12 +286,17 @@ class ZonePlanViewModel(
             chaisesAllocated = context.stock.chaises.allocated,
         )
 
+        val zonesTarifaires = reservationRepository.getZonesTarifaires(festivalId).map {
+            ZoneTarifaireOptionState(id = it.id, name = it.name, nbTables = it.nbTables)
+        }
+
         return ZonePlanUiState.Success(
             reservationId = reservationId,
             festivalId = festivalId,
             zones = zones,
             games = games,
             stock = stock,
+            zonesTarifaires = zonesTarifaires,
         )
     }
 
@@ -310,4 +314,88 @@ class ZonePlanViewModel(
             initializer { ZonePlanViewModel(zonePlanRepository, reservationRepository) }
         }
     }
+
+
+    fun openAddZoneForm() {
+        val current = uiState as? ZonePlanUiState.Success ?: return
+        uiState = current.copy(showAddZoneForm = true, addZoneForm = AddZoneFormState())
+    }
+
+    fun closeAddZoneForm() {
+        val current = uiState as? ZonePlanUiState.Success ?: return
+        uiState = current.copy(showAddZoneForm = false)
+    }
+
+    fun onAddZoneNameChanged(value: String) {
+        val current = uiState as? ZonePlanUiState.Success ?: return
+        uiState = current.copy(addZoneForm = current.addZoneForm.copy(name = value))
+    }
+
+    fun onAddZoneZoneTarifaireSelected(id: Int) {
+        val current = uiState as? ZonePlanUiState.Success ?: return
+        val zt = current.zonesTarifaires.find { it.id == id } ?: return
+        uiState = current.copy(
+            addZoneForm = current.addZoneForm.copy(
+                selectedZoneTarifaireId = id,
+                maxTables = zt.nbTables,
+                // Reset nb tables si dépasse le nouveau max
+                nbTables = current.addZoneForm.nbTables.toIntOrNull()
+                    ?.coerceAtMost(zt.nbTables)?.toString() ?: "",
+            )
+        )
+    }
+
+    fun onAddZoneNbTablesChanged(value: String) {
+        val current = uiState as? ZonePlanUiState.Success ?: return
+        val sanitized = sanitizeInt(value)
+        uiState = current.copy(addZoneForm = current.addZoneForm.copy(nbTables = sanitized))
+    }
+
+    fun saveAddZone() {
+        val current = uiState as? ZonePlanUiState.Success ?: return
+        val form = current.addZoneForm
+
+        val name = form.name.trim()
+        val ztId = form.selectedZoneTarifaireId
+        val nbTables = form.nbTables.toIntOrNull() ?: 0
+
+        if (name.isBlank()) {
+            uiState = current.copy(userMessage = "Le nom est requis")
+            return
+        }
+        if (ztId == null) {
+            uiState = current.copy(userMessage = "Sélectionnez une zone tarifaire")
+            return
+        }
+        if (nbTables <= 0) {
+            uiState = current.copy(userMessage = "Nombre de tables invalide")
+            return
+        }
+        if (nbTables > form.maxTables) {
+            uiState = current.copy(userMessage = "Maximum ${form.maxTables} tables pour cette zone tarifaire")
+            return
+        }
+
+        viewModelScope.launch {
+            uiState = current.copy(isSaving = true, userMessage = null)
+            try {
+                zonePlanRepository.createZonePlan(
+                    festivalId = current.festivalId,
+                    name = name,
+                    idZoneTarifaire = ztId,
+                    nbTables = nbTables,
+                )
+                val refreshed = fetchState(current.reservationId, current.festivalId)
+                uiState = refreshed.copy(showAddZoneForm = false, userMessage = "Zone créée")
+            } catch (e: Exception) {
+                val latest = uiState as? ZonePlanUiState.Success
+                if (latest != null) {
+                    uiState = latest.copy(isSaving = false, userMessage = "Erreur: ${e.message}")
+                }
+            }
+        }
+    }
+
+
+
 }
