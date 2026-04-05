@@ -12,6 +12,10 @@ import com.projetmobile.mobile.data.remote.zoneplan.GameAllocationUpdateDto
 import com.projetmobile.mobile.data.remote.zoneplan.SimpleAllocationPayloadDto
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepository
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.AddZoneFormState
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.ZoneTarifaireOptionState
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.GameAllocationState
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.PlacementFormState
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 

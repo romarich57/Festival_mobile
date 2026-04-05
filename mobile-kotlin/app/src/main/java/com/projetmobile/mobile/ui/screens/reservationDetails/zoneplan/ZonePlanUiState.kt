@@ -1,5 +1,10 @@
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.AddZoneFormState
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.ZoneTarifaireOptionState
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.GameAllocationState
+import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.PlacementFormState
+
 /** Represents a single placement displayed in a zone card (from any reservant) */
 data class PlacementDisplayItem(
     val id: Int,
@@ -26,18 +31,6 @@ data class ZonePlanZoneState(
     val hasReservationInLinkedZone: Boolean = false,
 )
 
-data class GameAllocationState(
-    val allocationId: Int,
-    val gameId: Int,
-    val gameTitle: String,
-    val gameType: String,
-    val nbTablesOccupees: Double,
-    val nbExemplaires: Double,
-    val nbChaises: Int,
-    val tailleTableRequise: String,
-    val zonePlanId: Int?,
-)
-
 data class StockState(
     val tablesStandard: Int = 0,
     val tablesStandardOccupied: Int = 0,
@@ -57,20 +50,6 @@ data class StockState(
 
     val chaisesAvailable: Int get() = chaisesTotal - chaisesAllocated
 }
-
-// Form state for creating/editing a placement (with or without game)
-data class PlacementFormState(
-    val zonePlanId: Int = -1,
-    val withGame: Boolean = false,
-    val selectedGameAllocationId: Int? = null,
-    val nbTables: String = "1",
-    val useM2: Boolean = false,
-    val m2Value: String = "",
-    val placePerCopy: String = "1",
-    val nbCopies: String = "1",
-    val tableType: String = "aucun",
-    val nbChaises: String = "0",
-)
 
 sealed interface ZonePlanUiState {
     data object Loading : ZonePlanUiState
@@ -93,16 +72,3 @@ sealed interface ZonePlanUiState {
 
     data class Error(val message: String) : ZonePlanUiState
 }
-data class ZoneTarifaireOptionState(
-    val id: Int,
-    val name: String,
-    val nbTables: Int,
-)
-
-data class AddZoneFormState(
-    val name: String = "",
-    val selectedZoneTarifaireId: Int? = null,
-    val nbTables: String = "",
-    // Max tables autorisé selon les tables restantes dans la zone tarifaire
-    val maxTables: Int = Int.MAX_VALUE,
-)
