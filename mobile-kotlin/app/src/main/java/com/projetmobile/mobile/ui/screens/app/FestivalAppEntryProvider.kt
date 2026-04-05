@@ -121,7 +121,11 @@ internal fun festivalAppEntryProvider(
                     viewModel = festivalViewModel,
                     isAuthenticated = sessionUiState.currentUser != null,
                     onFestivalClick = { festivalId ->
-                        festivalsBackStack.add(ReservationDashboard(festivalId))
+                        if (sessionUiState.currentUser == null) {
+                            onOpenRoot(TopLevelTab.Login)
+                        } else {
+                            festivalsBackStack.add(ReservationDashboard(festivalId))
+                        }
                     },
                     onAddClick = {
                         festivalsBackStack.add(FestivalForm)
