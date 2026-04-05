@@ -24,4 +24,6 @@ interface ZonePlanRepository {
     suspend fun deleteSimpleAllocationById(allocationId: Int)
 
     suspend fun updateGameAllocation(allocationId: Int, payload: GameAllocationUpdateDto)
+
+    suspend fun deleteZonePlan(zonePlanId: Int)
 }

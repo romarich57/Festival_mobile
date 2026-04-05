@@ -430,6 +430,21 @@ class ZonePlanViewModel(
         }
     }
 
-
+    fun deleteZonePlan(zonePlanId: Int) {
+        val current = uiState as? ZonePlanUiState.Success ?: return
+        viewModelScope.launch {
+            uiState = current.copy(isSaving = true)
+            try {
+                zonePlanRepository.deleteZonePlan(zonePlanId)
+                val refreshed = fetchState(current.reservationId, current.festivalId)
+                uiState = refreshed.copy(userMessage = "Zone de plan supprimée")
+            } catch (e: Exception) {
+                val latest = uiState as? ZonePlanUiState.Success
+                if (latest != null) {
+                    uiState = latest.copy(isSaving = false, userMessage = "Erreur: ${e.message}")
+                }
+            }
+        }
+    }
 
 }

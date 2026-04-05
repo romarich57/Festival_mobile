@@ -125,6 +125,7 @@ private fun ZonePlanContent(
                 onAddPlacement = { viewModel.openPlacementForm(zone.id) },
                 onDeletePlacement = { placementId -> viewModel.deleteSimpleAllocation(placementId) },
                 onRemoveGame = { allocationId -> viewModel.removeGameFromZone(allocationId) },
+                onDeleteZone = { viewModel.deleteZonePlan(zone.id) },
             )
         }
 
@@ -296,6 +297,7 @@ private fun ZonePlanCard(
     onAddPlacement: () -> Unit,
     onDeletePlacement: (Int) -> Unit,
     onRemoveGame: (Int) -> Unit,
+    onDeleteZone: () -> Unit,
 ) {
     val tablesRestantes = zone.totalTables - zone.allocatedTables
 
@@ -317,12 +319,22 @@ private fun ZonePlanCard(
                         color = Color.Gray,
                     )
                 }
-                Text(
-                    text = "$tablesRestantes/${zone.totalTables} tables",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (tablesRestantes <= 0) MaterialTheme.colorScheme.error else Color.Unspecified,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "$tablesRestantes/${zone.totalTables} tables",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (tablesRestantes <= 0) MaterialTheme.colorScheme.error else Color.Unspecified,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    IconButton(onClick = onDeleteZone, enabled = !isSaving) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Supprimer la zone de plan",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
 
             if (!zone.hasReservationInLinkedZone) {

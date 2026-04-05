@@ -45,4 +45,8 @@ class ZonePlanRepositoryImpl(
     override suspend fun updateGameAllocation(allocationId: Int, payload: GameAllocationUpdateDto) {
         api.updateGameAllocation(allocationId, payload)
     }
+
+    override suspend fun deleteZonePlan(zonePlanId: Int) {
+        api.deleteZonePlan(zonePlanId)
+    }
 }

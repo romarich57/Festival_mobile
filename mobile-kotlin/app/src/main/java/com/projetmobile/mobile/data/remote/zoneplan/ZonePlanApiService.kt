@@ -37,4 +37,9 @@ interface ZonePlanApiService {
         @Path("allocationId") allocationId: Int,
         @Body payload: GameAllocationUpdateDto,
     )
+
+    @DELETE("/api/zone-plan/{zonePlanId}")
+    suspend fun deleteZonePlan(
+        @Path("zonePlanId") zonePlanId: Int,
+    )
 }
