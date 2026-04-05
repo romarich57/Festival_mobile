@@ -5,7 +5,6 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ZonePlanApiService {
@@ -21,17 +20,16 @@ interface ZonePlanApiService {
         @Path("festivalId") festivalId: Int,
     ): ZonePlanContextDto
 
-    @PUT("/api/zone-plan/reservation/{reservationId}/allocations/{zonePlanId}")
-    suspend fun upsertSimpleAllocation(
+    @POST("/api/zone-plan/reservation/{reservationId}/allocations/{zonePlanId}")
+    suspend fun createSimpleAllocation(
         @Path("reservationId") reservationId: Int,
         @Path("zonePlanId") zonePlanId: Int,
         @Body payload: SimpleAllocationPayloadDto,
     ): SimpleAllocationResponseDto
 
-    @DELETE("/api/zone-plan/reservation/{reservationId}/allocations/{zonePlanId}")
-    suspend fun deleteSimpleAllocation(
-        @Path("reservationId") reservationId: Int,
-        @Path("zonePlanId") zonePlanId: Int,
+    @DELETE("/api/zone-plan/allocations/{allocationId}")
+    suspend fun deleteSimpleAllocationById(
+        @Path("allocationId") allocationId: Int,
     )
 
     @PATCH("/api/jeux_alloues/{allocationId}")

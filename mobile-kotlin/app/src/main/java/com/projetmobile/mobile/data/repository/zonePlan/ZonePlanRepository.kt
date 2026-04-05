@@ -15,13 +15,13 @@ interface ZonePlanRepository {
 
     suspend fun getZonePlanContext(reservationId: Int, festivalId: Int): ZonePlanContextDto
 
-    suspend fun upsertSimpleAllocation(
+    suspend fun createSimpleAllocation(
         reservationId: Int,
         zonePlanId: Int,
         payload: SimpleAllocationPayloadDto,
     )
 
-    suspend fun deleteSimpleAllocation(reservationId: Int, zonePlanId: Int)
+    suspend fun deleteSimpleAllocationById(allocationId: Int)
 
     suspend fun updateGameAllocation(allocationId: Int, payload: GameAllocationUpdateDto)
 }

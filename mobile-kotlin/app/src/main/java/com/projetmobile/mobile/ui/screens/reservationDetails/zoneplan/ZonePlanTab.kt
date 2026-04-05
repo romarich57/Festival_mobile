@@ -120,10 +120,10 @@ private fun ZonePlanContent(
         items(state.zones, key = { it.id }) { zone ->
             ZonePlanCard(
                 zone = zone,
-                games = state.games.filter { it.zonePlanId == zone.id },
+                currentReservationId = state.reservationId,
                 isSaving = state.isSaving,
                 onAddPlacement = { viewModel.openPlacementForm(zone.id) },
-                onDeleteSimple = { viewModel.deleteSimpleAllocation(zone.id) },
+                onDeletePlacement = { placementId -> viewModel.deleteSimpleAllocation(placementId) },
                 onRemoveGame = { allocationId -> viewModel.removeGameFromZone(allocationId) },
             )
         }
@@ -267,7 +267,9 @@ private fun AddZoneFormCard(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                supportingText = selectedZt?.let { { Text("Max : ${it.nbTables}") } },
+                supportingText = if (form.maxTables < Int.MAX_VALUE) {
+                    { Text("Disponibles : ${form.maxTables}") }
+                } else null,
                 isError = form.nbTables.toIntOrNull()?.let { it > form.maxTables } == true,
             )
 
@@ -289,10 +291,10 @@ private fun AddZoneFormCard(
 @Composable
 private fun ZonePlanCard(
     zone: ZonePlanZoneState,
-    games: List<GameAllocationState>,
+    currentReservationId: Int,
     isSaving: Boolean,
     onAddPlacement: () -> Unit,
-    onDeleteSimple: () -> Unit,
+    onDeletePlacement: (Int) -> Unit,
     onRemoveGame: (Int) -> Unit,
 ) {
     val tablesRestantes = zone.totalTables - zone.allocatedTables
@@ -332,33 +334,13 @@ private fun ZonePlanCard(
                 )
             }
 
-            // My simple allocation
-            if (zone.mySimpleAllocationTables > 0 || zone.mySimpleAllocationChaises > 0) {
+            // All placements (simple + games) from all reservants
+            if (zone.placements.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider()
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Mon placement : ${zone.mySimpleAllocationTables} tables, ${zone.mySimpleAllocationChaises} chaises",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    IconButton(onClick = onDeleteSimple, enabled = !isSaving) {
-                        Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = MaterialTheme.colorScheme.error)
-                    }
-                }
-            }
-
-            // Games placed in this zone
-            if (games.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Jeux placés :", style = MaterialTheme.typography.labelMedium)
-                games.forEach { game ->
+                Text(text = "Placements :", style = MaterialTheme.typography.labelMedium)
+                zone.placements.forEach { placement ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -366,16 +348,36 @@ private fun ZonePlanCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = game.gameTitle, style = MaterialTheme.typography.bodyMedium)
-                            Text(
-                                text = "${game.nbExemplaires.toInt()}x • ${game.nbTablesOccupees} table/ex • ${game.tailleTableRequise} • ${game.nbChaises} chaises",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray,
-                            )
-                        }
-                        IconButton(onClick = { onRemoveGame(game.allocationId) }, enabled = !isSaving) {
-                            Icon(Icons.Default.Delete, contentDescription = "Retirer", tint = MaterialTheme.colorScheme.error)
+                        Text(
+                            text = formatPlacementLine(placement),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f),
+                        )
+                        // Show delete button only for current reservation's placements
+                        if (placement.reservationId == currentReservationId) {
+                            if (placement.isGamePlacement) {
+                                IconButton(
+                                    onClick = { placement.allocationId?.let { onRemoveGame(it) } },
+                                    enabled = !isSaving,
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Retirer le jeu",
+                                        tint = MaterialTheme.colorScheme.error,
+                                    )
+                                }
+                            } else {
+                                IconButton(
+                                    onClick = { onDeletePlacement(placement.id) },
+                                    enabled = !isSaving,
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Supprimer",
+                                        tint = MaterialTheme.colorScheme.error,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -396,6 +398,44 @@ private fun ZonePlanCard(
             }
         }
     }
+}
+
+/**
+ * Formats a placement line following the rule:
+ * [Nom du réservant] : [Nom du jeu] - [X] table(s) - [Type de table] - [Y] chaises
+ *
+ * If game is "aucun" or null → don't show it
+ * If table type is "aucun" → don't show it
+ */
+private fun formatPlacementLine(placement: PlacementDisplayItem): String {
+    val parts = mutableListOf<String>()
+
+    // Game title (only if not null/blank/aucun)
+    val gameTitle = placement.gameTitle
+    if (!gameTitle.isNullOrBlank() && gameTitle.lowercase() != "aucun") {
+        parts.add(gameTitle)
+    }
+
+    // Tables
+    val tableLabel = if (placement.nbTables <= 1) "table" else "tables"
+    parts.add("${placement.nbTables} $tableLabel")
+
+    // Table type (only if not "aucun")
+    if (placement.tailleTable.lowercase() != "aucun" && placement.tailleTable.isNotBlank()) {
+        val typeLabel = when (placement.tailleTable.lowercase()) {
+            "standard" -> "Table Standard"
+            "grande" -> "Table Grande"
+            "mairie" -> "Table Mairie"
+            else -> placement.tailleTable
+        }
+        parts.add(typeLabel)
+    }
+
+    // Chairs
+    val chairLabel = if (placement.nbChaises <= 1) "chaise" else "chaises"
+    parts.add("${placement.nbChaises} $chairLabel")
+
+    return "${placement.reservantName} : ${parts.joinToString(" - ")}"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

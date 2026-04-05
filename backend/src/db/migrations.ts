@@ -475,6 +475,52 @@ export async function runMigrations() {
     `);
     console.log('✅ Colonne prix_prises ajoutée à festival');
 
+    // Migration 010: Transformer reservation_zone_plan pour placements multiples
+    // Ajouter colonne id SERIAL si elle n'existe pas
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'reservation_zone_plan' AND column_name = 'id'
+        ) THEN
+          ALTER TABLE reservation_zone_plan ADD COLUMN id SERIAL;
+        END IF;
+      END $$;
+    `);
+    // Supprimer l'ancienne clé primaire composite (reservation_id, zone_plan_id)
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM pg_constraint
+          WHERE conname = 'reservation_zone_plan_pkey'
+            AND conrelid = 'reservation_zone_plan'::regclass
+        ) THEN
+          -- Vérifier que la PK actuelle n'est pas déjà sur id seul
+          IF (SELECT array_length(conkey, 1) FROM pg_constraint
+              WHERE conname = 'reservation_zone_plan_pkey'
+                AND conrelid = 'reservation_zone_plan'::regclass) > 1 THEN
+            ALTER TABLE reservation_zone_plan DROP CONSTRAINT reservation_zone_plan_pkey;
+            ALTER TABLE reservation_zone_plan ADD PRIMARY KEY (id);
+          END IF;
+        ELSE
+          -- Pas de PK, on en ajoute une sur id
+          ALTER TABLE reservation_zone_plan ADD PRIMARY KEY (id);
+        END IF;
+      END $$;
+    `);
+    // Ajouter un index sur (reservation_id, zone_plan_id) pour les requêtes
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_rzp_reservation_zone ON reservation_zone_plan(reservation_id, zone_plan_id);
+    `);
+    // Ajouter colonne taille_table
+    await client.query(`
+      ALTER TABLE reservation_zone_plan
+        ADD COLUMN IF NOT EXISTS taille_table table_type_enum NOT NULL DEFAULT 'aucun';
+    `);
+    console.log('✅ Migration 010: reservation_zone_plan transformée (id PK, taille_table, placements multiples)');
+
     console.log('✅ Toutes les migrations ont été appliquées avec succès');
   } catch (error) {
     console.error('❌ Erreur lors de l\'exécution des migrations:', error);

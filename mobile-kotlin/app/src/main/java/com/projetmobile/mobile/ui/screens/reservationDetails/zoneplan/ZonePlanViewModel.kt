@@ -161,12 +161,13 @@ class ZonePlanViewModel(
         }
     }
 
-    fun deleteSimpleAllocation(zonePlanId: Int) {
+    /** Supprimer un placement simple par son ID unique */
+    fun deleteSimpleAllocation(allocationId: Int) {
         val current = uiState as? ZonePlanUiState.Success ?: return
         viewModelScope.launch {
             uiState = current.copy(isSaving = true)
             try {
-                zonePlanRepository.deleteSimpleAllocation(current.reservationId, zonePlanId)
+                zonePlanRepository.deleteSimpleAllocationById(allocationId)
                 val refreshed = fetchState(current.reservationId, current.festivalId)
                 uiState = refreshed.copy(userMessage = "Placement supprimé")
             } catch (e: Exception) {
@@ -206,7 +207,7 @@ class ZonePlanViewModel(
         val nbChaises = form.nbChaises.toIntOrNull() ?: 0
         if (nbTables <= 0 && nbChaises <= 0) throw IllegalArgumentException("Tables ou chaises requis")
 
-        zonePlanRepository.upsertSimpleAllocation(
+        zonePlanRepository.createSimpleAllocation(
             reservationId = state.reservationId,
             zonePlanId = form.zonePlanId,
             payload = SimpleAllocationPayloadDto(
@@ -241,10 +242,41 @@ class ZonePlanViewModel(
     private suspend fun fetchState(reservationId: Int, festivalId: Int): ZonePlanUiState.Success {
         val context = zonePlanRepository.getZonePlanContext(reservationId, festivalId)
         val reservedZtIds = context.reservedZonesTarifaires.map { it.zoneTarifaireId }.toSet()
-        val simpleByZone = context.simpleAllocations.associateBy { it.zonePlanId }
+
+        // Build placements list per zone from all_placements + all_game_placements
+        val simplePlacementsByZone = context.allPlacements.groupBy { it.zonePlanId }
+        val gamePlacementsByZone = context.allGamePlacements.groupBy { it.zonePlanId }
+
+        // Parse zt_available_tables (keys come as strings from JSON)
+        val ztAvailable = context.ztAvailableTables.mapKeys { (key, _) -> key.toIntOrNull() ?: 0 }
 
         val zones = context.zones.map { zp ->
-            val simple = simpleByZone[zp.id]
+            val simplePlacements = (simplePlacementsByZone[zp.id] ?: emptyList()).map { p ->
+                PlacementDisplayItem(
+                    id = p.id,
+                    reservationId = p.reservationId,
+                    reservantName = p.reservantName,
+                    gameTitle = null,  // placements simples n'ont pas de jeu
+                    nbTables = p.nbTables,
+                    tailleTable = p.tailleTable,
+                    nbChaises = p.nbChaises,
+                    isGamePlacement = false,
+                )
+            }
+            val gamePlacements = (gamePlacementsByZone[zp.id] ?: emptyList()).map { g ->
+                PlacementDisplayItem(
+                    id = g.allocationId,
+                    reservationId = g.reservationId,
+                    reservantName = g.reservantName,
+                    gameTitle = g.gameTitle,
+                    nbTables = ceil(g.nbTablesOccupees * g.nbExemplaires).toInt(),
+                    tailleTable = g.tailleTableRequise,
+                    nbChaises = g.nbChaises,
+                    isGamePlacement = true,
+                    allocationId = g.allocationId,
+                )
+            }
+
             ZonePlanZoneState(
                 id = zp.id,
                 name = zp.name,
@@ -254,8 +286,7 @@ class ZonePlanViewModel(
                 allocatedTables = zp.nbTablesAllocated,
                 pricePerTable = zp.pricePerTable,
                 m2Price = zp.m2Price,
-                mySimpleAllocationTables = simple?.nbTables ?: 0,
-                mySimpleAllocationChaises = simple?.nbChaises ?: 0,
+                placements = simplePlacements + gamePlacements,
                 hasReservationInLinkedZone = zp.idZoneTarifaire in reservedZtIds,
             )
         }
@@ -297,6 +328,7 @@ class ZonePlanViewModel(
             games = games,
             stock = stock,
             zonesTarifaires = zonesTarifaires,
+            ztAvailableTables = ztAvailable,
         )
     }
 
@@ -334,13 +366,15 @@ class ZonePlanViewModel(
     fun onAddZoneZoneTarifaireSelected(id: Int) {
         val current = uiState as? ZonePlanUiState.Success ?: return
         val zt = current.zonesTarifaires.find { it.id == id } ?: return
+        // Calculer les tables disponibles : total ZT - somme des zones plan existantes sur cette ZT
+        val available = current.ztAvailableTables[id] ?: zt.nbTables
         uiState = current.copy(
             addZoneForm = current.addZoneForm.copy(
                 selectedZoneTarifaireId = id,
-                maxTables = zt.nbTables,
+                maxTables = available,
                 // Reset nb tables si dépasse le nouveau max
                 nbTables = current.addZoneForm.nbTables.toIntOrNull()
-                    ?.coerceAtMost(zt.nbTables)?.toString() ?: "",
+                    ?.coerceAtMost(available)?.toString() ?: "",
             )
         )
     }
@@ -372,7 +406,7 @@ class ZonePlanViewModel(
             return
         }
         if (nbTables > form.maxTables) {
-            uiState = current.copy(userMessage = "Maximum ${form.maxTables} tables pour cette zone tarifaire")
+            uiState = current.copy(userMessage = "Maximum ${form.maxTables} tables disponibles pour cette zone tarifaire")
             return
         }
 

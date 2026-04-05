@@ -1,5 +1,18 @@
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 
+/** Represents a single placement displayed in a zone card (from any reservant) */
+data class PlacementDisplayItem(
+    val id: Int,
+    val reservationId: Int,
+    val reservantName: String,
+    val gameTitle: String? = null,   // null = placement sans jeu
+    val nbTables: Int,
+    val tailleTable: String = "aucun",
+    val nbChaises: Int,
+    val isGamePlacement: Boolean = false,  // true = jeux_alloues, false = placement simple
+    val allocationId: Int? = null,          // for game placements (jeux_alloues.id)
+)
+
 data class ZonePlanZoneState(
     val id: Int,
     val name: String,
@@ -9,8 +22,7 @@ data class ZonePlanZoneState(
     val allocatedTables: Int,
     val pricePerTable: Double,
     val m2Price: Double,
-    val mySimpleAllocationTables: Int = 0,
-    val mySimpleAllocationChaises: Int = 0,
+    val placements: List<PlacementDisplayItem> = emptyList(),
     val hasReservationInLinkedZone: Boolean = false,
 )
 
@@ -73,9 +85,10 @@ sealed interface ZonePlanUiState {
         val userMessage: String? = null,
         val showPlacementForm: Boolean = false,
         val placementForm: PlacementFormState = PlacementFormState(),
-        val zonesTarifaires: List<ZoneTarifaireOptionState> = emptyList(), // toutes les ZT du festival
+        val zonesTarifaires: List<ZoneTarifaireOptionState> = emptyList(),
         val showAddZoneForm: Boolean = false,
         val addZoneForm: AddZoneFormState = AddZoneFormState(),
+        val ztAvailableTables: Map<Int, Int> = emptyMap(), // zone_tarifaire_id -> tables disponibles
     ) : ZonePlanUiState
 
     data class Error(val message: String) : ZonePlanUiState
@@ -90,6 +103,6 @@ data class AddZoneFormState(
     val name: String = "",
     val selectedZoneTarifaireId: Int? = null,
     val nbTables: String = "",
-    // Max tables autorisé selon la zone tarifaire sélectionnée
+    // Max tables autorisé selon les tables restantes dans la zone tarifaire
     val maxTables: Int = Int.MAX_VALUE,
 )

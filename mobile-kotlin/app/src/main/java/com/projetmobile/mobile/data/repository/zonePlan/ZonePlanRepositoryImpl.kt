@@ -30,16 +30,16 @@ class ZonePlanRepositoryImpl(
         return api.getZonePlanContext(reservationId, festivalId)
     }
 
-    override suspend fun upsertSimpleAllocation(
+    override suspend fun createSimpleAllocation(
         reservationId: Int,
         zonePlanId: Int,
         payload: SimpleAllocationPayloadDto,
     ) {
-        api.upsertSimpleAllocation(reservationId, zonePlanId, payload)
+        api.createSimpleAllocation(reservationId, zonePlanId, payload)
     }
 
-    override suspend fun deleteSimpleAllocation(reservationId: Int, zonePlanId: Int) {
-        api.deleteSimpleAllocation(reservationId, zonePlanId)
+    override suspend fun deleteSimpleAllocationById(allocationId: Int) {
+        api.deleteSimpleAllocationById(allocationId)
     }
 
     override suspend fun updateGameAllocation(allocationId: Int, payload: GameAllocationUpdateDto) {

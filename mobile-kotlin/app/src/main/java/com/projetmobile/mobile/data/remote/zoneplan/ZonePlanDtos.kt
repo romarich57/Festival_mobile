@@ -45,10 +45,12 @@ data class GameAllocationDto(
 
 @Serializable
 data class SimpleAllocationDto(
+    val id: Int = 0,
     @SerialName("reservation_id") val reservationId: Int,
     @SerialName("zone_plan_id") val zonePlanId: Int,
     @SerialName("nb_tables") val nbTables: Int,
     @SerialName("nb_chaises") val nbChaises: Int = 0,
+    @SerialName("taille_table") val tailleTable: String = "aucun",
 )
 
 @Serializable
@@ -73,6 +75,32 @@ data class StockDto(
     val chaises: StockEntryDto = StockEntryDto(),
 )
 
+/** Représente un placement simple visible dans une zone (tous réservants confondus) */
+@Serializable
+data class ZonePlacementDto(
+    val id: Int,
+    @SerialName("reservation_id") val reservationId: Int,
+    @SerialName("zone_plan_id") val zonePlanId: Int,
+    @SerialName("nb_tables") val nbTables: Int,
+    @SerialName("nb_chaises") val nbChaises: Int = 0,
+    @SerialName("taille_table") val tailleTable: String = "aucun",
+    @SerialName("reservant_name") val reservantName: String = "",
+)
+
+/** Représente un jeu placé dans une zone (tous réservants confondus) */
+@Serializable
+data class GamePlacementDto(
+    @SerialName("allocation_id") val allocationId: Int,
+    @SerialName("reservation_id") val reservationId: Int,
+    @SerialName("zone_plan_id") val zonePlanId: Int,
+    @SerialName("nb_tables_occupees") val nbTablesOccupees: Double,
+    @SerialName("nb_exemplaires") val nbExemplaires: Double,
+    @SerialName("nb_chaises") val nbChaises: Int = 0,
+    @SerialName("taille_table_requise") val tailleTableRequise: String = "aucun",
+    @SerialName("game_title") val gameTitle: String = "",
+    @SerialName("reservant_name") val reservantName: String = "",
+)
+
 @Serializable
 data class ZonePlanContextDto(
     val zones: List<ZonePlanDto> = emptyList(),
@@ -80,6 +108,9 @@ data class ZonePlanContextDto(
     @SerialName("simple_allocations") val simpleAllocations: List<SimpleAllocationDto> = emptyList(),
     @SerialName("reserved_zones_tarifaires") val reservedZonesTarifaires: List<ReservedZoneTarifaireDto> = emptyList(),
     val stock: StockDto = StockDto(),
+    @SerialName("all_placements") val allPlacements: List<ZonePlacementDto> = emptyList(),
+    @SerialName("all_game_placements") val allGamePlacements: List<GamePlacementDto> = emptyList(),
+    @SerialName("zt_available_tables") val ztAvailableTables: Map<String, Int> = emptyMap(),
 )
 
 @Serializable
@@ -91,10 +122,12 @@ data class SimpleAllocationPayloadDto(
 
 @Serializable
 data class SimpleAllocationResponseDto(
+    val id: Int,
     @SerialName("reservation_id") val reservationId: Int,
     @SerialName("zone_plan_id") val zonePlanId: Int,
     @SerialName("nb_tables") val nbTables: Int,
     @SerialName("nb_chaises") val nbChaises: Int = 0,
+    @SerialName("taille_table") val tailleTable: String = "aucun",
 )
 
 @Serializable
