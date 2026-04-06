@@ -57,7 +57,7 @@ fun PlacementFormCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Nouveau placement", style = MaterialTheme.typography.titleMedium)
