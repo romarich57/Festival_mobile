@@ -6,6 +6,11 @@ import { requireRole } from '../middleware/require-role.js'
 const router = Router();
 const RESERVATION_DELETE_ROLES = ['admin', 'super-organizer'];
 
+const parsePositiveInt = (value: unknown): number | null => {
+    const parsedValue = Number(value);
+    return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+};
+
 // Role : Consulter le stock disponible d'un festival.
 // Preconditions : festivalId est valide.
 // Postconditions : Retourne le stock par zone et chaises ou une erreur.
@@ -215,6 +220,7 @@ router.get('/:festivalId', async (req, res) => {
 // Postconditions : Retourne la reservation creee ou une erreur.
 router.post('/reservation', async (req, res) => {
     const {
+        reservant_id,
         reservant_name, reservant_email, reservant_type, festival_id,
         editor_name, editor_email, // Optionnels pour les réservants de type 'éditeur'
         start_price, nb_prises, final_price,
@@ -224,8 +230,26 @@ router.post('/reservation', async (req, res) => {
         zones_tarifaires = [] // Nouvelle structure pour les zones tarifaires
     } = req.body;
 
-    if (!reservant_name || !reservant_email || !reservant_type || !festival_id || start_price === undefined || nb_prises === undefined || final_price === undefined) {
+    const existingReservantId =
+        reservant_id === undefined || reservant_id === null || reservant_id === ''
+            ? null
+            : parsePositiveInt(reservant_id);
+
+    if (reservant_id !== undefined && reservant_id !== null && reservant_id !== '' && existingReservantId === null) {
+        return res.status(400).json({ error: 'Identifiant de réservant invalide' });
+    }
+
+    const hasExistingReservant = existingReservantId !== null;
+    const hasNewReservantPayload = Boolean(reservant_name && reservant_email && reservant_type);
+
+    if (!festival_id || start_price === undefined || nb_prises === undefined || final_price === undefined) {
         return res.status(400).json({ error: 'Champs obligatoires manquants' });
+    }
+
+    if (!hasExistingReservant && !hasNewReservantPayload) {
+        return res.status(400).json({
+            error: 'Champs obligatoires manquants (reservant_id ou reservant_name/reservant_email/reservant_type)',
+        });
     }
 
     const client = await pool.connect();
@@ -284,22 +308,37 @@ router.post('/reservation', async (req, res) => {
         }
 
         // 2. Créer ou récupérer le réservant
-        let reservantResult = await client.query(
-            'SELECT id FROM reservant WHERE email = $1',
-            [reservant_email]
-        );
+        let reservantId: number;
 
-        let reservantId;
-        if (reservantResult.rows.length === 0) {
-            // Créer nouveau réservant
-            const newReservant = await client.query(
-                `INSERT INTO reservant (name, email, type, editor_id, phone_number, address, siret)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-                [reservant_name, reservant_email, reservant_type, editorId, phone_number, address, siret]
+        if (hasExistingReservant && existingReservantId !== null) {
+            const existingReservantResult = await client.query(
+                'SELECT id FROM reservant WHERE id = $1',
+                [existingReservantId],
             );
-            reservantId = newReservant.rows[0].id;
+
+            if (existingReservantResult.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ error: 'Réservant existant introuvable' });
+            }
+
+            reservantId = existingReservantResult.rows[0].id;
         } else {
-            reservantId = reservantResult.rows[0].id;
+            const reservantResult = await client.query(
+                'SELECT id FROM reservant WHERE email = $1',
+                [reservant_email],
+            );
+
+            if (reservantResult.rows.length === 0) {
+                // Créer nouveau réservant
+                const newReservant = await client.query(
+                    `INSERT INTO reservant (name, email, type, editor_id, phone_number, address, siret)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+                    [reservant_name, reservant_email, reservant_type, editorId, phone_number, address, siret],
+                );
+                reservantId = newReservant.rows[0].id;
+            } else {
+                reservantId = reservantResult.rows[0].id;
+            }
         }
 
         // 3. Créer le suivi_workflow

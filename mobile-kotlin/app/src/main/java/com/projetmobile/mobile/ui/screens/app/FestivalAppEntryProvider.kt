@@ -187,13 +187,17 @@ internal fun festivalAppEntryProvider(
 
             is ReservationForm -> NavEntry(key) {
                 val reservationFormViewModel: ReservationFormViewModel = viewModel(
-                    factory = ReservationFormViewModel.factory(reservationRepository)
+                    factory = ReservationFormViewModel.factory(
+                        reservationRepository = reservationRepository,
+                        reservantsRepository = reservantsRepository,
+                    )
                 )
                 val formUiState by reservationFormViewModel.uiState.collectAsStateWithLifecycle()
 
                 ReservationFormScreen(
-                    festivalId = key.festivalId,
                     uiState = formUiState,
+                    onUseExistingReservantChanged = reservationFormViewModel::onUseExistingReservantChanged,
+                    onSelectedReservantChanged = reservationFormViewModel::onSelectedReservantChanged,
                     onNomChanged = reservationFormViewModel::onNomChanged,
                     onEmailChanged = reservationFormViewModel::onEmailChanged,
                     onTypeChanged = reservationFormViewModel::onTypeChanged,

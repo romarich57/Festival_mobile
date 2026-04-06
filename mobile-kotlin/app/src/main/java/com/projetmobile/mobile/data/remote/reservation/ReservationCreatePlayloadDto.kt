@@ -11,6 +11,7 @@ data class ReservationCreatePayloadDto(
     @SerialName("reservant_name") val reservantName: String,
     @SerialName("reservant_email") val reservantEmail: String,
     @SerialName("reservant_type") val reservantType: String,
+    @SerialName("reservant_id") val reservantId: Int? = null,
     @SerialName("festival_id") val festivalId: Int,
     @EncodeDefault @SerialName("start_price") val startPrice: Double = 0.0,
     @EncodeDefault @SerialName("nb_prises") val nbPrises: Int = 0,
