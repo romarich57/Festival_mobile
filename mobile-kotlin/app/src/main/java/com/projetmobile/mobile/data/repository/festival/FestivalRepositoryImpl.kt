@@ -49,7 +49,8 @@ class FestivalRepositoryImpl(
     override suspend fun addFestival(festival: FestivalDto) = runRepositoryCall(
         defaultMessage = "Impossible d'ajouter le festival.",
     ) {
-        val created = festivalApiService.addFestival(festival)
+        val response = festivalApiService.addFestival(festival)
+        val created = response.festival
         festivalDao.upsert(created.toFestivalRoomEntity())
         created
     }

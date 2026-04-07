@@ -30,7 +30,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
+
 
 class GamesRepositoryImpl(
     private val gamesApiService: GamesApiService,
@@ -81,11 +81,9 @@ class GamesRepositoryImpl(
     override suspend fun createGame(draft: GameDraft) = runRepositoryCall(
         defaultMessage = "Impossible de créer le jeu.",
     ) {
-        val localId = generateLocalId()
-        val entity = draft.toGameRoomEntity(localId, SyncStatus.PENDING_CREATE)
-        gameDao.upsert(entity)
-        scheduleSync()
-        entity.toGameDetail()
+        val serverDto = gamesApiService.createGame(draft.toRequestDto())
+        gameDao.upsert(serverDto.toGameRoomEntity(SyncStatus.SYNCED))
+        serverDto.toGameDetail()
     }
 
     override suspend fun updateGame(gameId: Int, draft: GameDraft) = runRepositoryCall(
@@ -126,9 +124,9 @@ class GamesRepositoryImpl(
     override suspend fun deleteGame(gameId: Int) = runRepositoryCall(
         defaultMessage = "Impossible de supprimer le jeu.",
     ) {
-        gameDao.markForDeletion(gameId)
-        scheduleSync()
-        "Suppression planifiée."
+        gamesApiService.deleteGame(gameId)
+        gameDao.deleteById(gameId)
+        ""
     }
 
     // ── Lookups ──────────────────────────────────────────────────────────────
@@ -162,9 +160,6 @@ class GamesRepositoryImpl(
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private fun generateLocalId(): Int =
-        -(abs(System.currentTimeMillis().toInt()).coerceAtLeast(1))
 
     private fun scheduleSync() {
         val request = OneTimeWorkRequestBuilder<GameSyncWorker>()

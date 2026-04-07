@@ -15,7 +15,7 @@ interface FestivalApiService {
     suspend fun getFestival(@Path("id") id: Int): FestivalDto
 
     @POST("festivals")
-    suspend fun addFestival(@Body festival: FestivalDto): FestivalDto
+    suspend fun addFestival(@Body festival: FestivalDto): CreateFestivalResponseDto
 
     @DELETE("festivals/{id}")
     suspend fun deleteFestival(@Path("id") id: Int)

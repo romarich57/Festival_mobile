@@ -4,6 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class CreateFestivalResponseDto(
+    val festival: FestivalDto,
+)
+
+@Serializable
 data class FestivalDto(
     val id: Int? = null,
     val name: String = "",

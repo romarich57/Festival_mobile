@@ -1,6 +1,7 @@
 package com.projetmobile.mobile.data.worker
 
 import android.content.Context
+import com.projetmobile.mobile.FestivalApplication
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.projetmobile.mobile.BuildConfig

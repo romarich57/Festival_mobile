@@ -109,7 +109,7 @@ class AppContainer(context: Context) {
         retrofit.create(ProfileApiService::class.java)
     }
 
-    private val gamesApiService by lazy {
+    val gamesApiService by lazy {
         retrofit.create(GamesApiService::class.java)
     }
 

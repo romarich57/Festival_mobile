@@ -7,13 +7,17 @@ import com.projetmobile.mobile.data.database.AppDatabase
 import com.projetmobile.mobile.data.entity.games.GameDraft
 import com.projetmobile.mobile.data.mapper.games.toGameRoomEntity
 import com.projetmobile.mobile.data.remote.common.ApiJson
+import com.projetmobile.mobile.data.database.PersistentCookieJar
+import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
+import com.projetmobile.mobile.FestivalApplication
 import com.projetmobile.mobile.data.remote.games.GamesApiService
 import com.projetmobile.mobile.data.remote.games.toRequestDto
 import com.projetmobile.mobile.data.room.SyncStatus
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.projetmobile.mobile.BuildConfig
-import okhttp3.MediaType.Companion.toMediaType
 import kotlin.math.abs
 
 /**
@@ -33,17 +37,10 @@ class GameSyncWorker(
     }
 
     override suspend fun doWork(): Result {
-        val db = AppDatabase.getInstance(applicationContext)
-        val gameDao = db.gameDao()
-
-        // Construction minimale de Retrofit (cookies gérés par l'appli principale)
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BuildConfig.API_BASE_URL)
-            .addConverterFactory(
-                ApiJson.instance.asConverterFactory("application/json".toMediaType()),
-            )
-            .build()
-        val api = retrofit.create(GamesApiService::class.java)
+        val app = applicationContext as FestivalApplication
+        val container = app.appContainer
+        val gameDao = AppDatabase.getInstance(applicationContext).gameDao()
+        val api = container.gamesApiService
 
         val pending = gameDao.getPending()
         if (pending.isEmpty()) return Result.success()
