@@ -101,7 +101,7 @@ class AppContainer(context: Context) {
         retrofit.create(AuthApiService::class.java)
     }
 
-    private val festivalApiService by lazy {
+    val festivalApiService by lazy {
         retrofit.create(FestivalApiService::class.java)
     }
 
@@ -121,11 +121,11 @@ class AppContainer(context: Context) {
         retrofit.create(AdminApiService::class.java)
     }
 
-    private val reservationApiService: ReservationApiService by lazy {
+    val reservationApiService: ReservationApiService by lazy {
         retrofit.create(ReservationApiService::class.java)
     }
 
-    private val zonePlanApiService: ZonePlanApiService by lazy {
+    val zonePlanApiService: ZonePlanApiService by lazy {
         retrofit.create(ZonePlanApiService::class.java)
     }
 

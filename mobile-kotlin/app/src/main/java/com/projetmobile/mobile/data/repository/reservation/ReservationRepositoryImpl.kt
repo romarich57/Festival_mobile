@@ -77,7 +77,11 @@ class ReservationRepositoryImpl(
         payload: ReservationUpdatePayloadDto,
     ) {
         api.updateReservation(reservationId, payload)
-        // Invalidation du cache pour forcer un refresh
+        val entity = reservationDao.getById(reservationId)
+        if (entity != null) {
+            val dtos = api.getReservationsByFestival(entity.festivalId)
+            reservationDao.upsertAll(dtos.map { it.toReservationRoomEntity(entity.festivalId) })
+        }
         syncPreferenceStore.invalidate(SyncPreferenceStore.KEY_RESERVATIONS)
     }
 

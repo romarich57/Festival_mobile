@@ -8,12 +8,12 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface ReservationApiService {
-    @GET("/api/reservation/reservations/{festivalId}")
+    @GET("reservation/reservations/{festivalId}")
     suspend fun getReservationsByFestival(
         @Path("festivalId") festivalId: Int
     ): List<ReservationDashboardRowDto>
 
-    @POST("/api/reservation/reservation")
+    @POST("reservation/reservation")
     suspend fun createReservation(@Body payload: ReservationCreatePayloadDto)
 
     @DELETE("reservation/reservation/{id}")
@@ -37,18 +37,18 @@ interface ReservationApiService {
         @Path("id") id: Int
     ): List<String>
 
-    @GET("/api/reservation/detail/{reservationId}")
+    @GET("reservation/detail/{reservationId}")
     suspend fun getReservationDetails(
         @Path("reservationId") reservationId: Int
     ): ReservationDetailsDto
 
-    @PUT("/api/reservation/reservation/{id}")
+    @PUT("reservation/reservation/{id}")
     suspend fun updateReservation(
         @Path("id") id: Int,
         @Body payload: ReservationUpdatePayloadDto
     )
 
-    @GET("/api/zones-tarifaires/{festivalId}")
+    @GET("zones-tarifaires/{festivalId}")
     suspend fun getZonesTarifaires(
         @Path("festivalId") festivalId: Int
     ): List<ZoneTarifaireDto>

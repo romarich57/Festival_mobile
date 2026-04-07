@@ -5,12 +5,15 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.projetmobile.mobile.BuildConfig
 import com.projetmobile.mobile.data.database.AppDatabase
+import com.projetmobile.mobile.data.database.PersistentCookieJar
 import com.projetmobile.mobile.data.mapper.reservation.toReservationRoomEntity
+import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
 import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
 import com.projetmobile.mobile.data.room.SyncStatus
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlin.math.abs
@@ -28,16 +31,10 @@ class ReservationSyncWorker(
     }
 
     override suspend fun doWork(): Result {
-        val db = AppDatabase.getInstance(applicationContext)
-        val reservationDao = db.reservationDao()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BuildConfig.API_BASE_URL)
-            .addConverterFactory(
-                ApiJson.instance.asConverterFactory("application/json".toMediaType()),
-            )
-            .build()
-        val api = retrofit.create(ReservationApiService::class.java)
+        val app = applicationContext as FestivalApplication
+        val container = app.appContainer
+        val reservationDao = AppDatabase.getInstance(applicationContext).reservationDao()
+        val api = container.reservationApiService
 
         val pending = reservationDao.getPending()
         if (pending.isEmpty()) return Result.success()

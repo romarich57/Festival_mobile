@@ -25,4 +25,7 @@ interface FestivalDao {
 
     @Upsert
     suspend fun upsert(festival: FestivalRoomEntity)
+
+    @Query("DELETE FROM festivals WHERE id = :id")
+    suspend fun deleteById(id: Int)
 }

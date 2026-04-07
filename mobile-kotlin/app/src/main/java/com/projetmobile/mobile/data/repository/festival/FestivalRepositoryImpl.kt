@@ -58,6 +58,6 @@ class FestivalRepositoryImpl(
         defaultMessage = "Impossible de supprimer le festival.",
     ) {
         festivalApiService.deleteFestival(id)
-        // Suppression dans Room après confirmation serveur
+        festivalDao.deleteById(id)
     }
 }

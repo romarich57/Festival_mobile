@@ -9,36 +9,36 @@ import retrofit2.http.Path
 
 interface ZonePlanApiService {
 
-    @POST("/api/zone-plan")
+    @POST("zone-plan")
     suspend fun createZonePlan(
         @Body body: CreateZonePlanDto,
     ): CreateZonePlanResponseDto
 
-    @GET("/api/zone-plan/reservation/{reservationId}/context/{festivalId}")
+    @GET("zone-plan/reservation/{reservationId}/context/{festivalId}")
     suspend fun getZonePlanContext(
         @Path("reservationId") reservationId: Int,
         @Path("festivalId") festivalId: Int,
     ): ZonePlanContextDto
 
-    @POST("/api/zone-plan/reservation/{reservationId}/allocations/{zonePlanId}")
+    @POST("zone-plan/reservation/{reservationId}/allocations/{zonePlanId}")
     suspend fun createSimpleAllocation(
         @Path("reservationId") reservationId: Int,
         @Path("zonePlanId") zonePlanId: Int,
         @Body payload: SimpleAllocationPayloadDto,
     ): SimpleAllocationResponseDto
 
-    @DELETE("/api/zone-plan/allocations/{allocationId}")
+    @DELETE("zone-plan/allocations/{allocationId}")
     suspend fun deleteSimpleAllocationById(
         @Path("allocationId") allocationId: Int,
     )
 
-    @PATCH("/api/jeux_alloues/{allocationId}")
+    @PATCH("jeux_alloues/{allocationId}")
     suspend fun updateGameAllocation(
         @Path("allocationId") allocationId: Int,
         @Body payload: GameAllocationUpdateDto,
     )
 
-    @DELETE("/api/zone-plan/{zonePlanId}")
+    @DELETE("zone-plan/{zonePlanId}")
     suspend fun deleteZonePlan(
         @Path("zonePlanId") zonePlanId: Int,
     )

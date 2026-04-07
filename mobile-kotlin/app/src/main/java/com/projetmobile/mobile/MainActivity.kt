@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val appContainer by lazy {
-        AppContainer(this)
+        (application as FestivalApplication).appContainer
     }
     private val incomingDestinations = MutableSharedFlow<AppNavKey>(extraBufferCapacity = 1)
 
