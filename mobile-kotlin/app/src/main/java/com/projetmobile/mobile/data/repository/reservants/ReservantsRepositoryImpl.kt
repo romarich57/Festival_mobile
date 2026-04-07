@@ -33,6 +33,7 @@ class ReservantsRepositoryImpl(
     private val reservantDao: ReservantDao,
     private val syncPreferenceStore: SyncPreferenceStore,
     private val context: Context,
+    private val syncScheduler: () -> Unit = { enqueueReservantSync(context) },
 ) : ReservantsRepository {
 
     // ── Observation Room (SSOT) ──────────────────────────────────────────────
@@ -70,7 +71,7 @@ class ReservantsRepositoryImpl(
         val localId = generateLocalId()
         val entity = draft.toReservantRoomEntity(localId, SyncStatus.PENDING_CREATE)
         reservantDao.upsert(entity)
-        scheduleSync()
+        syncScheduler()
         entity.toReservantDetail()
     }
 
@@ -93,7 +94,7 @@ class ReservantsRepositoryImpl(
                         pendingDraftJson = pendingJson,
                     ),
                 )
-                scheduleSync()
+                syncScheduler()
                 reservantDao.getById(reservantId)!!.toReservantDetail()
             } else {
                 val dto = reservantsApiService.updateReservant(reservantId, draft.toRequestDto())
@@ -111,9 +112,21 @@ class ReservantsRepositoryImpl(
     override suspend fun deleteReservant(reservantId: Int) = runRepositoryCall(
         defaultMessage = "Impossible de supprimer le réservant.",
     ) {
-        reservantDao.markForDeletion(reservantId)
-        scheduleSync()
-        "Suppression planifiée."
+        val existing = reservantDao.getById(reservantId)
+        when {
+            existing == null -> "Réservant introuvable."
+
+            existing.id < 0 && existing.syncStatus == SyncStatus.PENDING_CREATE -> {
+                reservantDao.deleteById(existing.id)
+                "Réservant supprimé localement."
+            }
+
+            else -> {
+                reservantDao.markForDeletion(existing.id)
+                syncScheduler()
+                "Suppression planifiée."
+            }
+        }
     }
 
     // ── Contacts & Lookups (réseau direct) ──────────────────────────────────
@@ -142,19 +155,21 @@ class ReservantsRepositoryImpl(
     private fun generateLocalId(): Int =
         -(abs(System.currentTimeMillis().toInt()).coerceAtLeast(1))
 
-    private fun scheduleSync() {
-        val request = OneTimeWorkRequestBuilder<ReservantSyncWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build(),
+    companion object {
+        private fun enqueueReservantSync(context: Context) {
+            val request = OneTimeWorkRequestBuilder<ReservantSyncWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build(),
+                )
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                ReservantSyncWorker.WORK_NAME,
+                ExistingWorkPolicy.KEEP,
+                request,
             )
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
-            .build()
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            ReservantSyncWorker.WORK_NAME,
-            ExistingWorkPolicy.KEEP,
-            request,
-        )
+        }
     }
 }

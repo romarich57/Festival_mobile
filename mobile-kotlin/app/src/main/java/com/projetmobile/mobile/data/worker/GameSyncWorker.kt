@@ -1,23 +1,15 @@
 package com.projetmobile.mobile.data.worker
 
 import android.content.Context
-import androidx.work.CoroutineWorker
-import androidx.work.WorkerParameters
 import com.projetmobile.mobile.data.database.AppDatabase
 import com.projetmobile.mobile.data.entity.games.GameDraft
 import com.projetmobile.mobile.data.mapper.games.toGameRoomEntity
 import com.projetmobile.mobile.data.remote.common.ApiJson
-import com.projetmobile.mobile.data.database.PersistentCookieJar
-import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
 import com.projetmobile.mobile.FestivalApplication
-import com.projetmobile.mobile.data.remote.games.GamesApiService
 import com.projetmobile.mobile.data.remote.games.toRequestDto
 import com.projetmobile.mobile.data.room.SyncStatus
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.projetmobile.mobile.BuildConfig
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
 import kotlin.math.abs
 
 /**
@@ -71,8 +63,9 @@ class GameSyncWorker(
                     }
 
                     SyncStatus.PENDING_DELETE -> {
-                        val serverId = abs(entity.id)
-                        api.deleteGame(serverId)
+                        if (entity.id > 0) {
+                            api.deleteGame(abs(entity.id))
+                        }
                         gameDao.deleteById(entity.id)
                     }
                 }

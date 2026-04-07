@@ -1,6 +1,6 @@
 package com.projetmobile.mobile.data.repository.games
 
-import android.content.Context
+import android.content.ContextWrapper
 import com.projetmobile.mobile.data.dao.GameDao
 import com.projetmobile.mobile.data.database.SyncPreferenceStore
 import com.projetmobile.mobile.data.entity.games.GameFilters
@@ -15,25 +15,32 @@ import com.projetmobile.mobile.data.remote.games.GameUpsertRequestDto
 import com.projetmobile.mobile.data.remote.games.MechanismDto
 import com.projetmobile.mobile.data.remote.games.UploadGameImageResponseDto
 import com.projetmobile.mobile.data.room.GameRoomEntity
+import com.projetmobile.mobile.data.room.SyncStatus
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import okhttp3.MultipartBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.kotlin.mock
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GamesRepositoryImplTest {
 
-    private fun buildRepository(service: FakeGamesApiService): GamesRepositoryImpl {
+    private fun buildRepository(
+        service: FakeGamesApiService,
+        dao: FakeGameDao = FakeGameDao(),
+        syncScheduler: () -> Unit = {},
+    ): GamesRepositoryImpl {
         return GamesRepositoryImpl(
             gamesApiService = service,
-            gameDao = FakeGameDao(),
+            gameDao = dao,
             syncPreferenceStore = FakeSyncPreferenceStore(),
-            context = mock<Context>(),
+            context = ContextWrapper(null),
+            syncScheduler = syncScheduler,
         )
     }
 
@@ -169,32 +176,96 @@ class GamesRepositoryImplTest {
         val uploadUrl = result.getOrThrow()
         assertEquals("/uploads/games/test.png", uploadUrl)
     }
+
+    @Test
+    fun deleteGame_marksSyncedItemForDeletionAndDefersNetworkDelete() = runTest {
+        val dao = FakeGameDao(
+            initialGames = listOf(gameRoomEntity(id = 42, title = "Heat")),
+        )
+        val service = FakeGamesApiService()
+        var scheduled = false
+        val repository = buildRepository(
+            service = service,
+            dao = dao,
+            syncScheduler = { scheduled = true },
+        )
+
+        val message = repository.deleteGame(42).getOrThrow()
+
+        assertEquals("Suppression planifiée.", message)
+        assertTrue(scheduled)
+        assertEquals(0, service.deleteGameCalls)
+        assertEquals(SyncStatus.PENDING_DELETE, dao.getById(42)?.syncStatus)
+    }
+
+    @Test
+    fun deleteGame_removesPendingCreateItemLocallyWithoutSchedulingSync() = runTest {
+        val dao = FakeGameDao(
+            initialGames = listOf(
+                gameRoomEntity(
+                    id = -7,
+                    title = "Prototype local",
+                    syncStatus = SyncStatus.PENDING_CREATE,
+                ),
+            ),
+        )
+        val service = FakeGamesApiService()
+        var scheduled = false
+        val repository = buildRepository(
+            service = service,
+            dao = dao,
+            syncScheduler = { scheduled = true },
+        )
+
+        val message = repository.deleteGame(-7).getOrThrow()
+
+        assertEquals("Jeu supprimé localement.", message)
+        assertNull(dao.getById(-7))
+        assertTrue(!scheduled)
+        assertEquals(0, service.deleteGameCalls)
+    }
 }
 
 // ── Fakes ────────────────────────────────────────────────────────────────────
 
-private class FakeGameDao : GameDao {
-    private val store = MutableStateFlow<List<GameRoomEntity>>(emptyList())
+private class FakeGameDao(
+    initialGames: List<GameRoomEntity> = emptyList(),
+) : GameDao {
+    private val store = MutableStateFlow(initialGames.associateBy { it.id })
 
-    override fun observeAll(): Flow<List<GameRoomEntity>> = store
-    override fun observeByTitle(search: String): Flow<List<GameRoomEntity>> = store
-    override fun observeById(id: Int): Flow<GameRoomEntity?> = MutableStateFlow(null)
-    override suspend fun getById(id: Int): GameRoomEntity? = null
+    override fun observeAll(): Flow<List<GameRoomEntity>> =
+        store.map { games -> games.values.sortedBy { it.title } }
+
+    override fun observeByTitle(search: String): Flow<List<GameRoomEntity>> =
+        observeAll().map { games ->
+            games.filter { game ->
+                search.isBlank() || game.title.contains(search, ignoreCase = true)
+            }
+        }
+
+    override fun observeById(id: Int): Flow<GameRoomEntity?> = store.map { it[id] }
+    override suspend fun getById(id: Int): GameRoomEntity? = store.value[id]
     override suspend fun getPending(): List<GameRoomEntity> = emptyList()
     override suspend fun upsertAll(games: List<GameRoomEntity>) {
-        store.value = games
+        store.value = store.value + games.associateBy { it.id }
     }
     override suspend fun upsert(game: GameRoomEntity) {
-        store.value = store.value + game
+        store.value = store.value + (game.id to game)
     }
     override suspend fun deleteById(id: Int) {
-        store.value = store.value.filter { it.id != id }
+        store.value = store.value - id
     }
-    override suspend fun markForDeletion(id: Int) {}
-    override suspend fun updateSyncStatus(id: Int, status: String) {}
+    override suspend fun markForDeletion(id: Int) {
+        val game = store.value[id] ?: return
+        store.value = store.value + (id to game.copy(syncStatus = SyncStatus.PENDING_DELETE))
+    }
+    override suspend fun updateSyncStatus(id: Int, status: String) {
+        val game = store.value[id] ?: return
+        store.value = store.value + (id to game.copy(syncStatus = status))
+    }
 }
 
-private class FakeSyncPreferenceStore : SyncPreferenceStore(mock<android.content.Context>()) {
+private class FakeSyncPreferenceStore : SyncPreferenceStore(ContextWrapper(null)) {
     override suspend fun getLastSyncedAt(key: String): Long? = null
     override suspend fun setLastSyncedAt(key: String, timestamp: Long) {}
     override suspend fun needsRefresh(key: String, ttlMs: Long): Boolean = true
@@ -218,6 +289,7 @@ private class FakeGamesApiService(
     var lastEditorId: Int? = null
     var lastMinAge: Int? = null
     var lastSort: String? = null
+    var deleteGameCalls: Int = 0
 
     override suspend fun getGames(
         page: Int, limit: Int, title: String?, type: String?,
@@ -234,8 +306,10 @@ private class FakeGamesApiService(
         gameDto(id = 99, title = request.title)
     override suspend fun updateGame(gameId: Int, request: GameUpsertRequestDto): GameDto =
         gameDto(id = gameId, title = request.title)
-    override suspend fun deleteGame(gameId: Int): DeleteGameResponseDto =
-        DeleteGameResponseDto(message = "deleted:$gameId")
+    override suspend fun deleteGame(gameId: Int): DeleteGameResponseDto {
+        deleteGameCalls += 1
+        return DeleteGameResponseDto(message = "deleted:$gameId")
+    }
     override suspend fun getEditors(): List<EditorDto> = emptyList()
     override suspend fun getMechanisms(): List<MechanismDto> = emptyList()
     override suspend fun uploadGameImage(image: MultipartBody.Part): UploadGameImageResponseDto =
@@ -247,4 +321,29 @@ private fun gameDto(id: Int, title: String) = GameDto(
     minAge = 12, authors = "Designer", minPlayers = 1, maxPlayers = 4, prototype = false,
     durationMinutes = 90, theme = null, description = null, imageUrl = null,
     rulesVideoUrl = null, mechanisms = emptyList(),
+)
+
+private fun gameRoomEntity(
+    id: Int,
+    title: String,
+    syncStatus: String = SyncStatus.SYNCED,
+) = GameRoomEntity(
+    id = id,
+    title = title,
+    type = "Experts",
+    editorId = 9,
+    editorName = "Super Meeple",
+    minAge = 12,
+    authors = "Designer",
+    minPlayers = 1,
+    maxPlayers = 4,
+    prototype = false,
+    durationMinutes = 90,
+    theme = null,
+    description = null,
+    imageUrl = null,
+    rulesVideoUrl = null,
+    mechanismsJson = "[]",
+    syncStatus = syncStatus,
+    pendingDraftJson = null,
 )

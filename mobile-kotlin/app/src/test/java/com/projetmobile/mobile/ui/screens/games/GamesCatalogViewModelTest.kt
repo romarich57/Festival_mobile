@@ -103,7 +103,7 @@ class GamesCatalogViewModelTest {
 
         assertEquals(1, repository.deleteGameCalls)
         assertTrue(viewModel.uiState.value.items.isEmpty())
-        assertEquals("Jeu supprimé.", viewModel.uiState.value.infoMessage)
+        assertEquals("Suppression planifiée.", viewModel.uiState.value.infoMessage)
     }
 
     @Test
@@ -135,7 +135,7 @@ class GamesCatalogViewModelTest {
                 hasNext = true,
             ),
         ).apply {
-            deleteGameResult = Result.success("Jeu supprimé.")
+            deleteGameResult = Result.success("Suppression planifiée.")
         }
         val viewModel = viewModel(repository)
         advanceUntilIdle()
@@ -145,7 +145,7 @@ class GamesCatalogViewModelTest {
         advanceUntilIdle()
 
         assertEquals(2, repository.getGamesCalls)
-        assertEquals("Jeu supprimé.", viewModel.uiState.value.infoMessage)
+        assertEquals("Suppression planifiée.", viewModel.uiState.value.infoMessage)
     }
 
     @Test

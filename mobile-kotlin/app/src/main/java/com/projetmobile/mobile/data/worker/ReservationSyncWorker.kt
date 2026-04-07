@@ -62,8 +62,9 @@ class ReservationSyncWorker(
                     }
 
                     SyncStatus.PENDING_DELETE -> {
-                        val serverId = abs(entity.id)
-                        api.deleteReservation(serverId)
+                        if (entity.id > 0) {
+                            api.deleteReservation(abs(entity.id))
+                        }
                         reservationDao.deleteById(entity.id)
                     }
                 }

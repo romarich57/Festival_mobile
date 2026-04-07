@@ -37,6 +37,7 @@ class GamesRepositoryImpl(
     private val gameDao: GameDao,
     private val syncPreferenceStore: SyncPreferenceStore,
     private val context: Context,
+    private val syncScheduler: () -> Unit = { enqueueGameSync(context) },
 ) : GamesRepository {
 
     // ── Observation Room (SSOT) ──────────────────────────────────────────────
@@ -111,7 +112,7 @@ class GamesRepositoryImpl(
                     pendingDraftJson = pendingJson,
                 ),
             )
-            scheduleSync()
+            syncScheduler()
             gameDao.getById(gameId)!!.toGameDetail()
         } else {
             // Item absent du cache → appel réseau direct
@@ -124,9 +125,25 @@ class GamesRepositoryImpl(
     override suspend fun deleteGame(gameId: Int) = runRepositoryCall(
         defaultMessage = "Impossible de supprimer le jeu.",
     ) {
-        gamesApiService.deleteGame(gameId)
-        gameDao.deleteById(gameId)
-        ""
+        val existing = gameDao.getById(gameId)
+        when {
+            existing == null -> {
+                gamesApiService.deleteGame(gameId)
+                gameDao.deleteById(gameId)
+                "Jeu supprimé."
+            }
+
+            existing.id < 0 && existing.syncStatus == SyncStatus.PENDING_CREATE -> {
+                gameDao.deleteById(existing.id)
+                "Jeu supprimé localement."
+            }
+
+            else -> {
+                gameDao.markForDeletion(existing.id)
+                syncScheduler()
+                "Suppression planifiée."
+            }
+        }
     }
 
     // ── Lookups ──────────────────────────────────────────────────────────────
@@ -161,19 +178,21 @@ class GamesRepositoryImpl(
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private fun scheduleSync() {
-        val request = OneTimeWorkRequestBuilder<GameSyncWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build(),
+    companion object {
+        private fun enqueueGameSync(context: Context) {
+            val request = OneTimeWorkRequestBuilder<GameSyncWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build(),
+                )
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                GameSyncWorker.WORK_NAME,
+                ExistingWorkPolicy.KEEP,
+                request,
             )
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
-            .build()
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            GameSyncWorker.WORK_NAME,
-            ExistingWorkPolicy.KEEP,
-            request,
-        )
+        }
     }
 }

@@ -32,6 +32,7 @@ import com.projetmobile.mobile.ui.components.FestivalTextField
 fun FestivalFormScreen(
     viewModel: FestivalFormViewModel,
     onBack: () -> Unit,
+    onSaved: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -247,7 +248,12 @@ fun FestivalFormScreen(
             }
 
             Button(
-                onClick = { viewModel.submit(onSuccess = onBack) },
+                onClick = {
+                    viewModel.submit { message ->
+                        onSaved(message)
+                        onBack()
+                    }
+                },
                 modifier = Modifier.weight(1f),
                 enabled = uiState.isValid && !uiState.isSubmitting,
             ) {

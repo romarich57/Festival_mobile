@@ -30,6 +30,7 @@ class ReservationRepositoryImpl(
     private val reservationDao: ReservationDao,
     private val syncPreferenceStore: SyncPreferenceStore,
     private val context: Context,
+    private val syncScheduler: () -> Unit = { enqueueReservationSync(context) },
 ) : ReservationRepository {
 
     // ── Observation Room (SSOT) ──────────────────────────────────────────────
@@ -56,14 +57,25 @@ class ReservationRepositoryImpl(
             val localId = generateLocalId()
             val entity = payload.toReservationRoomEntity(localId)
             reservationDao.upsert(entity)
-            scheduleSync()
+            syncScheduler()
         }
 
     override suspend fun deleteReservation(reservationId: Int) = runRepositoryCall(
         defaultMessage = "Impossible de supprimer la réservation.",
     ) {
-        reservationDao.markForDeletion(reservationId)
-        scheduleSync()
+        val existing = reservationDao.getById(reservationId)
+        when {
+            existing == null -> Unit
+
+            existing.id < 0 && existing.syncStatus == SyncStatus.PENDING_CREATE -> {
+                reservationDao.deleteById(existing.id)
+            }
+
+            else -> {
+                reservationDao.markForDeletion(existing.id)
+                syncScheduler()
+            }
+        }
     }
 
     // ── Opérations réseau directes ───────────────────────────────────────────
@@ -94,19 +106,21 @@ class ReservationRepositoryImpl(
     private fun generateLocalId(): Int =
         -(abs(System.currentTimeMillis().toInt()).coerceAtLeast(1))
 
-    private fun scheduleSync() {
-        val request = OneTimeWorkRequestBuilder<ReservationSyncWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build(),
+    companion object {
+        private fun enqueueReservationSync(context: Context) {
+            val request = OneTimeWorkRequestBuilder<ReservationSyncWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build(),
+                )
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                ReservationSyncWorker.WORK_NAME,
+                ExistingWorkPolicy.KEEP,
+                request,
             )
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
-            .build()
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            ReservationSyncWorker.WORK_NAME,
-            ExistingWorkPolicy.KEEP,
-            request,
-        )
+        }
     }
 }

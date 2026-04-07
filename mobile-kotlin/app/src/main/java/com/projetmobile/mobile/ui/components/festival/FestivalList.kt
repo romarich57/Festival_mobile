@@ -20,7 +20,7 @@ import com.projetmobile.mobile.data.entity.festival.FestivalSummary
  * Traduction du FestivalListComponent Angular :
  *  - Ne connaît PAS le ViewModel.
  *  - Reçoit les données et callbacks depuis FestivalScreen.
- *  - `canAdd`     = isAuthenticated (remplacé par isSuperOrganizer quand les rôles seront prêts)
+ *  - `canAdd`     = droit de création selon le rôle courant
  *  - `onAddClick` = navigue vers FestivalFormScreen via FestivalScreen
  *
  * Principe S : itérer sur la liste + déléguer à FestivalCard. Rien d'autre.
@@ -33,7 +33,7 @@ fun FestivalList(
     errorMessage: String?,
     modifier: Modifier = Modifier,
     canDelete: Boolean = false,
-    canAdd: Boolean = false,                // bouton + visible si connecté
+    canAdd: Boolean = false,
     onSelect: (id: Int?) -> Unit = {},
     onDeleteRequest: (id: Int) -> Unit = {},
     onAddClick: () -> Unit = {},            // → FestivalFormScreen
@@ -136,7 +136,7 @@ fun FestivalList(
         }
 
         // ── FAB + en bas à droite ─────────────────────────────────────────────
-        // Visible seulement si canAdd (connecté) et pas en chargement/erreur
+        // Visible seulement si l'utilisateur a le droit de créer un festival.
         if (canAdd && !isLoading && errorMessage == null) {
             FloatingActionButton(
                 onClick = onAddClick,

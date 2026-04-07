@@ -18,7 +18,7 @@ private val Context.syncPreferenceDataStore by preferencesDataStore(name = "sync
  * Clés recommandées : "games", "reservants", "festivals", "reservations".
  * TTL par défaut : 5 minutes.
  */
-class SyncPreferenceStore(private val context: Context) {
+open class SyncPreferenceStore(private val context: Context) {
 
     companion object {
         const val KEY_GAMES        = "games"
@@ -31,14 +31,14 @@ class SyncPreferenceStore(private val context: Context) {
     }
 
     /** Retourne le timestamp de la dernière sync, ou null si jamais synchronisé. */
-    suspend fun getLastSyncedAt(key: String): Long? {
+    open suspend fun getLastSyncedAt(key: String): Long? {
         return context.syncPreferenceDataStore.data
             .map { prefs -> prefs[longPreferencesKey(key)] }
             .first()
     }
 
     /** Enregistre le timestamp de la dernière sync réussie. */
-    suspend fun setLastSyncedAt(
+    open suspend fun setLastSyncedAt(
         key: String,
         timestamp: Long = System.currentTimeMillis(),
     ) {
@@ -52,13 +52,13 @@ class SyncPreferenceStore(private val context: Context) {
      *
      * @param ttlMs Durée de validité en millisecondes (défaut : [DEFAULT_TTL_MS]).
      */
-    suspend fun needsRefresh(key: String, ttlMs: Long = DEFAULT_TTL_MS): Boolean {
+    open suspend fun needsRefresh(key: String, ttlMs: Long = DEFAULT_TTL_MS): Boolean {
         val lastSync = getLastSyncedAt(key) ?: return true
         return (System.currentTimeMillis() - lastSync) > ttlMs
     }
 
     /** Force le rafraîchissement en supprimant le timestamp (prochain appel ira au réseau). */
-    suspend fun invalidate(key: String) {
+    open suspend fun invalidate(key: String) {
         context.syncPreferenceDataStore.edit { prefs ->
             prefs.remove(longPreferencesKey(key))
         }

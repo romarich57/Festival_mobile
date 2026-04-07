@@ -109,6 +109,8 @@ fun FestivalApp(
     var previousAuthenticationState by rememberSaveable { mutableStateOf<Boolean?>(null) }
     var gamesRefreshSignal by rememberSaveable { mutableStateOf(0) }
     var gamesFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var festivalRefreshSignal by rememberSaveable { mutableStateOf(0) }
+    var festivalFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var reservantsRefreshSignal by rememberSaveable { mutableStateOf(0) }
     var reservantsFlashMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var adminRefreshSignal by rememberSaveable { mutableStateOf(0) }
@@ -183,6 +185,8 @@ fun FestivalApp(
         zonePlanRepository = zonePlanRepository,
         sessionUiState = sessionUiState,
         sessionViewModel = sessionViewModel,
+        festivalRefreshSignal = festivalRefreshSignal,
+        festivalFlashMessage = festivalFlashMessage,
         gamesRefreshSignal = gamesRefreshSignal,
         gamesFlashMessage = gamesFlashMessage,
         reservantsRefreshSignal = reservantsRefreshSignal,
@@ -192,9 +196,14 @@ fun FestivalApp(
         onOpenRoot = ::openRoot,
         onOpenSecondary = ::openSecondary,
         onSelectTopLevelTab = { selectedTopLevelTab = it },
+        onConsumeFestivalFlashMessage = { festivalFlashMessage = null },
         onConsumeGamesFlashMessage = { gamesFlashMessage = null },
         onConsumeReservantsFlashMessage = { reservantsFlashMessage = null },
         onConsumeAdminFlashMessage = { adminFlashMessage = null },
+        onFestivalSaved = { message ->
+            festivalFlashMessage = message
+            festivalRefreshSignal += 1
+        },
         onGamesSaved = { message ->
             gamesFlashMessage = message
             gamesRefreshSignal += 1

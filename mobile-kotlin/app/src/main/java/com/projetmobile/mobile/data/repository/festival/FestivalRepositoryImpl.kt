@@ -51,8 +51,24 @@ class FestivalRepositoryImpl(
     ) {
         val response = festivalApiService.addFestival(festival)
         val created = response.festival
-        festivalDao.upsert(created.toFestivalRoomEntity())
-        created
+        val canonical = created.id?.let { createdId ->
+            festivalApiService.getFestival(createdId)
+        }
+
+        if (canonical != null) {
+            festivalDao.upsert(canonical.toFestivalRoomEntity())
+            syncPreferenceStore.setLastSyncedAt(SyncPreferenceStore.KEY_FESTIVALS)
+            canonical
+        } else {
+            val festivals = festivalApiService.getFestivals()
+            festivalDao.upsertAll(festivals.map { it.toFestivalRoomEntity() })
+            syncPreferenceStore.setLastSyncedAt(SyncPreferenceStore.KEY_FESTIVALS)
+            festivals.firstOrNull { dto ->
+                dto.name == festival.name.trim() &&
+                    dto.startDate == festival.startDate &&
+                    dto.endDate == festival.endDate
+            } ?: created
+        }
     }
 
     override suspend fun deleteFestival(id: Int) = runRepositoryCall(

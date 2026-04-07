@@ -88,14 +88,14 @@ class FestivalViewModel(
     /**
      * Confirme et exécute la suppression.
      */
-    fun confirmDelete() {
+    fun confirmDelete(onSuccess: (String) -> Unit = {}) {
         val id = _pendingDeleteFestivalId.value ?: return
         viewModelScope.launch {
             festivalRepository.deleteFestival(id)
                 .onSuccess {
                     if (_currentFestivalId.value == id) clearSelection()
                     _pendingDeleteFestivalId.value = null
-                    loadFestivals() // Recharger la liste après suppression
+                    onSuccess("Festival supprimé.")
                 }
                 .onFailure { throwable ->
                     _pendingDeleteFestivalId.value = null
@@ -109,6 +109,17 @@ class FestivalViewModel(
 
     fun consumeError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+
+    fun consumeInfoMessage() {
+        _uiState.value = _uiState.value.copy(infoMessage = null)
+    }
+
+    fun consumeExternalRefresh(infoMessage: String?) {
+        if (infoMessage != null) {
+            _uiState.value = _uiState.value.copy(infoMessage = infoMessage)
+        }
+        loadFestivals()
     }
 
     companion object {

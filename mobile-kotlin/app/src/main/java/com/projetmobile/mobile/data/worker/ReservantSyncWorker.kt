@@ -3,17 +3,13 @@ package com.projetmobile.mobile.data.worker
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.projetmobile.mobile.BuildConfig
+import com.projetmobile.mobile.FestivalApplication
 import com.projetmobile.mobile.data.database.AppDatabase
 import com.projetmobile.mobile.data.entity.reservants.ReservantDraft
 import com.projetmobile.mobile.data.mapper.reservants.toReservantRoomEntity
 import com.projetmobile.mobile.data.remote.common.ApiJson
-import com.projetmobile.mobile.data.remote.reservants.ReservantsApiService
 import com.projetmobile.mobile.data.remote.reservants.toRequestDto
 import com.projetmobile.mobile.data.room.SyncStatus
-import okhttp3.MediaType.Companion.toMediaType
-import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlin.math.abs
 
 /**
@@ -29,16 +25,11 @@ class ReservantSyncWorker(
     }
 
     override suspend fun doWork(): Result {
+        val app = applicationContext as FestivalApplication
+        val container = app.appContainer
         val db = AppDatabase.getInstance(applicationContext)
         val reservantDao = db.reservantDao()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BuildConfig.API_BASE_URL)
-            .addConverterFactory(
-                ApiJson.instance.asConverterFactory("application/json".toMediaType()),
-            )
-            .build()
-        val api = retrofit.create(ReservantsApiService::class.java)
+        val api = container.reservantsApiService
 
         val pending = reservantDao.getPending()
         if (pending.isEmpty()) return Result.success()
@@ -69,8 +60,9 @@ class ReservantSyncWorker(
                     }
 
                     SyncStatus.PENDING_DELETE -> {
-                        val serverId = abs(entity.id)
-                        api.deleteReservant(serverId)
+                        if (entity.id > 0) {
+                            api.deleteReservant(abs(entity.id))
+                        }
                         reservantDao.deleteById(entity.id)
                     }
                 }

@@ -9,11 +9,22 @@ import com.projetmobile.mobile.data.entity.games.GameTypeOption
 import com.projetmobile.mobile.data.entity.games.MechanismOption
 import com.projetmobile.mobile.data.entity.games.PagedResult
 import com.projetmobile.mobile.data.repository.games.GamesRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 
 class FakeGamesRepository(
     initialPage: PagedResult<GameListItem> = sampleGamesPage(),
     initialGame: GameDetail = sampleGameDetail(),
 ) : GamesRepository {
+    private val gamesState = MutableStateFlow(initialPage.items)
+    private val gameDetailsState = MutableStateFlow(
+        buildMap {
+            put(initialGame.id, initialGame)
+            initialPage.items.forEach { item -> put(item.id, item.toGameDetail()) }
+        },
+    )
+
     var getGamesCalls: Int = 0
     var getGamesHandler: (suspend (GameFilters, Int, Int) -> Result<PagedResult<GameListItem>>)? = null
     var lastFilters: GameFilters? = null
@@ -51,7 +62,7 @@ class FakeGamesRepository(
 
     var deleteGameCalls: Int = 0
     var lastDeletedGameId: Int? = null
-    var deleteGameResult: Result<String> = Result.success("Jeu supprimé.")
+    var deleteGameResult: Result<String> = Result.success("Suppression planifiée.")
 
     var uploadGameImageCalls: Int = 0
     var lastUploadedFileName: String? = null
@@ -59,7 +70,19 @@ class FakeGamesRepository(
     var lastUploadedBytes: ByteArray? = null
     var uploadGameImageResult: Result<String> = Result.success("/uploads/games/test.png")
 
-    override suspend fun getGames(
+    override fun observeGames(titleSearch: String): Flow<List<GameListItem>> {
+        return gamesState.map { items ->
+            items.filter { item ->
+                titleSearch.isBlank() || item.title.contains(titleSearch, ignoreCase = true)
+            }
+        }
+    }
+
+    override fun observeGame(gameId: Int): Flow<GameDetail?> {
+        return gameDetailsState.map { details -> details[gameId] }
+    }
+
+    override suspend fun refreshGames(
         filters: GameFilters,
         page: Int,
         limit: Int,
@@ -68,17 +91,24 @@ class FakeGamesRepository(
         lastFilters = filters
         lastPage = page
         lastLimit = limit
-        getGamesHandler?.let { handler ->
-            return handler(filters, page, limit)
-        }
-        return pageResults[page]
+        val result = getGamesHandler?.let { handler ->
+            handler(filters, page, limit)
+        } ?: pageResults[page]
             ?: Result.success(PagedResult(emptyList(), page = page, limit = limit, total = 0, hasNext = false))
+
+        result.onSuccess { pageResult ->
+            gamesState.value = (gamesState.value + pageResult.items).distinctBy { it.id }
+            publishDetails(pageResult.items)
+        }
+        return result
     }
 
     override suspend fun getGame(gameId: Int): Result<GameDetail> {
         getGameCalls += 1
         lastRequestedGameId = gameId
-        return getGameResult
+        return getGameResult.onSuccess { detail ->
+            publishDetail(detail)
+        }
     }
 
     override suspend fun getGameTypes(): Result<List<GameTypeOption>> = gameTypesResult
@@ -90,7 +120,11 @@ class FakeGamesRepository(
     override suspend fun createGame(draft: GameDraft): Result<GameDetail> {
         createGameCalls += 1
         lastCreatedDraft = draft
-        return createGameResult
+        return createGameResult.onSuccess { detail ->
+            publishDetail(detail)
+            gamesState.value = (gamesState.value + detail.toGameListItem())
+                .distinctBy { it.id }
+        }
     }
 
     override suspend fun updateGame(
@@ -100,13 +134,25 @@ class FakeGamesRepository(
         updateGameCalls += 1
         lastUpdatedGameId = gameId
         lastUpdatedDraft = draft
-        return updateGameResult
+        return updateGameResult.onSuccess { detail ->
+            publishDetail(detail)
+            gamesState.value = gamesState.value.map { item ->
+                if (item.id == gameId) {
+                    detail.toGameListItem()
+                } else {
+                    item
+                }
+            }
+        }
     }
 
     override suspend fun deleteGame(gameId: Int): Result<String> {
         deleteGameCalls += 1
         lastDeletedGameId = gameId
-        return deleteGameResult
+        return deleteGameResult.onSuccess { _ ->
+            gamesState.value = gamesState.value.filterNot { it.id == gameId }
+            gameDetailsState.value = gameDetailsState.value - gameId
+        }
     }
 
     override suspend fun uploadGameImage(
@@ -119,6 +165,17 @@ class FakeGamesRepository(
         lastUploadedMimeType = mimeType
         lastUploadedBytes = bytes
         return uploadGameImageResult
+    }
+
+    private fun publishDetails(items: List<GameListItem>) {
+        if (items.isEmpty()) return
+        gameDetailsState.value = gameDetailsState.value + items.associate { item ->
+            item.id to item.toGameDetail()
+        }
+    }
+
+    private fun publishDetail(detail: GameDetail) {
+        gameDetailsState.value = gameDetailsState.value + (detail.id to detail)
     }
 }
 
@@ -205,4 +262,42 @@ fun sampleGamesPage(
     limit = limit,
     total = total,
     hasNext = hasNext,
+)
+
+private fun GameListItem.toGameDetail() = GameDetail(
+    id = id,
+    title = title,
+    type = type,
+    editorId = editorId,
+    editorName = editorName,
+    minAge = minAge,
+    authors = authors,
+    minPlayers = minPlayers,
+    maxPlayers = maxPlayers,
+    prototype = prototype,
+    durationMinutes = durationMinutes,
+    theme = theme,
+    description = description,
+    imageUrl = imageUrl,
+    rulesVideoUrl = rulesVideoUrl,
+    mechanisms = mechanisms,
+)
+
+private fun GameDetail.toGameListItem() = GameListItem(
+    id = id,
+    title = title,
+    type = type,
+    editorId = editorId,
+    editorName = editorName,
+    minAge = minAge,
+    authors = authors,
+    minPlayers = minPlayers,
+    maxPlayers = maxPlayers,
+    prototype = prototype,
+    durationMinutes = durationMinutes,
+    theme = theme,
+    description = description,
+    imageUrl = imageUrl,
+    rulesVideoUrl = rulesVideoUrl,
+    mechanisms = mechanisms,
 )

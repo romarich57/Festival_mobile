@@ -132,7 +132,7 @@ class FestivalFormViewModel(
      * - Émet successMessage ou errorMessage
      * - onSuccess est appelé par FestivalFormScreen pour naviguer en arrière
      */
-    fun submit(onSuccess: () -> Unit) {
+    fun submit(onSuccess: (String) -> Unit) {
         val state = validateForm()
         if (!state.isValid) return
 
@@ -160,11 +160,12 @@ class FestivalFormViewModel(
 
             festivalRepository.addFestival(dto)
                 .onSuccess {
+                    val successMessage = "Festival créé."
                     _uiState.value = _uiState.value.copy(
                         isSubmitting = false,
-                        successMessage = "Festival créé avec succès !",
+                        successMessage = successMessage,
                     )
-                    onSuccess()
+                    onSuccess(successMessage)
                 }
                 .onFailure { throwable ->
                     _uiState.value = _uiState.value.copy(

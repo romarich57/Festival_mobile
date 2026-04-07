@@ -16,6 +16,8 @@ import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
 import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
 import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepository
+import com.projetmobile.mobile.data.entity.festival.canDeleteFestivals
+import com.projetmobile.mobile.data.entity.festival.canManageFestivals
 import com.projetmobile.mobile.ui.screens.admin.catalog.AdminCatalogRoute
 import com.projetmobile.mobile.ui.screens.admin.detail.AdminUserDetailRoute
 import com.projetmobile.mobile.ui.screens.admin.form.AdminUserFormMode
@@ -93,6 +95,8 @@ internal fun festivalAppEntryProvider(
     zonePlanRepository: ZonePlanRepository,
     sessionUiState: AppSessionUiState,
     sessionViewModel: AppSessionViewModel,
+    festivalRefreshSignal: Int,
+    festivalFlashMessage: String?,
     gamesRefreshSignal: Int,
     gamesFlashMessage: String?,
     reservantsRefreshSignal: Int,
@@ -102,9 +106,11 @@ internal fun festivalAppEntryProvider(
     onOpenRoot: (TopLevelTab) -> Unit,
     onOpenSecondary: (TopLevelTab, AppNavKey) -> Unit,
     onSelectTopLevelTab: (TopLevelTab) -> Unit,
+    onConsumeFestivalFlashMessage: () -> Unit,
     onConsumeGamesFlashMessage: () -> Unit,
     onConsumeReservantsFlashMessage: () -> Unit,
     onConsumeAdminFlashMessage: () -> Unit,
+    onFestivalSaved: (String) -> Unit,
     onGamesSaved: (String) -> Unit,
     onReservantSaved: (Int, String) -> Unit,
     onLinkedGameCreated: (Int, String) -> Unit,
@@ -117,9 +123,20 @@ internal fun festivalAppEntryProvider(
                 val festivalViewModel: FestivalViewModel = viewModel(
                     factory = FestivalViewModel.factory(festivalRepository),
                 )
+                val currentUserRole = sessionUiState.currentUser?.role
+                val canManageFestivalCatalog = canManageFestivals(currentUserRole)
+                val canDeleteFestivalCatalog = canDeleteFestivals(currentUserRole)
+                LaunchedEffect(festivalRefreshSignal) {
+                    if (festivalRefreshSignal == 0) {
+                        return@LaunchedEffect
+                    }
+                    festivalViewModel.consumeExternalRefresh(festivalFlashMessage)
+                    onConsumeFestivalFlashMessage()
+                }
                 FestivalScreen(
                     viewModel = festivalViewModel,
-                    isAuthenticated = sessionUiState.currentUser != null,
+                    canAdd = canManageFestivalCatalog,
+                    canDelete = canDeleteFestivalCatalog,
                     onFestivalClick = { festivalId ->
                         if (sessionUiState.currentUser == null) {
                             onOpenRoot(TopLevelTab.Login)
@@ -130,6 +147,7 @@ internal fun festivalAppEntryProvider(
                     onAddClick = {
                         festivalsBackStack.add(FestivalForm)
                     },
+                    onDeleteSuccess = onFestivalSaved,
                 )
             }
 
@@ -140,6 +158,7 @@ internal fun festivalAppEntryProvider(
                 FestivalFormScreen(
                     viewModel = festivalFormViewModel,
                     onBack = { festivalsBackStack.removeLastOrNull() },
+                    onSaved = onFestivalSaved,
                 )
             }
 

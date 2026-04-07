@@ -17,10 +17,11 @@ import com.projetmobile.mobile.ui.components.festival.FestivalList
 fun FestivalScreen(
     viewModel: FestivalViewModel,
     modifier: Modifier = Modifier,
-    isAuthenticated: Boolean = false,
+    canAdd: Boolean = false,
     canDelete: Boolean = false,
     onFestivalClick: (id: Int) -> Unit = {},
     onAddClick: () -> Unit = {},
+    onDeleteSuccess: (String) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentFestivalId by viewModel.currentFestivalId.collectAsStateWithLifecycle()
@@ -33,7 +34,7 @@ fun FestivalScreen(
             title = { Text("Supprimer le festival ?") },
             text = { Text("Cette action est irréversible.") },
             confirmButton = {
-                TextButton(onClick = { viewModel.confirmDelete() }) {
+                TextButton(onClick = { viewModel.confirmDelete(onDeleteSuccess) }) {
                     Text("Supprimer")
                 }
             },
@@ -46,6 +47,18 @@ fun FestivalScreen(
     }
 
     Column(modifier = modifier) {
+        if (uiState.infoMessage != null) {
+            AuthFeedbackBanner(
+                message = uiState.infoMessage!!,
+                tone = AuthFeedbackTone.Success,
+                modifier = Modifier.padding(16.dp),
+            )
+            LaunchedEffect(uiState.infoMessage) {
+                kotlinx.coroutines.delay(3500)
+                viewModel.consumeInfoMessage()
+            }
+        }
+
         // Affichage de l'erreur sous forme de bannière si elle existe
         if (uiState.errorMessage != null && uiState.festivals.isNotEmpty()) {
             AuthFeedbackBanner(
@@ -65,8 +78,8 @@ fun FestivalScreen(
             currentFestivalId = currentFestivalId,
             isLoading = uiState.isLoading,
             errorMessage = if (uiState.festivals.isEmpty()) uiState.errorMessage else null,
-            canDelete = isAuthenticated,
-            canAdd = isAuthenticated,
+            canDelete = canDelete,
+            canAdd = canAdd,
             onSelect = { id ->
                 if (id != null) {
                     viewModel.selectFestival(id)
