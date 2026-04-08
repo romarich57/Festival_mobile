@@ -9,7 +9,9 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantDraft
 import com.projetmobile.mobile.data.mapper.reservants.toReservantRoomEntity
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.reservants.toRequestDto
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
+import com.projetmobile.mobile.data.sync.resolveRetryAction
 import kotlin.math.abs
 
 /**
@@ -34,12 +36,13 @@ class ReservantSyncWorker(
         val pending = reservantDao.getPending()
         if (pending.isEmpty()) return Result.success()
 
-        var hasError = false
+        var hasRetryableError = false
 
         for (entity in pending) {
+            val action = resolveRetryAction(entity.syncStatus, entity.retryAction) ?: continue
             try {
-                when (entity.syncStatus) {
-                    SyncStatus.PENDING_CREATE -> {
+                when (action) {
+                    SyncRetryAction.CREATE -> {
                         val draft = ApiJson.instance.decodeFromString(
                             ReservantDraft.serializer(),
                             entity.pendingDraftJson!!,
@@ -49,7 +52,7 @@ class ReservantSyncWorker(
                         reservantDao.upsert(serverDto.toReservantRoomEntity(SyncStatus.SYNCED))
                     }
 
-                    SyncStatus.PENDING_UPDATE -> {
+                    SyncRetryAction.UPDATE -> {
                         val draft = ApiJson.instance.decodeFromString(
                             ReservantDraft.serializer(),
                             entity.pendingDraftJson!!,
@@ -59,19 +62,36 @@ class ReservantSyncWorker(
                         reservantDao.upsert(serverDto.toReservantRoomEntity(SyncStatus.SYNCED))
                     }
 
-                    SyncStatus.PENDING_DELETE -> {
+                    SyncRetryAction.DELETE -> {
                         if (entity.id > 0) {
                             api.deleteReservant(abs(entity.id))
                         }
                         reservantDao.deleteById(entity.id)
                     }
                 }
-            } catch (e: Exception) {
-                reservantDao.updateSyncStatus(entity.id, SyncStatus.ERROR)
-                hasError = true
+            } catch (throwable: Throwable) {
+                if (action == SyncRetryAction.DELETE && throwable.isDeleteAlreadyApplied()) {
+                    reservantDao.deleteById(entity.id)
+                    continue
+                }
+
+                val retryable = throwable.isRetryableSyncFailure(
+                    "Impossible de synchroniser le réservant.",
+                )
+                reservantDao.updateSyncState(
+                    id = entity.id,
+                    status = SyncStatus.ERROR,
+                    retryAction = if (retryable) action else null,
+                    lastSyncErrorMessage = throwable.toSyncFailureMessage(
+                        "Impossible de synchroniser le réservant.",
+                    ),
+                )
+                if (retryable) {
+                    hasRetryableError = true
+                }
             }
         }
 
-        return if (hasError) Result.retry() else Result.success()
+        return if (hasRetryableError) Result.retry() else Result.success()
     }
 }

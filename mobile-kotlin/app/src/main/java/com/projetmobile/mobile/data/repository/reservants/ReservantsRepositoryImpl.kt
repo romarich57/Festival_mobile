@@ -1,12 +1,5 @@
 package com.projetmobile.mobile.data.repository.reservants
 
-import android.content.Context
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.projetmobile.mobile.data.dao.ReservantDao
 import com.projetmobile.mobile.data.database.SyncPreferenceStore
 import com.projetmobile.mobile.data.entity.reservants.ReservantContactDraft
@@ -21,19 +14,22 @@ import com.projetmobile.mobile.data.remote.reservants.ReservantsApiService
 import com.projetmobile.mobile.data.remote.reservants.toRequestDto
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.repository.runRepositoryCall
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
-import com.projetmobile.mobile.data.worker.ReservantSyncWorker
+import com.projetmobile.mobile.data.sync.RepositorySyncScheduler
+import com.projetmobile.mobile.data.sync.resolveRetryAction
+import com.projetmobile.mobile.data.sync.shouldHideFromCollections
+import com.projetmobile.mobile.data.sync.shouldKeepLocalOnlyEntity
+import com.projetmobile.mobile.data.sync.shouldPreserveLocalDuringRefresh
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 class ReservantsRepositoryImpl(
     private val reservantsApiService: ReservantsApiService,
     private val reservantDao: ReservantDao,
     private val syncPreferenceStore: SyncPreferenceStore,
-    private val context: Context,
-    private val syncScheduler: () -> Unit = { enqueueReservantSync(context) },
+    private val syncScheduler: () -> Unit = { RepositorySyncScheduler.schedulePendingSyncAsync() },
 ) : ReservantsRepository {
 
     // ── Observation Room (SSOT) ──────────────────────────────────────────────
@@ -50,9 +46,42 @@ class ReservantsRepositoryImpl(
         defaultMessage = "Impossible de récupérer les réservants.",
     ) {
         val dtos = reservantsApiService.getReservants()
-        reservantDao.upsertAll(dtos.map { it.toReservantRoomEntity() })
+        val localById = reservantDao.getAll().associateBy { it.id }
+        val remoteIds = mutableSetOf<Int>()
+        val mergedEntities = dtos.map { dto ->
+            val remoteEntity = dto.toReservantRoomEntity()
+            remoteIds += remoteEntity.id
+            val localEntity = localById[remoteEntity.id]
+            if (
+                localEntity != null &&
+                shouldPreserveLocalDuringRefresh(localEntity.syncStatus, localEntity.retryAction)
+            ) {
+                localEntity
+            } else {
+                remoteEntity
+            }
+        }
+        reservantDao.upsertAll(mergedEntities)
+        localById.values
+            .filter { entity ->
+                entity.id > 0 &&
+                    entity.id !in remoteIds &&
+                    !shouldPreserveLocalDuringRefresh(entity.syncStatus, entity.retryAction)
+            }
+            .forEach { entity ->
+                reservantDao.deleteById(entity.id)
+            }
         syncPreferenceStore.setLastSyncedAt(SyncPreferenceStore.KEY_RESERVANTS)
-        dtos.map { it.toReservantListItem() }
+        (
+            mergedEntities +
+                localById.values.filter { entity ->
+                    shouldKeepLocalOnlyEntity(entity.id, entity.syncStatus, entity.retryAction)
+                }
+            ).distinctBy { it.id }
+            .filterNot { entity ->
+                shouldHideFromCollections(entity.syncStatus, entity.retryAction)
+            }
+            .map { entity -> entity.toReservantListItem() }
     }
 
     override suspend fun getReservant(reservantId: Int) = runRepositoryCall(
@@ -80,6 +109,8 @@ class ReservantsRepositoryImpl(
             val existing = reservantDao.getById(reservantId)
             if (existing != null) {
                 val pendingJson = ApiJson.instance.encodeToString(ReservantDraft.serializer(), draft)
+                val isPendingCreate = existing.id < 0 &&
+                    resolveRetryAction(existing.syncStatus, existing.retryAction) == SyncRetryAction.CREATE
                 reservantDao.upsert(
                     existing.copy(
                         name = draft.name,
@@ -90,8 +121,18 @@ class ReservantsRepositoryImpl(
                         address = draft.address,
                         siret = draft.siret,
                         notes = draft.notes,
-                        syncStatus = SyncStatus.PENDING_UPDATE,
+                        syncStatus = if (isPendingCreate) {
+                            SyncStatus.PENDING_CREATE
+                        } else {
+                            SyncStatus.PENDING_UPDATE
+                        },
                         pendingDraftJson = pendingJson,
+                        retryAction = if (isPendingCreate) {
+                            SyncRetryAction.CREATE
+                        } else {
+                            SyncRetryAction.UPDATE
+                        },
+                        lastSyncErrorMessage = null,
                     ),
                 )
                 syncScheduler()
@@ -154,22 +195,4 @@ class ReservantsRepositoryImpl(
 
     private fun generateLocalId(): Int =
         -(abs(System.currentTimeMillis().toInt()).coerceAtLeast(1))
-
-    companion object {
-        private fun enqueueReservantSync(context: Context) {
-            val request = OneTimeWorkRequestBuilder<ReservantSyncWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build(),
-                )
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
-                .build()
-            WorkManager.getInstance(context).enqueueUniqueWork(
-                ReservantSyncWorker.WORK_NAME,
-                ExistingWorkPolicy.KEEP,
-                request,
-            )
-        }
-    }
 }

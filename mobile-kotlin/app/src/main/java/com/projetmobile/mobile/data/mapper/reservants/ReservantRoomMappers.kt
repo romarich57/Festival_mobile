@@ -6,6 +6,7 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.reservants.ReservantDto
 import com.projetmobile.mobile.data.room.ReservantRoomEntity
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
 
 // ── DTO réseau → Entité Room ─────────────────────────────────────────────────
@@ -13,6 +14,8 @@ import com.projetmobile.mobile.data.room.SyncStatus
 fun ReservantDto.toReservantRoomEntity(
     syncStatus: String = SyncStatus.SYNCED,
     pendingDraftJson: String? = null,
+    retryAction: String? = null,
+    lastSyncErrorMessage: String? = null,
 ): ReservantRoomEntity = ReservantRoomEntity(
     id = id,
     name = name,
@@ -25,6 +28,8 @@ fun ReservantDto.toReservantRoomEntity(
     notes = notes,
     syncStatus = syncStatus,
     pendingDraftJson = pendingDraftJson,
+    retryAction = retryAction,
+    lastSyncErrorMessage = lastSyncErrorMessage,
 )
 
 // ── Draft hors-ligne → Entité Room ──────────────────────────────────────────
@@ -44,6 +49,12 @@ fun ReservantDraft.toReservantRoomEntity(
     notes = notes,
     syncStatus = syncStatus,
     pendingDraftJson = ApiJson.instance.encodeToString(ReservantDraft.serializer(), this),
+    retryAction = when (syncStatus) {
+        SyncStatus.PENDING_CREATE -> SyncRetryAction.CREATE
+        SyncStatus.PENDING_UPDATE -> SyncRetryAction.UPDATE
+        else -> null
+    },
+    lastSyncErrorMessage = null,
 )
 
 // ── Entité Room → Domaine ────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import com.projetmobile.mobile.data.entity.games.MechanismOption
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.games.GameDto
 import com.projetmobile.mobile.data.room.GameRoomEntity
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
 import kotlinx.serialization.builtins.ListSerializer
 
@@ -18,6 +19,8 @@ import kotlinx.serialization.builtins.ListSerializer
 fun GameDto.toGameRoomEntity(
     syncStatus: String = SyncStatus.SYNCED,
     pendingDraftJson: String? = null,
+    retryAction: String? = null,
+    lastSyncErrorMessage: String? = null,
 ): GameRoomEntity = GameRoomEntity(
     id = id,
     title = title,
@@ -40,6 +43,8 @@ fun GameDto.toGameRoomEntity(
     ),
     syncStatus = syncStatus,
     pendingDraftJson = pendingDraftJson,
+    retryAction = retryAction,
+    lastSyncErrorMessage = lastSyncErrorMessage,
 )
 
 // ── Draft hors-ligne → Entité Room ──────────────────────────────────────────
@@ -69,6 +74,12 @@ fun GameDraft.toGameRoomEntity(localId: Int, syncStatus: String): GameRoomEntity
     mechanismsJson = "[]",
     syncStatus = syncStatus,
     pendingDraftJson = ApiJson.instance.encodeToString(GameDraft.serializer(), this),
+    retryAction = when (syncStatus) {
+        SyncStatus.PENDING_CREATE -> SyncRetryAction.CREATE
+        SyncStatus.PENDING_UPDATE -> SyncRetryAction.UPDATE
+        else -> null
+    },
+    lastSyncErrorMessage = null,
 )
 
 // ── Entité Room → Domaine ────────────────────────────────────────────────────

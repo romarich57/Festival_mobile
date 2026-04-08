@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 import com.projetmobile.mobile.data.repository.auth.AuthRepository
+import com.projetmobile.mobile.data.sync.RepositorySyncScheduler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +44,9 @@ class AppSessionViewModel(
                         currentUser = user,
                         errorMessage = null,
                     )
+                    if (user != null) {
+                        RepositorySyncScheduler.schedulePendingSyncAsync()
+                    }
                 }
                 .onFailure { error ->
                     _uiState.update { state ->
@@ -59,6 +63,7 @@ class AppSessionViewModel(
         _uiState.update { state ->
             state.copy(currentUser = user, isRestoring = false, errorMessage = null)
         }
+        RepositorySyncScheduler.schedulePendingSyncAsync()
     }
 
     fun onUserProfileUpdated(user: AuthUser) {

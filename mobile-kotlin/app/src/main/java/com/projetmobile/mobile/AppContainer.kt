@@ -156,7 +156,6 @@ class AppContainer(context: Context) {
             gamesApiService = gamesApiService,
             gameDao = appDatabase.gameDao(),
             syncPreferenceStore = syncPreferenceStore,
-            context = applicationContext,
         )
     }
 
@@ -165,7 +164,6 @@ class AppContainer(context: Context) {
             reservantsApiService = reservantsApiService,
             reservantDao = appDatabase.reservantDao(),
             syncPreferenceStore = syncPreferenceStore,
-            context = applicationContext,
         )
     }
 
@@ -178,7 +176,6 @@ class AppContainer(context: Context) {
             api = reservationApiService,
             reservationDao = appDatabase.reservationDao(),
             syncPreferenceStore = syncPreferenceStore,
-            context = applicationContext,
         )
     }
 

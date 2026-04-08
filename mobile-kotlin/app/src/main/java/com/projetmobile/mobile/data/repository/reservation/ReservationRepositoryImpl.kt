@@ -1,12 +1,5 @@
 package com.projetmobile.mobile.data.repository.reservation
 
-import android.content.Context
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.projetmobile.mobile.data.dao.ReservationDao
 import com.projetmobile.mobile.data.database.SyncPreferenceStore
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
@@ -19,18 +12,19 @@ import com.projetmobile.mobile.data.remote.reservation.ReservationUpdatePayloadD
 import com.projetmobile.mobile.data.remote.reservation.ZoneTarifaireDto
 import com.projetmobile.mobile.data.repository.runRepositoryCall
 import com.projetmobile.mobile.data.room.SyncStatus
-import com.projetmobile.mobile.data.worker.ReservationSyncWorker
+import com.projetmobile.mobile.data.sync.RepositorySyncScheduler
+import com.projetmobile.mobile.data.sync.shouldHideFromCollections
+import com.projetmobile.mobile.data.sync.shouldKeepLocalOnlyEntity
+import com.projetmobile.mobile.data.sync.shouldPreserveLocalDuringRefresh
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 class ReservationRepositoryImpl(
     private val api: ReservationApiService,
     private val reservationDao: ReservationDao,
     private val syncPreferenceStore: SyncPreferenceStore,
-    private val context: Context,
-    private val syncScheduler: () -> Unit = { enqueueReservationSync(context) },
+    private val syncScheduler: () -> Unit = { RepositorySyncScheduler.schedulePendingSyncAsync() },
 ) : ReservationRepository {
 
     // ── Observation Room (SSOT) ──────────────────────────────────────────────
@@ -45,9 +39,42 @@ class ReservationRepositoryImpl(
         defaultMessage = "Impossible de récupérer les réservations.",
     ) {
         val dtos = api.getReservationsByFestival(festivalId)
-        reservationDao.upsertAll(dtos.map { it.toReservationRoomEntity(festivalId) })
+        val localById = reservationDao.getAllByFestival(festivalId).associateBy { it.id }
+        val remoteIds = mutableSetOf<Int>()
+        val mergedEntities = dtos.map { dto ->
+            val remoteEntity = dto.toReservationRoomEntity(festivalId)
+            remoteIds += remoteEntity.id
+            val localEntity = localById[remoteEntity.id]
+            if (
+                localEntity != null &&
+                shouldPreserveLocalDuringRefresh(localEntity.syncStatus, localEntity.retryAction)
+            ) {
+                localEntity
+            } else {
+                remoteEntity
+            }
+        }
+        reservationDao.upsertAll(mergedEntities)
+        localById.values
+            .filter { entity ->
+                entity.id > 0 &&
+                    entity.id !in remoteIds &&
+                    !shouldPreserveLocalDuringRefresh(entity.syncStatus, entity.retryAction)
+            }
+            .forEach { entity ->
+                reservationDao.deleteById(entity.id)
+            }
         syncPreferenceStore.setLastSyncedAt(SyncPreferenceStore.KEY_RESERVATIONS)
-        dtos.map { it.toReservationRoomEntity(festivalId).toReservationDashboardRow() }
+        (
+            mergedEntities +
+                localById.values.filter { entity ->
+                    shouldKeepLocalOnlyEntity(entity.id, entity.syncStatus, entity.retryAction)
+                }
+            ).distinctBy { it.id }
+            .filterNot { entity ->
+                shouldHideFromCollections(entity.syncStatus, entity.retryAction)
+            }
+            .map { entity -> entity.toReservationDashboardRow() }
     }
 
     // ── Écriture offline-first ───────────────────────────────────────────────
@@ -92,7 +119,34 @@ class ReservationRepositoryImpl(
         val entity = reservationDao.getById(reservationId)
         if (entity != null) {
             val dtos = api.getReservationsByFestival(entity.festivalId)
-            reservationDao.upsertAll(dtos.map { it.toReservationRoomEntity(entity.festivalId) })
+            val localById = reservationDao.getAllByFestival(entity.festivalId).associateBy { it.id }
+            val remoteIds = mutableSetOf<Int>()
+            val mergedEntities = dtos.map { dto ->
+                val remoteEntity = dto.toReservationRoomEntity(entity.festivalId)
+                remoteIds += remoteEntity.id
+                val localEntity = localById[remoteEntity.id]
+                if (
+                    localEntity != null &&
+                    shouldPreserveLocalDuringRefresh(localEntity.syncStatus, localEntity.retryAction)
+                ) {
+                    localEntity
+                } else {
+                    remoteEntity
+                }
+            }
+            reservationDao.upsertAll(mergedEntities)
+            localById.values
+                .filter { localEntity ->
+                    localEntity.id > 0 &&
+                        localEntity.id !in remoteIds &&
+                        !shouldPreserveLocalDuringRefresh(
+                            localEntity.syncStatus,
+                            localEntity.retryAction,
+                        )
+                }
+                .forEach { localEntity ->
+                    reservationDao.deleteById(localEntity.id)
+                }
         }
         syncPreferenceStore.invalidate(SyncPreferenceStore.KEY_RESERVATIONS)
     }
@@ -105,22 +159,4 @@ class ReservationRepositoryImpl(
 
     private fun generateLocalId(): Int =
         -(abs(System.currentTimeMillis().toInt()).coerceAtLeast(1))
-
-    companion object {
-        private fun enqueueReservationSync(context: Context) {
-            val request = OneTimeWorkRequestBuilder<ReservationSyncWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build(),
-                )
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
-                .build()
-            WorkManager.getInstance(context).enqueueUniqueWork(
-                ReservationSyncWorker.WORK_NAME,
-                ExistingWorkPolicy.KEEP,
-                request,
-            )
-        }
-    }
 }

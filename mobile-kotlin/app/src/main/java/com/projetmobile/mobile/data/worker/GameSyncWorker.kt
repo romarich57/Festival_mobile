@@ -7,17 +7,15 @@ import com.projetmobile.mobile.data.mapper.games.toGameRoomEntity
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.FestivalApplication
 import com.projetmobile.mobile.data.remote.games.toRequestDto
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
-import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.work.CoroutineWorker
+import com.projetmobile.mobile.data.sync.resolveRetryAction
 import kotlin.math.abs
 
 /**
- * Worker chargé de synchroniser les jeux en attente (PENDING_CREATE, PENDING_UPDATE, PENDING_DELETE)
- * avec le serveur, lorsque la connexion réseau est disponible.
- *
- * Planifié via WorkManager avec [ExistingWorkPolicy.KEEP] pour éviter les doublons.
- * En cas d'échec, le statut passe à ERROR et WorkManager retente avec backoff exponentiel.
+ * Worker chargé de synchroniser les jeux en attente avec le serveur.
  */
 class GameSyncWorker(
     context: Context,
@@ -37,12 +35,13 @@ class GameSyncWorker(
         val pending = gameDao.getPending()
         if (pending.isEmpty()) return Result.success()
 
-        var hasError = false
+        var hasRetryableError = false
 
         for (entity in pending) {
+            val action = resolveRetryAction(entity.syncStatus, entity.retryAction) ?: continue
             try {
-                when (entity.syncStatus) {
-                    SyncStatus.PENDING_CREATE -> {
+                when (action) {
+                    SyncRetryAction.CREATE -> {
                         val draft = ApiJson.instance.decodeFromString(
                             GameDraft.serializer(),
                             entity.pendingDraftJson!!,
@@ -52,7 +51,7 @@ class GameSyncWorker(
                         gameDao.upsert(serverDto.toGameRoomEntity(SyncStatus.SYNCED))
                     }
 
-                    SyncStatus.PENDING_UPDATE -> {
+                    SyncRetryAction.UPDATE -> {
                         val draft = ApiJson.instance.decodeFromString(
                             GameDraft.serializer(),
                             entity.pendingDraftJson!!,
@@ -62,19 +61,34 @@ class GameSyncWorker(
                         gameDao.upsert(serverDto.toGameRoomEntity(SyncStatus.SYNCED))
                     }
 
-                    SyncStatus.PENDING_DELETE -> {
+                    SyncRetryAction.DELETE -> {
                         if (entity.id > 0) {
                             api.deleteGame(abs(entity.id))
                         }
                         gameDao.deleteById(entity.id)
                     }
                 }
-            } catch (e: Exception) {
-                gameDao.updateSyncStatus(entity.id, SyncStatus.ERROR)
-                hasError = true
+            } catch (throwable: Throwable) {
+                if (action == SyncRetryAction.DELETE && throwable.isDeleteAlreadyApplied()) {
+                    gameDao.deleteById(entity.id)
+                    continue
+                }
+
+                val retryable = throwable.isRetryableSyncFailure("Impossible de synchroniser le jeu.")
+                gameDao.updateSyncState(
+                    id = entity.id,
+                    status = SyncStatus.ERROR,
+                    retryAction = if (retryable) action else null,
+                    lastSyncErrorMessage = throwable.toSyncFailureMessage(
+                        "Impossible de synchroniser le jeu.",
+                    ),
+                )
+                if (retryable) {
+                    hasRetryableError = true
+                }
             }
         }
 
-        return if (hasError) Result.retry() else Result.success()
+        return if (hasRetryableError) Result.retry() else Result.success()
     }
 }

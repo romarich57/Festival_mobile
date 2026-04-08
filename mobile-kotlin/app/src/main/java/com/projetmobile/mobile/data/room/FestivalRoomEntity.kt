@@ -6,8 +6,8 @@ import androidx.room.PrimaryKey
 /**
  * Entité Room représentant un festival dans la base de données locale.
  *
- * Les festivals sont en lecture seule depuis le serveur : pas de pendingDraftJson.
- * [syncStatus] est toujours SYNCED pour les festivals.
+ * Les festivals restent pilotés par le serveur, mais la suppression peut être
+ * planifiée localement pour la synchronisation offline-first.
  */
 @Entity(tableName = "festivals")
 data class FestivalRoomEntity(
@@ -21,4 +21,6 @@ data class FestivalRoomEntity(
     val stockChaises: Int,
     val prixPrises: Double,
     val syncStatus: String = SyncStatus.SYNCED,
+    val retryAction: String? = null,
+    val lastSyncErrorMessage: String? = null,
 )

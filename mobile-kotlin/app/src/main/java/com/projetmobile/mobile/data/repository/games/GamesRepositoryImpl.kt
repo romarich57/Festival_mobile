@@ -1,20 +1,13 @@
 package com.projetmobile.mobile.data.repository.games
 
-import android.content.Context
-import androidx.work.BackoffPolicy
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.projetmobile.mobile.data.dao.GameDao
 import com.projetmobile.mobile.data.database.SyncPreferenceStore
 import com.projetmobile.mobile.data.entity.games.GameDraft
 import com.projetmobile.mobile.data.entity.games.GameFilters
+import com.projetmobile.mobile.data.entity.games.PagedResult
 import com.projetmobile.mobile.data.mapper.games.toEditorOption
 import com.projetmobile.mobile.data.mapper.games.toGameDetail
 import com.projetmobile.mobile.data.mapper.games.toGameListItem
-import com.projetmobile.mobile.data.mapper.games.toGameListPage
 import com.projetmobile.mobile.data.mapper.games.toGameRoomEntity
 import com.projetmobile.mobile.data.mapper.games.toMechanismOption
 import com.projetmobile.mobile.data.mapper.games.toGameTypeOption
@@ -22,14 +15,18 @@ import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.games.GamesApiService
 import com.projetmobile.mobile.data.remote.games.toRequestDto
 import com.projetmobile.mobile.data.repository.runRepositoryCall
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
-import com.projetmobile.mobile.data.worker.GameSyncWorker
+import com.projetmobile.mobile.data.sync.RepositorySyncScheduler
+import com.projetmobile.mobile.data.sync.resolveRetryAction
+import com.projetmobile.mobile.data.sync.shouldHideFromCollections
+import com.projetmobile.mobile.data.sync.shouldKeepLocalOnlyEntity
+import com.projetmobile.mobile.data.sync.shouldPreserveLocalDuringRefresh
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 
@@ -37,8 +34,7 @@ class GamesRepositoryImpl(
     private val gamesApiService: GamesApiService,
     private val gameDao: GameDao,
     private val syncPreferenceStore: SyncPreferenceStore,
-    private val context: Context,
-    private val syncScheduler: () -> Unit = { enqueueGameSync(context) },
+    private val syncScheduler: () -> Unit = { RepositorySyncScheduler.schedulePendingSyncAsync() },
 ) : GamesRepository {
 
     // ── Observation Room (SSOT) ──────────────────────────────────────────────
@@ -65,9 +61,43 @@ class GamesRepositoryImpl(
             minAge = filters.minAge,
             sort = filters.sort.apiValue,
         )
-        gameDao.upsertAll(response.items.map { it.toGameRoomEntity() })
+        val localById = gameDao.getAll().associateBy { it.id }
+        val pageEntities = response.items.map { dto ->
+            val remoteEntity = dto.toGameRoomEntity()
+            val localEntity = localById[remoteEntity.id]
+            if (
+                localEntity != null &&
+                shouldPreserveLocalDuringRefresh(localEntity.syncStatus, localEntity.retryAction)
+            ) {
+                localEntity
+            } else {
+                remoteEntity
+            }
+        }
+        val localOnlyEntities = localById.values.filter { entity ->
+            shouldKeepLocalOnlyEntity(entity.id, entity.syncStatus, entity.retryAction)
+        }
+        val mergedEntities = (
+            pageEntities +
+                localOnlyEntities
+            ).distinctBy { it.id }
+        gameDao.upsertAll(mergedEntities)
         syncPreferenceStore.setLastSyncedAt(SyncPreferenceStore.KEY_GAMES)
-        response.toGameListPage()
+        val visiblePageEntities = (
+            pageEntities +
+                localOnlyEntities.filter { entity -> entity.matches(filters) }
+            ).distinctBy { it.id }
+        PagedResult(
+            items = visiblePageEntities
+                .filterNot { entity ->
+                    shouldHideFromCollections(entity.syncStatus, entity.retryAction)
+                }
+                .map { entity -> entity.toGameListItem() },
+            page = response.pagination.page,
+            limit = response.pagination.limit,
+            total = response.pagination.total,
+            hasNext = response.pagination.page < response.pagination.totalPages,
+        )
     }
 
     override suspend fun getGame(gameId: Int) = runRepositoryCall(
@@ -96,6 +126,8 @@ class GamesRepositoryImpl(
         val existing = gameDao.getById(gameId)
         if (existing != null) {
             val pendingJson = ApiJson.instance.encodeToString(GameDraft.serializer(), draft)
+            val isPendingCreate = existing.id < 0 &&
+                resolveRetryAction(existing.syncStatus, existing.retryAction) == SyncRetryAction.CREATE
             gameDao.upsert(
                 existing.copy(
                     title = draft.title,
@@ -111,8 +143,18 @@ class GamesRepositoryImpl(
                     description = draft.description,
                     imageUrl = draft.imageUrl,
                     rulesVideoUrl = draft.rulesVideoUrl,
-                    syncStatus = SyncStatus.PENDING_UPDATE,
+                    syncStatus = if (isPendingCreate) {
+                        SyncStatus.PENDING_CREATE
+                    } else {
+                        SyncStatus.PENDING_UPDATE
+                    },
                     pendingDraftJson = pendingJson,
+                    retryAction = if (isPendingCreate) {
+                        SyncRetryAction.CREATE
+                    } else {
+                        SyncRetryAction.UPDATE
+                    },
+                    lastSyncErrorMessage = null,
                 ),
             )
             syncScheduler()
@@ -184,21 +226,14 @@ class GamesRepositoryImpl(
     private fun generateLocalId(): Int =
         -(abs(System.currentTimeMillis().toInt()).coerceAtLeast(1))
 
-    companion object {
-        private fun enqueueGameSync(context: Context) {
-            val request = OneTimeWorkRequestBuilder<GameSyncWorker>()
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .build(),
-                )
-                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.SECONDS)
-                .build()
-            WorkManager.getInstance(context).enqueueUniqueWork(
-                GameSyncWorker.WORK_NAME,
-                ExistingWorkPolicy.KEEP,
-                request,
-            )
-        }
+    private fun com.projetmobile.mobile.data.room.GameRoomEntity.matches(
+        filters: GameFilters,
+    ): Boolean {
+        val normalizedTitle = filters.title.trim()
+        val normalizedType = filters.type?.trim()
+        return (normalizedTitle.isEmpty() || title.contains(normalizedTitle, ignoreCase = true)) &&
+            (normalizedType.isNullOrEmpty() || type.equals(normalizedType, ignoreCase = true)) &&
+            (filters.editorId == null || editorId == filters.editorId) &&
+            (filters.minAge == null || minAge >= filters.minAge)
     }
 }

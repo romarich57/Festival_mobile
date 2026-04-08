@@ -5,6 +5,7 @@ import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
 import com.projetmobile.mobile.data.remote.reservation.ReservationDashboardRowDto
 import com.projetmobile.mobile.data.room.ReservationRoomEntity
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
 
 // ── DTO réseau → Entité Room ─────────────────────────────────────────────────
@@ -13,6 +14,8 @@ fun ReservationDashboardRowDto.toReservationRoomEntity(
     festivalId: Int,
     syncStatus: String = SyncStatus.SYNCED,
     pendingDraftJson: String? = null,
+    retryAction: String? = null,
+    lastSyncErrorMessage: String? = null,
 ): ReservationRoomEntity = ReservationRoomEntity(
     id = id,
     festivalId = festivalId,
@@ -21,6 +24,8 @@ fun ReservationDashboardRowDto.toReservationRoomEntity(
     workflowState = workflowState,
     syncStatus = syncStatus,
     pendingDraftJson = pendingDraftJson,
+    retryAction = retryAction,
+    lastSyncErrorMessage = lastSyncErrorMessage,
 )
 
 // ── Payload hors-ligne → Entité Room ────────────────────────────────────────
@@ -38,6 +43,8 @@ fun ReservationCreatePayloadDto.toReservationRoomEntity(
         ReservationCreatePayloadDto.serializer(),
         this,
     ),
+    retryAction = SyncRetryAction.CREATE,
+    lastSyncErrorMessage = null,
 )
 
 // ── Entité Room → Domaine ────────────────────────────────────────────────────

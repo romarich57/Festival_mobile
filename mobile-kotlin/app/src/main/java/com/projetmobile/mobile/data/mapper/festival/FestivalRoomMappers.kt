@@ -12,7 +12,11 @@ import com.projetmobile.mobile.ui.utils.formatDate
  * Stocke les dates au format ISO brut en Room.
  * Le formatage (dd/MM/yyyy) est appliqué lors de la lecture vers le domaine.
  */
-fun FestivalDto.toFestivalRoomEntity(): FestivalRoomEntity = FestivalRoomEntity(
+fun FestivalDto.toFestivalRoomEntity(
+    syncStatus: String = SyncStatus.SYNCED,
+    retryAction: String? = null,
+    lastSyncErrorMessage: String? = null,
+): FestivalRoomEntity = FestivalRoomEntity(
     id = id ?: -1,
     name = name,
     startDate = startDate,
@@ -22,7 +26,9 @@ fun FestivalDto.toFestivalRoomEntity(): FestivalRoomEntity = FestivalRoomEntity(
     stockTablesMairie = stockTablesMairie,
     stockChaises = stockChaises,
     prixPrises = prixPrises,
-    syncStatus = SyncStatus.SYNCED,
+    syncStatus = syncStatus,
+    retryAction = retryAction,
+    lastSyncErrorMessage = lastSyncErrorMessage,
 )
 
 // ── Entité Room → Domaine ────────────────────────────────────────────────────

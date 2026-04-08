@@ -7,6 +7,9 @@ import com.projetmobile.mobile.data.mapper.festival.toFestivalSummary
 import com.projetmobile.mobile.data.remote.festival.FestivalApiService
 import com.projetmobile.mobile.data.remote.festival.FestivalDto
 import com.projetmobile.mobile.data.repository.runRepositoryCall
+import com.projetmobile.mobile.data.sync.RepositorySyncScheduler
+import com.projetmobile.mobile.data.sync.shouldHideFromCollections
+import com.projetmobile.mobile.data.sync.shouldPreserveLocalDuringRefresh
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -14,6 +17,7 @@ class FestivalRepositoryImpl(
     private val festivalApiService: FestivalApiService,
     private val festivalDao: FestivalDao,
     private val syncPreferenceStore: SyncPreferenceStore,
+    private val syncScheduler: () -> Unit = { RepositorySyncScheduler.schedulePendingSyncAsync() },
 ) : FestivalRepository {
 
     // ── Observation Room (SSOT) ──────────────────────────────────────────────
@@ -30,9 +34,37 @@ class FestivalRepositoryImpl(
         defaultMessage = "Impossible de récupérer les festivals.",
     ) {
         val dtos = festivalApiService.getFestivals()
-        festivalDao.upsertAll(dtos.map { it.toFestivalRoomEntity() })
+        val localById = festivalDao.getAll().associateBy { it.id }
+        val remoteIds = mutableSetOf<Int>()
+        val mergedEntities = dtos.map { dto ->
+            val remoteEntity = dto.toFestivalRoomEntity()
+            remoteIds += remoteEntity.id
+            val localEntity = localById[remoteEntity.id]
+            if (
+                localEntity != null &&
+                shouldPreserveLocalDuringRefresh(localEntity.syncStatus, localEntity.retryAction)
+            ) {
+                localEntity
+            } else {
+                remoteEntity
+            }
+        }
+        festivalDao.upsertAll(mergedEntities)
+        localById.values
+            .filter { entity ->
+                entity.id > 0 &&
+                    entity.id !in remoteIds &&
+                    !shouldPreserveLocalDuringRefresh(entity.syncStatus, entity.retryAction)
+            }
+            .forEach { entity ->
+                festivalDao.deleteById(entity.id)
+            }
         syncPreferenceStore.setLastSyncedAt(SyncPreferenceStore.KEY_FESTIVALS)
-        dtos.map { it.toFestivalRoomEntity().toFestivalSummary() }
+        mergedEntities
+            .filterNot { entity ->
+                shouldHideFromCollections(entity.syncStatus, entity.retryAction)
+            }
+            .map { entity -> entity.toFestivalSummary() }
     }
 
     override suspend fun getFestival(id: Int) = runRepositoryCall(
@@ -74,7 +106,13 @@ class FestivalRepositoryImpl(
     override suspend fun deleteFestival(id: Int) = runRepositoryCall(
         defaultMessage = "Impossible de supprimer le festival.",
     ) {
-        festivalApiService.deleteFestival(id)
-        festivalDao.deleteById(id)
+        val existing = festivalDao.getById(id)
+        if (existing == null) {
+            festivalApiService.deleteFestival(id)
+            festivalDao.deleteById(id)
+        } else {
+            festivalDao.markForDeletion(existing.id)
+            syncScheduler()
+        }
     }
 }

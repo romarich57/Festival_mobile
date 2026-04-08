@@ -95,7 +95,7 @@ class FestivalViewModel(
                 .onSuccess {
                     if (_currentFestivalId.value == id) clearSelection()
                     _pendingDeleteFestivalId.value = null
-                    onSuccess("Festival supprimé.")
+                    onSuccess("Suppression planifiée.")
                 }
                 .onFailure { throwable ->
                     _pendingDeleteFestivalId.value = null

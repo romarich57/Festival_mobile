@@ -141,7 +141,6 @@ internal class DefaultGamesCatalogStateReducer : GamesCatalogStateReducer {
         page: PagedResult<GameListItem>,
     ): GamesCatalogUiState {
         return state.copy(
-            items = page.items,
             currentPage = page.page,
             total = page.total,
             hasNext = page.hasNext,
@@ -172,7 +171,6 @@ internal class DefaultGamesCatalogStateReducer : GamesCatalogStateReducer {
         page: PagedResult<GameListItem>,
     ): GamesCatalogUiState {
         return state.copy(
-            items = state.items + page.items,
             currentPage = page.page,
             total = page.total,
             hasNext = page.hasNext,

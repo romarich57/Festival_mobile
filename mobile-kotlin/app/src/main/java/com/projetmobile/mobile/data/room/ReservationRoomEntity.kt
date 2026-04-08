@@ -19,4 +19,6 @@ data class ReservationRoomEntity(
     val workflowState: String,
     val syncStatus: String = SyncStatus.SYNCED,
     val pendingDraftJson: String? = null,
+    val retryAction: String? = null,
+    val lastSyncErrorMessage: String? = null,
 )

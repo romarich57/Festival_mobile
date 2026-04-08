@@ -22,4 +22,6 @@ data class ReservantRoomEntity(
     val notes: String?,
     val syncStatus: String = SyncStatus.SYNCED,
     val pendingDraftJson: String? = null,
+    val retryAction: String? = null,
+    val lastSyncErrorMessage: String? = null,
 )

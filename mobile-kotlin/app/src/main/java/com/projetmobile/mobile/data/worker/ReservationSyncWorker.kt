@@ -12,7 +12,10 @@ import com.projetmobile.mobile.data.remote.auth.AuthRefreshInterceptor
 import com.projetmobile.mobile.data.remote.common.ApiJson
 import com.projetmobile.mobile.data.remote.reservation.ReservationApiService
 import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
+import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
+import com.projetmobile.mobile.data.sync.resolveRetryAction
+import com.projetmobile.mobile.data.sync.shouldPreserveLocalDuringRefresh
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -40,40 +43,87 @@ class ReservationSyncWorker(
         val pending = reservationDao.getPending()
         if (pending.isEmpty()) return Result.success()
 
-        var hasError = false
+        var hasRetryableError = false
 
         for (entity in pending) {
+            val action = resolveRetryAction(entity.syncStatus, entity.retryAction) ?: continue
             try {
-                when (entity.syncStatus) {
-                    SyncStatus.PENDING_CREATE -> {
+                when (action) {
+                    SyncRetryAction.CREATE -> {
                         val payload = ApiJson.instance.decodeFromString(
                             ReservationCreatePayloadDto.serializer(),
                             entity.pendingDraftJson!!,
                         )
                         api.createReservation(payload)
-                        // Rafraîchit les réservations du festival pour remplacer l'item local
                         val serverDtos = api.getReservationsByFestival(entity.festivalId)
                         reservationDao.deleteById(entity.id)
-                        reservationDao.upsertAll(
-                            serverDtos.map {
-                                it.toReservationRoomEntity(entity.festivalId, SyncStatus.SYNCED)
-                            },
-                        )
+                        val localById = reservationDao.getAllByFestival(entity.festivalId)
+                            .associateBy { it.id }
+                        val remoteIds = mutableSetOf<Int>()
+                        val mergedEntities = serverDtos.map { dto ->
+                            val remoteEntity = dto.toReservationRoomEntity(
+                                entity.festivalId,
+                                SyncStatus.SYNCED,
+                            )
+                            remoteIds += remoteEntity.id
+                            val localEntity = localById[remoteEntity.id]
+                            if (
+                                localEntity != null &&
+                                shouldPreserveLocalDuringRefresh(
+                                    localEntity.syncStatus,
+                                    localEntity.retryAction,
+                                )
+                            ) {
+                                localEntity
+                            } else {
+                                remoteEntity
+                            }
+                        }
+                        reservationDao.upsertAll(mergedEntities)
+                        localById.values
+                            .filter { localEntity ->
+                                localEntity.id > 0 &&
+                                    localEntity.id !in remoteIds &&
+                                    !shouldPreserveLocalDuringRefresh(
+                                        localEntity.syncStatus,
+                                        localEntity.retryAction,
+                                    )
+                            }
+                            .forEach { localEntity ->
+                                reservationDao.deleteById(localEntity.id)
+                            }
                     }
 
-                    SyncStatus.PENDING_DELETE -> {
+                    SyncRetryAction.DELETE -> {
                         if (entity.id > 0) {
                             api.deleteReservation(abs(entity.id))
                         }
                         reservationDao.deleteById(entity.id)
                     }
                 }
-            } catch (e: Exception) {
-                reservationDao.updateSyncStatus(entity.id, SyncStatus.ERROR)
-                hasError = true
+            } catch (throwable: Throwable) {
+                if (action == SyncRetryAction.DELETE && throwable.isDeleteAlreadyApplied()) {
+                    reservationDao.deleteById(entity.id)
+                    continue
+                }
+
+                val retryable = throwable.isRetryableSyncFailure(
+                    "Impossible de synchroniser la réservation.",
+                )
+                reservationDao.updateSyncState(
+                    id = entity.id,
+                    status = SyncStatus.ERROR,
+                    retryAction = if (retryable) action else null,
+                    lastSyncErrorMessage = throwable.toSyncFailureMessage(
+                        "Impossible de synchroniser la réservation.",
+                    ),
+                )
+                if (retryable) {
+                    hasRetryableError = true
+                }
             }
         }
 
-        return if (hasError) Result.retry() else Result.success()
+        return if (hasRetryableError) Result.retry() else Result.success()
     }
 }
