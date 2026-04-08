@@ -1,7 +1,6 @@
 /**
  * Rôle : Compose l'écran le formulaire de festival et orchestre l'affichage de l'état et des actions utilisateur.
  */
-
 package com.projetmobile.mobile.ui.screens.festivalForm
 
 import androidx.compose.foundation.layout.*
@@ -21,21 +20,23 @@ import com.projetmobile.mobile.ui.components.FestivalDatePicker
 import com.projetmobile.mobile.ui.components.FestivalTextField
 
 /**
- * Rôle : Écran de création ou modification d'un festival.
- *
- * Précondition : Le ViewModel correspondant doit gérer l'état du formulaire et l'insertion en base de données.
- *
- * Postcondition : Affiche les champs de texte et les date pickers, et soumet les informations au réseau via le ViewModel.
- */
+ * Rôle : Écran de création ou de modification d'un festival, avec édition des dates,
+ * des stocks et des zones tarifaires avant soumission.
+ * Précondition : Le `FestivalFormViewModel` doit fournir un état cohérent et les composants
+ * partagés (`FestivalTextField`, `FestivalDatePicker`) doivent être disponibles.
+ * Postcondition : L'utilisateur peut valider le formulaire, afficher les erreurs et déclencher
+ * la sauvegarde via le ViewModel.
  *
  * Traduction de FestivalFormComponent Angular :
- *  - Chaque FormControl → FestivalTextField + callback onXxxChange()
- *  - Validators → affichés via supportingText (nameError, etc.)
- *  - submit() → viewModel.submit(onSuccess = onBack)
- *  - Zones tarifaires : reportées (TODO)
+ * - Chaque FormControl -> FestivalTextField + callback onXxxChange()
+ * - Validators -> affichés via supportingText (nameError, etc.)
+ * - submit() -> viewModel.submit(onSuccess = onBack)
+ * - Zones tarifaires : reportées (TODO)
  *
- * @param viewModel  ViewModel du formulaire.
- * @param onBack     Navigation retour après succès ou annulation.
+ * @param viewModel ViewModel du formulaire.
+ * @param onBack Navigation retour après succès ou annulation.
+ * @param onSaved Callback invoqué avec le message de succès après sauvegarde.
+ * @param modifier Modificateur Compose racine.
  */
 @Composable
 fun FestivalFormScreen(

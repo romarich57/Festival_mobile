@@ -12,7 +12,7 @@ import retrofit2.http.Path
  * (allocations, placements, création de zones au sein d'un festival, etc.).
  * 
  * Précondition : Utilisation via l'instance Retrofit injectée couplée au Token Manager.
- * Postcondition : Offre la connexion aux endpoints `zone-plan/*` et `jeux_alloues/*`.
+ * Postcondition : Offre la connexion aux endpoints `zone-plan/...` et `jeux_alloues/...`.
  */
 interface ZonePlanApiService {
 

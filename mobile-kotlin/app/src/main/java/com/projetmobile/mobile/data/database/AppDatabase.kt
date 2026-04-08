@@ -8,11 +8,11 @@
 package com.projetmobile.mobile.data.database
 
 import android.content.Context
-import androidx.room.Migration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.projetmobile.mobile.data.dao.FestivalDao
 import com.projetmobile.mobile.data.dao.GameDao
@@ -70,19 +70,13 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         
         /**
-         * Rôle de l'objet :
-         * Gérer la transition structurelle de la base de données lors d'une montée de version (de 1 vers 2),
-         * sans perte des anciennes données utilisateur.
+         * Rôle : Gérer la transition structurelle de la base de données lors d'une montée de version
+         * de la version 1 vers la version 2 sans perte des données utilisateur.
+         * Précondition : La base de données locale actuelle doit être en version 1.
+         * Postcondition : Les colonnes de synchronisation sont ajoutées et les données existantes sont rétrocompatibles.
          */
         val MIGRATION_1_2 = object : Migration(1, 2) {
-            
-            /**
-             * Rôle de la fonction :
-             * S'exé: S'exécute automatiquement lorsque le builder détecte que la base côté client est en Schema 1
-             * et la nouvelle app déploie le Schema 2.
-             * 
-             * Précondition : La base de données locale actuelle doit être en version 1.
-             * Postcondition : Met à jour le schéma de la base de données vers la version 2 en ajoutant des colonnes et en mettant à jour les données existantes
+
             override fun migrate(database: SupportSQLiteDatabase) {
                 // GAMES: Ajout de colonnes de synchronisation dans la table (retryAction et message d'erreur).
                 database.execSQL("ALTER TABLE games ADD COLUMN retryAction TEXT")

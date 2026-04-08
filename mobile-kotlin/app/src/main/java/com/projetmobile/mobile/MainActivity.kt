@@ -27,73 +27,68 @@ import kotlinx.coroutines.launch
  * Postcondition : Assure l'injection d'`AppContainer` et la propagation des `incomingDestinations`.
  */
 class MainActivity : ComponentActivity() {
-    
-    // Récupération de l'instance d'AppContainer (le conteneur de dépendances) depuis FestivalApplication.
-    // L'initialisation est "lazy" (paresseuse), c'est-à-dire qu'elle n'est créée qu'au moment de son premier appel.
+
+    // Le conteneur de dépendances est récupéré depuis l'Application uniquement au premier accès.
     private val appContainer by lazy {
         (application as FestivalApplication).appContainer
     }
-    
-    // Flux partagé asynchrone utilisé pour émettre les destinations vers lesquelles l'application
-    // doit naviguer automatiquement (notamment dans le cas de Deep Links).
+
+    // Flux partagé utilisé pour déclencher une navigation automatique à partir d'un deep link.
     private val incomingDestinations = MutableSharedFlow<AppNavKey>(extraBufferCapacity = 1)
 
-    /**: Initialise le cycle de vue Composé, active le mode "edge-to-edge", et écoute
-     * les `Deep Links` éventuels.
-     * Précondition : Le système lance ou réactive cette activité.
-     * Postcondition : Le composant racine UI (FestivalApp) est affiché et le cycle de mise à jour Jetpack est définitat éventuellement sauvegardé de l'activité (null lors d'un nouveau lancement).
-     * @return Unit. Ne renvoie rien.
+    /**
+     * Rôle : Initialise l'activité, monte l'arbre Compose et traite un deep link éventuel au lancement.
+     *
+     * Précondition : Le système Android crée ou recrée l'activité.
+     *
+     * Postcondition : L'UI racine est affichée avec le thème global et la navigation peut recevoir une destination externe.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Exécute la logique de base du framework Android.
         super.onCreate(savedInstanceState)
-        
-        // Active le mode d'affichage "edge-to-edge" (le contenu va jusqu'en dessous des barres de navigation et de statut).
+
+        // Le contenu s'étend sous les barres système pour garder une mise en page cohérente avec Compose.
         enableEdgeToEdge()
-        
-        // Définit le contenu de l'interface utilisateur de l'activité en utilisant Jetpack Compose.
+
         setContent {
-            // Application du thème global (couleurs, polices, formes d'interface).
             FestivalMobileTheme {
-                // Appel du composant racine de l'application (Navigation et Scaffold global).
                 FestivalApp(
                     appContainer = appContainer,
                     incomingDestinations = incomingDestinations,
                 )
             }
         }
-        
-        // Tentative de parsing du lien (Deep Link) avec lequel l'application a pu être lancée.
+
+        // Si l'activité a été ouverte par un lien profond, on le propage au routeur.
         emitDeepLink(intent)
     }
 
     /**
-     * Rôle de la fonction :
-     * Gère : Met à jour les intentions avec de possibles nouveaux Deep Links arrivant
-     * sur l'application lorsqu'elle est déjà instanciée (arrière-plan).
-     * Précondition : Un `Intent` entrant avec un URI pertinent cible cette activité.
-     * Postcondition : Parse ce nouvel `Intent` et le transmet via l'émission de destinatio
+     * Rôle : Met à jour l'activité lorsqu'un nouvel intent arrive, notamment depuis un deep link à chaud.
+     *
+     * Précondition : L'activité est déjà instanciée et reçoit un nouvel `Intent`.
+     *
+     * Postcondition : L'intent courant est remplacé et analysé pour une navigation éventuelle.
+     */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // Met à jour l'Intent courant pour de futures références possibles.
+
+        // L'intent courant est conservé pour les traitements ultérieurs.
         setIntent(intent)
-        // Parse et déclenche la navigation si le nouvel Intent contient un Deep Link valide.
+
         emitDeepLink(intent)
     }
 
     /**
-     * Rôle de la fonction :
-     * Parse l'URI contenue dans l'Intent (s'il y en a un) et l'émet dans le flux `incomingDestinations`
-     * afin de déclencher un changement d'écran via le système de navigation de l'application.
-     * 
-     * @para: Analyse la route et paramètres d'un URI pour rediriger vers un écran spécifique
-     * de l'application via le SharedFlow `incomingDestinations`.
-     * Précondition : Reçoit un Intent (contenant possiblement null ou un format d'URL).
-     * Postcondition : Émet l'objet `AppNavKey` correspondant ou ignore silencieusementspondance n'est trouvée, la fonction s'arrête ici via `return`.
+     * Rôle : Analyse l'URI d'un intent et émet la destination interne correspondante si elle existe.
+     *
+     * Précondition : L'intent peut contenir une URI vide, absente ou valide.
+     *
+     * Postcondition : Une destination valide est envoyée dans `incomingDestinations`, sinon rien n'est émis.
+     */
+    private fun emitDeepLink(intent: Intent?) {
         val destination = parseAppDeepLink(intent?.data) ?: return
-        
-        // Lancement d'une coroutine attachée au cycle de vie de l'activité (lifecycleScope)
-        // pour émettre la destination vers le flux.
+
+        // L'émission reste liée au cycle de vie de l'activité.
         lifecycleScope.launch {
             incomingDestinations.emit(destination)
         }
