@@ -1,11 +1,12 @@
-@(
 # IDE
 .idea/
 .DS_Store
 *.iml
+.claude/
 
 # Gradle & Android
 .gradle/
+*.gradle
 build/
 mobile-kotlin/build/
 local.properties
@@ -20,4 +21,3 @@ backend/npm-debug.log*
 
 # Logs
 *.log
-)
