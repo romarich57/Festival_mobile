@@ -49,6 +49,14 @@ android {
                 "proguard-rules.pro",
             )
         }
+
+        create("public") {
+            initWith(getByName("release"))
+            val apiBaseUrl = getLocalProp("API_BASE_URL_PUBLIC", "https://mobile.romdev.cloud/api/")
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
 
     compileOptions {

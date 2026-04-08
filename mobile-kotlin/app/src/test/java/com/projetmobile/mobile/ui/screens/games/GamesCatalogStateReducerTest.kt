@@ -47,4 +47,34 @@ class GamesCatalogStateReducerTest {
         assertEquals("Supprimé", updated.infoMessage)
         assertTrue(updated.items.none { it.id == 8 })
     }
+
+    @Test
+    fun onRefreshFailed_withExistingItemsAndOfflineMessagePublishesInfoInsteadOfError() {
+        val state = GamesCatalogUiState(
+            items = listOf(sampleGameListItem(id = 1, title = "Akropolis")),
+        )
+
+        val updated = reducer.onRefreshFailed(
+            state,
+            "Mode hors-ligne: jeux locaux affichés.",
+        )
+
+        assertEquals("Mode hors-ligne: jeux locaux affichés.", updated.infoMessage)
+        assertEquals(null, updated.errorMessage)
+    }
+
+    @Test
+    fun onRefreshFailed_withExistingItemsAndBackendUnreachableMessagePublishesInfoInsteadOfError() {
+        val state = GamesCatalogUiState(
+            items = listOf(sampleGameListItem(id = 1, title = "Akropolis")),
+        )
+
+        val updated = reducer.onRefreshFailed(
+            state,
+            "Serveur inaccessible: jeux locaux affichés.",
+        )
+
+        assertEquals("Serveur inaccessible: jeux locaux affichés.", updated.infoMessage)
+        assertEquals(null, updated.errorMessage)
+    }
 }

@@ -45,11 +45,12 @@ class AppSessionViewModel(
                     )
                 }
                 .onFailure { error ->
-                    _uiState.value = AppSessionUiState(
-                        isRestoring = false,
-                        currentUser = null,
-                        errorMessage = error.localizedMessage ?: "Impossible de restaurer la session.",
-                    )
+                    _uiState.update { state ->
+                        state.copy(
+                            isRestoring = false,
+                            errorMessage = error.localizedMessage ?: "Impossible de restaurer la session.",
+                        )
+                    }
                 }
         }
     }

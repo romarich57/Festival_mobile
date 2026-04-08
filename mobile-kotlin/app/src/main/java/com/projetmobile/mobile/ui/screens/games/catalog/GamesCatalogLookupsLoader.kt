@@ -20,14 +20,16 @@ internal class RepositoryGamesCatalogLookupsLoader(
     override suspend fun load(): GamesCatalogLookupsLoadResult {
         val typesResult = gamesRepository.getGameTypes()
         val editorsResult = gamesRepository.getEditors()
+        val hasLookupFailure = typesResult.isFailure || editorsResult.isFailure
 
         return GamesCatalogLookupsLoadResult(
             availableTypes = typesResult.getOrDefault(emptyList()),
             availableEditors = editorsResult.getOrDefault(emptyList()),
-            errorMessage = listOfNotNull(
-                typesResult.exceptionOrNull()?.localizedMessage,
-                editorsResult.exceptionOrNull()?.localizedMessage,
-            ).firstOrNull(),
+            errorMessage = if (hasLookupFailure) {
+                "Mode hors-ligne: certaines options du catalogue sont indisponibles."
+            } else {
+                null
+            },
         )
     }
 }

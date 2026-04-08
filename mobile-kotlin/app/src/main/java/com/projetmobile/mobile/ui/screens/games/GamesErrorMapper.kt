@@ -1,6 +1,8 @@
 package com.projetmobile.mobile.ui.screens.games
 
 import com.projetmobile.mobile.data.repository.RepositoryException
+import com.projetmobile.mobile.data.repository.RepositoryFailureKind
+import com.projetmobile.mobile.data.repository.isOfflineFriendlyFailure
 
 internal data class GameFormFieldErrors(
     val titleError: String? = null,
@@ -95,6 +97,14 @@ internal fun mapGameFormLoadError(throwable: Throwable): String {
 internal fun mapGameDetailError(throwable: Throwable): String {
     val repositoryException = throwable as? RepositoryException
     return when {
+        repositoryException?.kind == RepositoryFailureKind.BackendUnreachable -> {
+            "Serveur inaccessible: dernière version locale du jeu affichée."
+        }
+
+        repositoryException?.kind?.isOfflineFriendlyFailure() == true -> {
+            "Mode hors-ligne: dernière version locale du jeu affichée."
+        }
+
         repositoryException?.statusCode == 404 && repositoryException.message == "Jeu introuvable" -> {
             "Le jeu n'existe plus ou a été supprimé."
         }
@@ -103,8 +113,14 @@ internal fun mapGameDetailError(throwable: Throwable): String {
     }
 }
 
-internal fun mapGamesCatalogLoadError(@Suppress("UNUSED_PARAMETER") throwable: Throwable): String {
-    return "Impossible de récupérer les jeux."
+internal fun mapGamesCatalogLoadError(throwable: Throwable): String {
+    val repositoryException = throwable as? RepositoryException
+    return when (repositoryException?.kind) {
+        RepositoryFailureKind.BackendUnreachable -> "Serveur inaccessible: jeux locaux affichés."
+        RepositoryFailureKind.Offline,
+        RepositoryFailureKind.Timeout -> "Mode hors-ligne: jeux locaux affichés."
+        else -> "Impossible de récupérer les jeux."
+    }
 }
 
 internal fun mapGameDeleteError(throwable: Throwable): String {

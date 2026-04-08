@@ -27,6 +27,12 @@ Conséquence importante :
 - si `API_BASE_URL_DEVICE` est défini, il sera utilisé aussi en debug
 - un émulateur peut donc casser si une ancienne IP de téléphone reste dans `local.properties`
 
+En build `public` :
+
+- `API_BASE_URL_DEVICE` est ignoré
+- l'URL utilisée vient de `API_BASE_URL_PUBLIC`
+- fallback par défaut : `https://mobile.romdev.cloud/api/`
+
 ## Prérequis
 
 ### Backend
@@ -145,6 +151,7 @@ Utilise cette configuration :
 ```properties
 sdk.dir=/Users/ton_user/Library/Android/sdk
 API_BASE_URL_DEBUG=http://10.0.2.2:4000/api/
+API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/
 API_BASE_URL_RELEASE=https://api.example.com/api/
 ```
 
@@ -201,6 +208,7 @@ adb reverse tcp:4000 tcp:4000
 ```properties
 sdk.dir=/Users/ton_user/Library/Android/sdk
 API_BASE_URL_DEVICE=http://127.0.0.1:4000/api/
+API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/
 API_BASE_URL_RELEASE=https://api.example.com/api/
 ```
 
@@ -232,6 +240,7 @@ Exemple :
 ```properties
 sdk.dir=/Users/ton_user/Library/Android/sdk
 API_BASE_URL_DEVICE=http://192.168.1.12:4000/api/
+API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/
 API_BASE_URL_RELEASE=https://api.example.com/api/
 ```
 
@@ -262,6 +271,19 @@ APK attendu :
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Build public
+
+```bash
+cd /Users/romarich/Desktop/IG-Travail/IG4/semestre_8/Projet_mobile/mobile-kotlin
+./gradlew assemblePublic
+```
+
+APK attendue :
+
+```text
+app/build/outputs/apk/public/app-public.apk
 ```
 
 ### Installation directe si un device est connecté
@@ -360,6 +382,7 @@ adb devices -l
 ```properties
 sdk.dir=/Users/ton_user/Library/Android/sdk
 API_BASE_URL_DEBUG=http://10.0.2.2:4000/api/
+API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/
 API_BASE_URL_RELEASE=https://api.example.com/api/
 ```
 
@@ -368,6 +391,7 @@ API_BASE_URL_RELEASE=https://api.example.com/api/
 ```properties
 sdk.dir=/Users/ton_user/Library/Android/sdk
 API_BASE_URL_DEVICE=http://127.0.0.1:4000/api/
+API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/
 API_BASE_URL_RELEASE=https://api.example.com/api/
 ```
 
@@ -376,6 +400,7 @@ API_BASE_URL_RELEASE=https://api.example.com/api/
 ```properties
 sdk.dir=/Users/ton_user/Library/Android/sdk
 API_BASE_URL_DEVICE=http://192.168.1.12:4000/api/
+API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/
 API_BASE_URL_RELEASE=https://api.example.com/api/
 ```
 

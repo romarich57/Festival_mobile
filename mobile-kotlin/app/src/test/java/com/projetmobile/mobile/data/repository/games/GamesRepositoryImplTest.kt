@@ -5,6 +5,7 @@ import com.projetmobile.mobile.data.dao.GameDao
 import com.projetmobile.mobile.data.database.SyncPreferenceStore
 import com.projetmobile.mobile.data.entity.games.GameFilters
 import com.projetmobile.mobile.data.entity.games.GameSort
+import com.projetmobile.mobile.data.entity.games.GameDraft
 import com.projetmobile.mobile.data.remote.games.DeleteGameResponseDto
 import com.projetmobile.mobile.data.remote.games.GameDto
 import com.projetmobile.mobile.data.remote.games.EditorDto
@@ -224,6 +225,43 @@ class GamesRepositoryImplTest {
         assertTrue(!scheduled)
         assertEquals(0, service.deleteGameCalls)
     }
+
+    @Test
+    fun createGame_savesPendingCreateLocallyAndSchedulesSync() = runTest {
+        val dao = FakeGameDao()
+        val service = FakeGamesApiService()
+        var scheduled = false
+        val repository = buildRepository(
+            service = service,
+            dao = dao,
+            syncScheduler = { scheduled = true },
+        )
+
+        val created = repository.createGame(
+            GameDraft(
+                title = "Prototype offline",
+                type = "Experts",
+                editorId = 9,
+                minAge = 10,
+                authors = "Designer",
+                minPlayers = 2,
+                maxPlayers = 4,
+                prototype = true,
+                durationMinutes = 30,
+                theme = "Ville",
+                description = "Créé hors ligne",
+                imageUrl = null,
+                rulesVideoUrl = null,
+                mechanismIds = listOf(1, 2),
+            ),
+        ).getOrThrow()
+
+        assertTrue(created.id < 0)
+        assertEquals("Prototype offline", created.title)
+        assertTrue(scheduled)
+        assertEquals(0, service.createGameCalls)
+        assertEquals(SyncStatus.PENDING_CREATE, dao.getById(created.id)?.syncStatus)
+    }
 }
 
 // ── Fakes ────────────────────────────────────────────────────────────────────
@@ -289,6 +327,7 @@ private class FakeGamesApiService(
     var lastEditorId: Int? = null
     var lastMinAge: Int? = null
     var lastSort: String? = null
+    var createGameCalls: Int = 0
     var deleteGameCalls: Int = 0
 
     override suspend fun getGames(
@@ -302,8 +341,10 @@ private class FakeGamesApiService(
 
     override suspend fun getGameTypes(): List<String> = gameTypes
     override suspend fun getGame(gameId: Int): GameDto = gameDto(id = gameId, title = "Game $gameId")
-    override suspend fun createGame(request: GameUpsertRequestDto): GameDto =
-        gameDto(id = 99, title = request.title)
+    override suspend fun createGame(request: GameUpsertRequestDto): GameDto {
+        createGameCalls += 1
+        return gameDto(id = 99, title = request.title)
+    }
     override suspend fun updateGame(gameId: Int, request: GameUpsertRequestDto): GameDto =
         gameDto(id = gameId, title = request.title)
     override suspend fun deleteGame(gameId: Int): DeleteGameResponseDto {

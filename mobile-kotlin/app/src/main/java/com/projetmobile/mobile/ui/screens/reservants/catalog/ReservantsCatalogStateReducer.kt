@@ -117,10 +117,15 @@ internal class DefaultReservantsCatalogStateReducer : ReservantsCatalogStateRedu
     }
 
     override fun onLoadFailed(state: ReservantsCatalogUiState, message: String): ReservantsCatalogUiState {
+        val shouldShowOfflineInfo = state.allItems.isNotEmpty() && (
+            message.startsWith("Mode hors-ligne") ||
+                message.startsWith("Serveur inaccessible")
+            )
         return state.copy(
             isLoading = false,
             isRefreshing = false,
-            errorMessage = message,
+            infoMessage = if (shouldShowOfflineInfo) message else state.infoMessage,
+            errorMessage = if (shouldShowOfflineInfo) null else message,
         )
     }
 

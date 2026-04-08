@@ -9,6 +9,7 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
 import com.projetmobile.mobile.data.remote.reservation.ReservationCreatePayloadDto
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import com.projetmobile.mobile.data.repository.reservants.ReservantsRepository
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -122,7 +123,9 @@ class ReservationFormViewModel(
                 .onFailure { e ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = "Erreur création : ${e.message}",
+                        errorMessage = e.toRepositoryException("Impossible de créer la réservation.")
+                            .localizedMessage
+                            ?: "Impossible de créer la réservation.",
                     )
                 }
         }

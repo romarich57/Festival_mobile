@@ -7,6 +7,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -38,7 +39,9 @@ class GameDetailViewModelTest {
 
     @Test
     fun init_surfacesErrorOnFailure() = runTest {
-        val repository = FakeGamesRepository().apply {
+        val repository = FakeGamesRepository(
+            initialGame = sampleGameDetail(id = 999, title = "Autre jeu"),
+        ).apply {
             getGameResult = Result.failure(IllegalStateException("Chargement impossible"))
         }
 
@@ -50,6 +53,25 @@ class GameDetailViewModelTest {
         advanceUntilIdle()
 
         assertEquals("Impossible de charger le jeu.", viewModel.uiState.value.errorMessage)
-        assertEquals(null, viewModel.uiState.value.game)
+        assertNull(viewModel.uiState.value.game)
+    }
+
+    @Test
+    fun refresh_keepsCachedGameWhenNetworkFails() = runTest {
+        val repository = FakeGamesRepository(
+            initialGame = sampleGameDetail(id = 15, title = "Cache local"),
+        ).apply {
+            getGameResult = Result.failure(IllegalStateException("Hors ligne"))
+        }
+
+        val viewModel = GameDetailViewModel(
+            gamesRepository = repository,
+            gameId = 15,
+            currentUserRole = "organizer",
+        )
+        advanceUntilIdle()
+
+        assertEquals("Cache local", viewModel.uiState.value.game?.title)
+        assertEquals("Impossible de charger le jeu.", viewModel.uiState.value.errorMessage)
     }
 }

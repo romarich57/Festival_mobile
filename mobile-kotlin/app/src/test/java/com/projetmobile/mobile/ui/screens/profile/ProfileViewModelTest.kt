@@ -2,6 +2,8 @@ package com.projetmobile.mobile.ui.screens.profile
 
 import com.projetmobile.mobile.data.entity.profile.OptionalField
 import com.projetmobile.mobile.data.entity.profile.ProfileUpdateResult
+import com.projetmobile.mobile.data.repository.RepositoryException
+import com.projetmobile.mobile.data.repository.RepositoryFailureKind
 import com.projetmobile.mobile.testutils.FakeProfileRepository
 import com.projetmobile.mobile.testutils.MainDispatcherRule
 import com.projetmobile.mobile.testutils.sampleProfileUser
@@ -35,6 +37,58 @@ class ProfileViewModelTest {
         assertEquals(1, repository.getProfileCalls)
         assertEquals("updated@example.com", viewModel.uiState.value.profile?.email)
         assertEquals("updated@example.com", viewModel.uiState.value.pendingSessionUserUpdate?.email)
+    }
+
+    @Test
+    fun init_keepsInitialProfileAndPublishesOfflineInfoWhenRefreshFails() = runTest {
+        val cachedUser = sampleProfileUser()
+        val repository = FakeProfileRepository(initialProfile = cachedUser).apply {
+            getProfileResult = Result.failure(
+                RepositoryException(
+                    kind = RepositoryFailureKind.Offline,
+                    message = "Aucune connexion internet. Réessayez lorsque vous serez de nouveau en ligne.",
+                ),
+            )
+        }
+        val viewModel = ProfileViewModel(
+            profileRepository = repository,
+            initialUser = cachedUser,
+        )
+
+        advanceUntilIdle()
+
+        assertEquals(cachedUser.email, viewModel.uiState.value.profile?.email)
+        assertEquals(
+            "Aucune connexion internet. Réessayez lorsque vous serez de nouveau en ligne.",
+            viewModel.uiState.value.infoMessage,
+        )
+        assertNull(viewModel.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun init_keepsInitialProfileAndPublishesBackendUnavailableInfoWhenRefreshFails() = runTest {
+        val cachedUser = sampleProfileUser()
+        val repository = FakeProfileRepository(initialProfile = cachedUser).apply {
+            getProfileResult = Result.failure(
+                RepositoryException(
+                    kind = RepositoryFailureKind.BackendUnreachable,
+                    message = "Serveur inaccessible pour le moment. Réessayez plus tard.",
+                ),
+            )
+        }
+        val viewModel = ProfileViewModel(
+            profileRepository = repository,
+            initialUser = cachedUser,
+        )
+
+        advanceUntilIdle()
+
+        assertEquals(cachedUser.email, viewModel.uiState.value.profile?.email)
+        assertEquals(
+            "Serveur inaccessible pour le moment. Réessayez plus tard.",
+            viewModel.uiState.value.infoMessage,
+        )
+        assertNull(viewModel.uiState.value.errorMessage)
     }
 
     @Test

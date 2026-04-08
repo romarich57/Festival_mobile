@@ -28,6 +28,7 @@ class AuthRepositoryImpl(
                     password = password,
                 ),
             )
+            authPreferenceStore.setCachedUser(response.user.toAuthUser())
             authPreferenceStore.clearPendingVerificationEmail()
             response.user.toAuthUser()
         }
@@ -87,29 +88,38 @@ class AuthRepositoryImpl(
     override suspend fun logout(): Result<String> {
         return runRepositoryCall(defaultMessage = "Déconnexion impossible.") {
             val response = authApiService.logout()
+            authPreferenceStore.clearCachedUser()
             authPreferenceStore.clearPendingVerificationEmail()
             response.message
         }
     }
 
     override suspend fun restoreSession(): Result<AuthUser?> {
+        val cachedUser = authPreferenceStore.getCachedUser()
         return try {
             val response = authApiService.getCurrentUser()
-            Result.success(response.user.toAuthUser())
+            val user = response.user.toAuthUser()
+            authPreferenceStore.setCachedUser(user)
+            Result.success(user)
         } catch (exception: HttpException) {
             if (exception.code() == 401 || exception.code() == 403) {
+                authPreferenceStore.clearCachedUser()
                 Result.success(null)
             } else {
-                Result.failure(exception)
+                cachedUser?.let(Result.Companion::success)
+                    ?: Result.failure(exception.toRepositoryException("Impossible de restaurer la session."))
             }
         } catch (exception: Throwable) {
-            Result.failure(exception)
+            cachedUser?.let(Result.Companion::success)
+                ?: Result.failure(exception.toRepositoryException("Impossible de restaurer la session."))
         }
     }
 
     override suspend fun getCurrentUser(): Result<AuthUser> {
         return runRepositoryCall(defaultMessage = "Impossible de récupérer la session.") {
-            authApiService.getCurrentUser().user.toAuthUser()
+            authApiService.getCurrentUser().user.toAuthUser().also { user ->
+                authPreferenceStore.setCachedUser(user)
+            }
         }
     }
 

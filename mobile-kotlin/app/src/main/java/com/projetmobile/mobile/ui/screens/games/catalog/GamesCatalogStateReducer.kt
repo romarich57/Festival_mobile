@@ -111,10 +111,16 @@ internal class DefaultGamesCatalogStateReducer : GamesCatalogStateReducer {
         state: GamesCatalogUiState,
         result: GamesCatalogLookupsLoadResult,
     ): GamesCatalogUiState {
+        val shouldShowLookupInfo = state.items.isNotEmpty() && result.errorMessage != null
         return state.copy(
             availableTypes = result.availableTypes,
             availableEditors = result.availableEditors,
-            errorMessage = result.errorMessage ?: state.errorMessage,
+            infoMessage = if (shouldShowLookupInfo) result.errorMessage else state.infoMessage,
+            errorMessage = if (shouldShowLookupInfo) {
+                state.errorMessage
+            } else {
+                result.errorMessage ?: state.errorMessage
+            },
         )
     }
     override fun onRefreshStarted(
@@ -144,10 +150,15 @@ internal class DefaultGamesCatalogStateReducer : GamesCatalogStateReducer {
         )
     }
     override fun onRefreshFailed(state: GamesCatalogUiState, message: String): GamesCatalogUiState {
+        val shouldShowOfflineInfo = state.items.isNotEmpty() && (
+            message.startsWith("Mode hors-ligne") ||
+                message.startsWith("Serveur inaccessible")
+            )
         return state.copy(
             isLoading = false,
             isRefreshing = false,
-            errorMessage = message,
+            infoMessage = if (shouldShowOfflineInfo) message else state.infoMessage,
+            errorMessage = if (shouldShowOfflineInfo) null else message,
         )
     }
     override fun onLoadNextPageStarted(state: GamesCatalogUiState): GamesCatalogUiState {

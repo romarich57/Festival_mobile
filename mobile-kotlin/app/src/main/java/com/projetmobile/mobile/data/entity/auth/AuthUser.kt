@@ -1,5 +1,8 @@
 package com.projetmobile.mobile.data.entity.auth
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class AuthUser(
     val id: Int,
     val login: String,

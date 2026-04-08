@@ -33,6 +33,15 @@ APK debug:
 
 `mobile-kotlin/app/build/outputs/apk/debug/app-debug.apk`
 
+APK publique à distribuer:
+
+```bash
+cd mobile-kotlin
+./gradlew assemblePublic
+```
+
+`mobile-kotlin/app/build/outputs/apk/public/app-public.apk`
+
 ## 4) URL backend côté Android
 
 - Émulateur Android: `http://10.0.2.2:4000/api/`

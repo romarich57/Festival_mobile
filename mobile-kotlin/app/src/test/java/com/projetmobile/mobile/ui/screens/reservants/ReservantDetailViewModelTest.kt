@@ -7,6 +7,7 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantContactDraft
 import com.projetmobile.mobile.data.entity.reservants.ReservantDetail
 import com.projetmobile.mobile.testutils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -26,6 +27,9 @@ class ReservantDetailViewModelTest {
 
         val viewModel = ReservantDetailViewModel(
             reservantId = 5,
+            observeReservant = {
+                MutableStateFlow<ReservantDetail?>(null)
+            },
             loadReservant = { reservantId ->
                 Result.success(
                     ReservantDetail(
@@ -78,6 +82,9 @@ class ReservantDetailViewModelTest {
 
         val viewModel = ReservantDetailViewModel(
             reservantId = 9,
+            observeReservant = {
+                MutableStateFlow<ReservantDetail?>(null)
+            },
             loadReservant = { reservantId ->
                 Result.success(
                     ReservantDetail(
@@ -127,6 +134,41 @@ class ReservantDetailViewModelTest {
         assertEquals(1, viewModel.uiState.value.contacts.size)
         assertTrue(!viewModel.uiState.value.isContactFormExpanded)
         assertEquals("Contact ajouté.", viewModel.uiState.value.infoMessage)
+    }
+
+    @Test
+    fun init_keepsCachedReservantWhenRefreshFails() = runTest {
+        val cachedReservant = ReservantDetail(
+            id = 5,
+            name = "Cache local",
+            email = "cache@test.dev",
+            type = "editeur",
+            editorId = 12,
+            phoneNumber = null,
+            address = null,
+            siret = null,
+            notes = null,
+        )
+
+        val viewModel = ReservantDetailViewModel(
+            reservantId = 5,
+            observeReservant = {
+                MutableStateFlow(cachedReservant)
+            },
+            loadReservant = { Result.failure(IllegalStateException("Hors ligne")) },
+            loadContacts = { Result.success(emptyList()) },
+            addContact = { _, _ -> Result.failure(IllegalStateException("unused")) },
+            loadGames = { Result.success(emptyList()) },
+            currentUserRole = "organizer",
+        )
+
+        advanceUntilIdle()
+
+        assertEquals("Cache local", viewModel.uiState.value.reservant?.name)
+        assertEquals(
+            "Impossible de charger le réservant.",
+            viewModel.uiState.value.errorMessage,
+        )
     }
 
     private fun sampleGame(

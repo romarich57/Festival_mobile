@@ -55,6 +55,38 @@ class ReservantsCatalogStateReducerTest {
         assertEquals("Réservant supprimé.", nextState.infoMessage)
     }
 
+    @Test
+    fun onLoadFailed_withExistingItemsAndOfflineMessagePublishesInfoInsteadOfError() {
+        val state = ReservantsCatalogUiState(
+            allItems = listOf(sampleListItem(id = 1, name = "Zenith")),
+            filteredItems = listOf(sampleListItem(id = 1, name = "Zenith")),
+        )
+
+        val nextState = reducer.onLoadFailed(
+            state,
+            "Mode hors-ligne: réservants locaux affichés.",
+        )
+
+        assertEquals("Mode hors-ligne: réservants locaux affichés.", nextState.infoMessage)
+        assertNull(nextState.errorMessage)
+    }
+
+    @Test
+    fun onLoadFailed_withExistingItemsAndBackendUnreachableMessagePublishesInfoInsteadOfError() {
+        val state = ReservantsCatalogUiState(
+            allItems = listOf(sampleListItem(id = 1, name = "Zenith")),
+            filteredItems = listOf(sampleListItem(id = 1, name = "Zenith")),
+        )
+
+        val nextState = reducer.onLoadFailed(
+            state,
+            "Serveur inaccessible: réservants locaux affichés.",
+        )
+
+        assertEquals("Serveur inaccessible: réservants locaux affichés.", nextState.infoMessage)
+        assertNull(nextState.errorMessage)
+    }
+
     private fun sampleListItem(
         id: Int,
         name: String,

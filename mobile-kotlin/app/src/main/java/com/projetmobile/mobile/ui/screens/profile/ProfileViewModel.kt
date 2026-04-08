@@ -3,6 +3,9 @@ package com.projetmobile.mobile.ui.screens.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.projetmobile.mobile.data.entity.auth.AuthUser
+import com.projetmobile.mobile.data.repository.RepositoryException
+import com.projetmobile.mobile.data.repository.RepositoryFailureKind
+import com.projetmobile.mobile.data.repository.isOfflineFriendlyFailure
 import com.projetmobile.mobile.data.repository.profile.ProfileRepository
 import com.projetmobile.mobile.ui.utils.validation.AuthFormValidator
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,11 +57,22 @@ class ProfileViewModel(
                 }
                 .onFailure { error ->
                     _uiState.update { state ->
+                        val repositoryException = error as? RepositoryException
+                        val shouldShowOfflineInfo = state.profile != null &&
+                            repositoryException?.kind?.isOfflineFriendlyFailure() == true
                         state.copy(
                             isLoading = false,
                             isRefreshing = false,
-                            errorMessage = error.localizedMessage
-                                ?: "Impossible de récupérer le profil.",
+                            infoMessage = if (shouldShowOfflineInfo) {
+                                error.localizedMessage ?: "Mode hors-ligne: profil local affiché."
+                            } else {
+                                state.infoMessage
+                            },
+                            errorMessage = if (shouldShowOfflineInfo) {
+                                null
+                            } else {
+                                error.localizedMessage ?: "Impossible de récupérer le profil."
+                            },
                         )
                     }
                 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -63,7 +64,8 @@ class ReservationDashboardViewModel(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         errorMessage = if (_uiState.value.reservations.isEmpty())
-                            e.message ?: "Impossible de charger les réservations."
+                            e.toRepositoryException("Impossible de charger les réservations.").localizedMessage
+                                ?: "Impossible de charger les réservations."
                         else null,
                     )
                 }

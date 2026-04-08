@@ -8,6 +8,7 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantDetail
 import com.projetmobile.mobile.data.entity.reservants.ReservantDraft
 import com.projetmobile.mobile.data.entity.reservants.ReservantEditorOption
 import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
+import kotlinx.coroutines.flow.Flow
 
 internal enum class ReservantTypeChoice(
     val value: String,
@@ -35,6 +36,7 @@ internal fun reservantTypeLabel(value: String?): String {
 }
 
 internal typealias ReservantsLoader = suspend () -> Result<List<ReservantListItem>>
+internal typealias ReservantObserver = (Int) -> Flow<ReservantDetail?>
 internal typealias ReservantLoader = suspend (Int) -> Result<ReservantDetail>
 internal typealias ReservantSave = suspend (ReservantDraft) -> Result<ReservantDetail>
 internal typealias ReservantUpdate = suspend (Int, ReservantDraft) -> Result<ReservantDetail>

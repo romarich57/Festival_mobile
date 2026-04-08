@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.remote.reservation.ReservationUpdatePayloadDto
 import com.projetmobile.mobile.data.remote.reservation.ReservationZoneUpdateDto
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import kotlinx.coroutines.launch
@@ -27,8 +28,12 @@ class ReservationTarifaireViewModel(
             uiState = ReservationTarifaireUiState.Loading
             try {
                 uiState = fetchState(reservationId)
-            } catch (e: Exception) {
-                uiState = ReservationTarifaireUiState.Error("Erreur reseau : ${e.message}")
+            } catch (throwable: Throwable) {
+                uiState = ReservationTarifaireUiState.Error(
+                    throwable.toRepositoryException("Impossible de charger la tarification.")
+                        .localizedMessage
+                        ?: "Impossible de charger la tarification.",
+                )
             }
         }
     }
@@ -85,12 +90,21 @@ class ReservationTarifaireViewModel(
                 )
                 reservationRepository.updateReservation(reservationId, payload)
                 uiState = fetchState(reservationId).copy(userMessage = "Enregistre avec succes")
-            } catch (e: Exception) {
+            } catch (throwable: Throwable) {
                 val latest = uiState as? ReservationTarifaireUiState.Success
                 if (latest != null) {
-                    uiState = latest.copy(isSaving = false, userMessage = "Erreur de sauvegarde")
+                    uiState = latest.copy(
+                        isSaving = false,
+                        userMessage = throwable.toRepositoryException("Erreur de sauvegarde.")
+                            .localizedMessage
+                            ?: "Erreur de sauvegarde",
+                    )
                 } else {
-                    uiState = ReservationTarifaireUiState.Error("Erreur reseau : ${e.message}")
+                    uiState = ReservationTarifaireUiState.Error(
+                        throwable.toRepositoryException("Impossible de charger la tarification.")
+                            .localizedMessage
+                            ?: "Impossible de charger la tarification.",
+                    )
                 }
             }
         }

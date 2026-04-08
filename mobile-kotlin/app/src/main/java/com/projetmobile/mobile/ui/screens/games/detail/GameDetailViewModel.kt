@@ -8,6 +8,7 @@ import com.projetmobile.mobile.data.repository.games.GamesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -25,14 +26,31 @@ internal class GameDetailViewModel(
     val uiState: StateFlow<GameDetailUiState> = _uiState.asStateFlow()
 
     init {
+        observeLocalGame()
         refreshGame()
+    }
+
+    private fun observeLocalGame() {
+        viewModelScope.launch {
+            gamesRepository.observeGame(gameId).collectLatest { localGame ->
+                if (localGame == null) {
+                    return@collectLatest
+                }
+                _uiState.update { state ->
+                    state.copy(
+                        game = localGame,
+                        isLoading = false,
+                    )
+                }
+            }
+        }
     }
 
     fun refreshGame() {
         viewModelScope.launch {
             _uiState.update { state ->
                 state.copy(
-                    isLoading = true,
+                    isLoading = state.game == null,
                     errorMessage = null,
                 )
             }
@@ -48,7 +66,6 @@ internal class GameDetailViewModel(
                 .onFailure { error ->
                     _uiState.update { state ->
                         state.copy(
-                            game = null,
                             isLoading = false,
                             errorMessage = mapGameDetailError(error),
                         )

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.projetmobile.mobile.data.entity.reservants.ReservantContactDraft
 import com.projetmobile.mobile.data.entity.reservants.canManageReservants
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 
 internal class ReservantDetailViewModel(
     private val reservantId: Int,
+    private val observeReservant: ReservantObserver,
     private val loadReservant: ReservantLoader,
     private val loadContacts: ReservantContactsLoader,
     private val addContact: ReservantContactCreator,
@@ -28,7 +30,24 @@ internal class ReservantDetailViewModel(
     val uiState: StateFlow<ReservantDetailUiState> = _uiState.asStateFlow()
 
     init {
+        startObservingLocalReservant()
         refreshReservant()
+    }
+
+    private fun startObservingLocalReservant() {
+        viewModelScope.launch {
+            observeReservant(reservantId).collectLatest { localReservant ->
+                if (localReservant == null) {
+                    return@collectLatest
+                }
+                _uiState.update { state ->
+                    state.copy(
+                        reservant = localReservant,
+                        isLoading = false,
+                    )
+                }
+            }
+        }
     }
 
     fun selectTab(tab: ReservantDetailTab) {
@@ -39,7 +58,7 @@ internal class ReservantDetailViewModel(
         viewModelScope.launch {
             _uiState.update { state ->
                 state.copy(
-                    isLoading = true,
+                    isLoading = state.reservant == null,
                     errorMessage = null,
                     contactsErrorMessage = null,
                     gamesErrorMessage = null,
@@ -59,9 +78,6 @@ internal class ReservantDetailViewModel(
                 .onFailure { error ->
                     _uiState.update { state ->
                         state.copy(
-                            reservant = null,
-                            contacts = emptyList(),
-                            games = emptyList(),
                             isLoading = false,
                             errorMessage = mapReservantDetailError(error),
                         )
@@ -90,7 +106,6 @@ internal class ReservantDetailViewModel(
                 .onFailure { error ->
                     _uiState.update { state ->
                         state.copy(
-                            contacts = emptyList(),
                             isLoadingContacts = false,
                             contactsErrorMessage = mapReservantContactsLoadError(error),
                         )
@@ -129,7 +144,6 @@ internal class ReservantDetailViewModel(
                 .onFailure { error ->
                 _uiState.update { state ->
                     state.copy(
-                        games = emptyList(),
                         isLoadingGames = false,
                         gamesErrorMessage = mapReservantGamesLoadError(error),
                     )
@@ -256,6 +270,7 @@ private fun ReservantContactFormFields.toDraft(): ReservantContactDraft {
 
 internal fun reservantDetailViewModelFactory(
     reservantId: Int,
+    observeReservant: ReservantObserver,
     loadReservant: ReservantLoader,
     loadContacts: ReservantContactsLoader,
     addContact: ReservantContactCreator,
@@ -267,6 +282,7 @@ internal fun reservantDetailViewModelFactory(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return ReservantDetailViewModel(
                 reservantId = reservantId,
+                observeReservant = observeReservant,
                 loadReservant = loadReservant,
                 loadContacts = loadContacts,
                 addContact = addContact,

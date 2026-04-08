@@ -1,6 +1,8 @@
 package com.projetmobile.mobile.ui.screens.reservants
 
 import com.projetmobile.mobile.data.repository.RepositoryException
+import com.projetmobile.mobile.data.repository.RepositoryFailureKind
+import com.projetmobile.mobile.data.repository.isOfflineFriendlyFailure
 
 internal data class ReservantFormFieldErrors(
     val nameError: String? = null,
@@ -27,8 +29,14 @@ internal data class ReservantContactErrorPresentation(
     val bannerMessage: String? = null,
 )
 
-internal fun mapReservantsCatalogLoadError(@Suppress("UNUSED_PARAMETER") throwable: Throwable): String {
-    return "Impossible de charger les réservants."
+internal fun mapReservantsCatalogLoadError(throwable: Throwable): String {
+    val repositoryException = throwable as? RepositoryException
+    return when (repositoryException?.kind) {
+        RepositoryFailureKind.BackendUnreachable -> "Serveur inaccessible: réservants locaux affichés."
+        RepositoryFailureKind.Offline,
+        RepositoryFailureKind.Timeout -> "Mode hors-ligne: réservants locaux affichés."
+        else -> "Impossible de charger les réservants."
+    }
 }
 
 internal fun mapReservantDeleteError(throwable: Throwable): String {
@@ -51,6 +59,14 @@ internal fun mapReservantDeleteError(throwable: Throwable): String {
 internal fun mapReservantDetailError(throwable: Throwable): String {
     val repositoryException = throwable as? RepositoryException
     return if (
+        repositoryException?.kind == RepositoryFailureKind.BackendUnreachable
+    ) {
+        "Serveur inaccessible: dernière version locale du réservant affichée."
+    } else if (
+        repositoryException?.kind?.isOfflineFriendlyFailure() == true
+    ) {
+        "Mode hors-ligne: dernière version locale du réservant affichée."
+    } else if (
         repositoryException?.statusCode == 404 ||
         repositoryException?.message?.trim() == "Réservant introuvable" ||
         repositoryException?.message?.trim() == "Réservant non trouvé"

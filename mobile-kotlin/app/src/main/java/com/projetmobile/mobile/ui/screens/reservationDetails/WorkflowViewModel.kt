@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.remote.reservation.WorkflowUpdatePayload
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
 import com.projetmobile.mobile.ui.screens.festivalForm.FestivalFormViewModel
@@ -28,8 +29,12 @@ class WorkflowViewModel(
             try {
                 val result = repository.getWorkflow(reservationId)
                 uiState = WorkflowUiState.Success(workflow = result)
-            } catch (e: Exception) {
-                uiState = WorkflowUiState.Error("Erreur réseau : ${e.message}")
+            } catch (throwable: Throwable) {
+                uiState = WorkflowUiState.Error(
+                    throwable.toRepositoryException("Impossible de charger le workflow.")
+                        .localizedMessage
+                        ?: "Impossible de charger le workflow.",
+                )
             }
         }
     }
@@ -46,8 +51,13 @@ class WorkflowViewModel(
                     workflow = updated,
                     userMessage = "Enregistré avec succès !"
                 )
-            } catch (e: Exception) {
-                uiState = currentState.copy(isSaving = false, userMessage = "Erreur de sauvegarde")
+            } catch (throwable: Throwable) {
+                uiState = currentState.copy(
+                    isSaving = false,
+                    userMessage = throwable.toRepositoryException("Erreur de sauvegarde.")
+                        .localizedMessage
+                        ?: "Erreur de sauvegarde",
+                )
             }
         }
     }

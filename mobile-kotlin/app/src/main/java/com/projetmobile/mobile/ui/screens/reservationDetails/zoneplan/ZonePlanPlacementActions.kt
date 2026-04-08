@@ -3,6 +3,7 @@ package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 import androidx.lifecycle.viewModelScope
 import com.projetmobile.mobile.data.remote.zoneplan.GameAllocationUpdateDto
 import com.projetmobile.mobile.data.remote.zoneplan.SimpleAllocationPayloadDto
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.PlacementFormState
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
@@ -113,10 +114,13 @@ fun ZonePlanViewModel.savePlacement() {
                 showPlacementForm = false,
                 userMessage = "Placement enregistré",
             )
-        } catch (e: Exception) {
+        } catch (throwable: Throwable) {
             val latest = uiState as? ZonePlanUiState.Success
             if (latest != null) {
-                uiState = latest.copy(isSaving = false, userMessage = "Erreur: ${e.message}")
+                uiState = latest.copy(
+                    isSaving = false,
+                    userMessage = throwable.zonePlanErrorMessage("Impossible d'enregistrer le placement."),
+                )
             }
         }
     }
@@ -131,10 +135,13 @@ fun ZonePlanViewModel.deleteSimpleAllocation(allocationId: Int) {
             zonePlanRepository.deleteSimpleAllocationById(allocationId)
             val refreshed = fetchState(current.reservationId, current.festivalId)
             uiState = refreshed.copy(userMessage = "Placement supprimé")
-        } catch (e: Exception) {
+        } catch (throwable: Throwable) {
             val latest = uiState as? ZonePlanUiState.Success
             if (latest != null) {
-                uiState = latest.copy(isSaving = false, userMessage = "Erreur: ${e.message}")
+                uiState = latest.copy(
+                    isSaving = false,
+                    userMessage = throwable.zonePlanErrorMessage("Impossible de supprimer le placement."),
+                )
             }
         }
     }
@@ -151,13 +158,20 @@ fun ZonePlanViewModel.removeGameFromZone(allocationId: Int) {
             )
             val refreshed = fetchState(current.reservationId, current.festivalId)
             uiState = refreshed.copy(userMessage = "Jeu retiré de la zone")
-        } catch (e: Exception) {
+        } catch (throwable: Throwable) {
             val latest = uiState as? ZonePlanUiState.Success
             if (latest != null) {
-                uiState = latest.copy(isSaving = false, userMessage = "Erreur: ${e.message}")
+                uiState = latest.copy(
+                    isSaving = false,
+                    userMessage = throwable.zonePlanErrorMessage("Impossible de retirer le jeu de la zone."),
+                )
             }
         }
     }
+}
+
+private fun Throwable.zonePlanErrorMessage(defaultMessage: String): String {
+    return toRepositoryException(defaultMessage).localizedMessage ?: defaultMessage
 }
 
 internal suspend fun ZonePlanViewModel.saveSimplePlacement(state: ZonePlanUiState.Success) {

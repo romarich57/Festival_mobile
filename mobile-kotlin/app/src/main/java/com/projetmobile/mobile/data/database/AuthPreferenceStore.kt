@@ -5,46 +5,76 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.projetmobile.mobile.data.entity.auth.AuthUser
+import com.projetmobile.mobile.data.remote.common.ApiJson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.authPreferenceDataStore by preferencesDataStore(name = "auth_preferences")
 
-class AuthPreferenceStore(private val context: Context) {
+open class AuthPreferenceStore(private val context: Context) {
     private object Keys {
         val pendingVerificationEmail: Preferences.Key<String> =
             stringPreferencesKey("pending_verification_email")
         val lastLoginIdentifier: Preferences.Key<String> =
             stringPreferencesKey("last_login_identifier")
+        val cachedUser: Preferences.Key<String> =
+            stringPreferencesKey("cached_user")
     }
 
-    suspend fun getPendingVerificationEmail(): String? {
+    open suspend fun getPendingVerificationEmail(): String? {
         return context.authPreferenceDataStore.data
             .map { preferences -> preferences[Keys.pendingVerificationEmail] }
             .first()
     }
 
-    suspend fun setPendingVerificationEmail(email: String) {
+    open suspend fun setPendingVerificationEmail(email: String) {
         context.authPreferenceDataStore.edit { preferences ->
             preferences[Keys.pendingVerificationEmail] = email
         }
     }
 
-    suspend fun clearPendingVerificationEmail() {
+    open suspend fun clearPendingVerificationEmail() {
         context.authPreferenceDataStore.edit { preferences ->
             preferences.remove(Keys.pendingVerificationEmail)
         }
     }
 
-    suspend fun getLastLoginIdentifier(): String? {
+    open suspend fun getLastLoginIdentifier(): String? {
         return context.authPreferenceDataStore.data
             .map { preferences -> preferences[Keys.lastLoginIdentifier] }
             .first()
     }
 
-    suspend fun setLastLoginIdentifier(identifier: String) {
+    open suspend fun setLastLoginIdentifier(identifier: String) {
         context.authPreferenceDataStore.edit { preferences ->
             preferences[Keys.lastLoginIdentifier] = identifier
+        }
+    }
+
+    open suspend fun getCachedUser(): AuthUser? {
+        return context.authPreferenceDataStore.data
+            .map { preferences -> preferences[Keys.cachedUser] }
+            .first()
+            ?.let { serializedUser ->
+                runCatching {
+                    ApiJson.instance.decodeFromString(AuthUser.serializer(), serializedUser)
+                }.getOrNull()
+            }
+    }
+
+    open suspend fun setCachedUser(user: AuthUser) {
+        context.authPreferenceDataStore.edit { preferences ->
+            preferences[Keys.cachedUser] = ApiJson.instance.encodeToString(
+                AuthUser.serializer(),
+                user,
+            )
+        }
+    }
+
+    open suspend fun clearCachedUser() {
+        context.authPreferenceDataStore.edit { preferences ->
+            preferences.remove(Keys.cachedUser)
         }
     }
 }

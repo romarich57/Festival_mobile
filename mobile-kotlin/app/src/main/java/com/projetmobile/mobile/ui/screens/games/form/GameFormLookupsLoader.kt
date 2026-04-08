@@ -23,16 +23,18 @@ internal class RepositoryGameFormLookupsLoader(
         val typesResult = gamesRepository.getGameTypes()
         val editorsResult = gamesRepository.getEditors()
         val mechanismsResult = gamesRepository.getMechanisms()
+        val hasLookupFailure =
+            typesResult.isFailure || editorsResult.isFailure || mechanismsResult.isFailure
 
         return GameFormLookupsLoadResult(
             availableTypes = typesResult.getOrDefault(emptyList()),
             availableEditors = editorsResult.getOrDefault(emptyList()),
             availableMechanisms = mechanismsResult.getOrDefault(emptyList()),
-            errorMessage = listOfNotNull(
-                typesResult.exceptionOrNull()?.localizedMessage,
-                editorsResult.exceptionOrNull()?.localizedMessage,
-                mechanismsResult.exceptionOrNull()?.localizedMessage,
-            ).firstOrNull(),
+            errorMessage = if (hasLookupFailure) {
+                "Mode hors-ligne: certaines options du formulaire sont indisponibles."
+            } else {
+                null
+            },
         )
     }
 }

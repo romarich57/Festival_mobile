@@ -32,6 +32,7 @@ Ajuste `API_BASE_URL_DEBUG` si nécessaire:
 
 - Émulateur Android: `http://10.0.2.2:4000/api/`
 - Téléphone réel: `http://<IP_LOCALE_DE_TA_MACHINE>:4000/api/`
+- APK publique distribuée: `API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/`
 
 ## 3) Build Android
 
@@ -43,6 +44,16 @@ cd mobile-kotlin
 APK debug attendu:
 
 `app/build/outputs/apk/debug/app-debug.apk`
+
+Pour l’APK distribuée depuis `mobile.romdev.cloud`, utilise:
+
+```bash
+./gradlew assemblePublic
+```
+
+APK publique attendue:
+
+`app/build/outputs/apk/public/app-public.apk`
 
 ## 4) Ce qui est déjà prêt
 

@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import com.projetmobile.mobile.data.repository.zonePlan.ZonePlanRepository
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.ZoneTarifaireOptionState
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.GameAllocationState
@@ -31,8 +32,12 @@ class ZonePlanViewModel(
                 val reservationDetails = reservationRepository.getReservationDetails(reservationId)
                 val festivalId = reservationDetails.festivalId
                 uiState = fetchState(reservationId, festivalId)
-            } catch (e: Exception) {
-                uiState = ZonePlanUiState.Error("Erreur réseau : ${e.message}")
+            } catch (throwable: Throwable) {
+                uiState = ZonePlanUiState.Error(
+                    throwable.toRepositoryException("Impossible de charger le plan de zone.")
+                        .localizedMessage
+                        ?: "Impossible de charger le plan de zone.",
+                )
             }
         }
     }

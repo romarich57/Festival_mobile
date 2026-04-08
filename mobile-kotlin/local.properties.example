@@ -7,5 +7,8 @@ API_BASE_URL_DEBUG=http://10.0.2.2:4000/api/
 # Physical Android device on same Wi-Fi network -> replace with your laptop IP
 API_BASE_URL_DEVICE=http://192.168.1.50:4000/api/
 
+# Public APK distributed from mobile.romdev.cloud
+API_BASE_URL_PUBLIC=https://mobile.romdev.cloud/api/
+
 # Production API (when ready)
 API_BASE_URL_RELEASE=https://api.example.com/api/

@@ -1,6 +1,7 @@
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 
 import androidx.lifecycle.viewModelScope
+import com.projetmobile.mobile.data.repository.toRepositoryException
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.AddZoneFormState
 import kotlinx.coroutines.launch
 
@@ -77,10 +78,13 @@ fun ZonePlanViewModel.saveAddZone() {
             )
             val refreshed = fetchState(current.reservationId, current.festivalId)
             uiState = refreshed.copy(showAddZoneForm = false, userMessage = "Zone créée")
-        } catch (e: Exception) {
+        } catch (throwable: Throwable) {
             val latest = uiState as? ZonePlanUiState.Success
             if (latest != null) {
-                uiState = latest.copy(isSaving = false, userMessage = "Erreur: ${e.message}")
+                uiState = latest.copy(
+                    isSaving = false,
+                    userMessage = throwable.zonePlanAddZoneErrorMessage("Impossible de créer la zone."),
+                )
             }
         }
     }
@@ -94,11 +98,18 @@ fun ZonePlanViewModel.deleteZonePlan(zonePlanId: Int) {
             zonePlanRepository.deleteZonePlan(zonePlanId)
             val refreshed = fetchState(current.reservationId, current.festivalId)
             uiState = refreshed.copy(userMessage = "Zone de plan supprimée")
-        } catch (e: Exception) {
+        } catch (throwable: Throwable) {
             val latest = uiState as? ZonePlanUiState.Success
             if (latest != null) {
-                uiState = latest.copy(isSaving = false, userMessage = "Erreur: ${e.message}")
+                uiState = latest.copy(
+                    isSaving = false,
+                    userMessage = throwable.zonePlanAddZoneErrorMessage("Impossible de supprimer la zone."),
+                )
             }
         }
     }
+}
+
+private fun Throwable.zonePlanAddZoneErrorMessage(defaultMessage: String): String {
+    return toRepositoryException(defaultMessage).localizedMessage ?: defaultMessage
 }

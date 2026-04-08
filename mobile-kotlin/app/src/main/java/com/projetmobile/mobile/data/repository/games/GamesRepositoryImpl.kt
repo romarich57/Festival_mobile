@@ -30,6 +30,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 
 class GamesRepositoryImpl(
@@ -82,9 +83,11 @@ class GamesRepositoryImpl(
     override suspend fun createGame(draft: GameDraft) = runRepositoryCall(
         defaultMessage = "Impossible de créer le jeu.",
     ) {
-        val serverDto = gamesApiService.createGame(draft.toRequestDto())
-        gameDao.upsert(serverDto.toGameRoomEntity(SyncStatus.SYNCED))
-        serverDto.toGameDetail()
+        val localId = generateLocalId()
+        val entity = draft.toGameRoomEntity(localId, SyncStatus.PENDING_CREATE)
+        gameDao.upsert(entity)
+        syncScheduler()
+        entity.toGameDetail()
     }
 
     override suspend fun updateGame(gameId: Int, draft: GameDraft) = runRepositoryCall(
@@ -177,6 +180,9 @@ class GamesRepositoryImpl(
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private fun generateLocalId(): Int =
+        -(abs(System.currentTimeMillis().toInt()).coerceAtLeast(1))
 
     companion object {
         private fun enqueueGameSync(context: Context) {

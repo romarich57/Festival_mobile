@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.projetmobile.mobile.data.entity.auth.AuthUser
+import com.projetmobile.mobile.data.repository.RepositoryException
+import com.projetmobile.mobile.data.repository.isOfflineFriendlyFailure
 import com.projetmobile.mobile.data.repository.admin.AdminRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,10 +37,21 @@ internal class AdminCatalogViewModel(
                 }
                 .onFailure { error ->
                     _uiState.update {
+                        val repositoryException = error as? RepositoryException
+                        val shouldShowOfflineInfo = it.allUsers.isNotEmpty() &&
+                            repositoryException?.kind?.isOfflineFriendlyFailure() == true
                         it.copy(
                             isLoading = false,
-                            errorMessage = error.localizedMessage
-                                ?: "Impossible de charger les utilisateurs.",
+                            infoMessage = if (shouldShowOfflineInfo) {
+                                error.localizedMessage ?: "Mode hors-ligne: utilisateurs locaux affichés."
+                            } else {
+                                it.infoMessage
+                            },
+                            errorMessage = if (shouldShowOfflineInfo) {
+                                null
+                            } else {
+                                error.localizedMessage ?: "Impossible de charger les utilisateurs."
+                            },
                         )
                     }
                 }

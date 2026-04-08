@@ -29,6 +29,7 @@ internal data class ReservantDetailActions(
 @Composable
 internal fun ReservantDetailRoute(
     reservantId: Int,
+    observeReservant: ReservantObserver,
     loadReservant: ReservantLoader,
     loadContacts: ReservantContactsLoader,
     addContact: ReservantContactCreator,
@@ -45,6 +46,7 @@ internal fun ReservantDetailRoute(
     val viewModel: ReservantDetailViewModel = viewModel(
         factory = reservantDetailViewModelFactory(
             reservantId = reservantId,
+            observeReservant = observeReservant,
             loadReservant = loadReservant,
             loadContacts = loadContacts,
             addContact = addContact,

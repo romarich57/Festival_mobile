@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.first
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import com.projetmobile.mobile.data.repository.admin.AdminRepository
@@ -291,15 +292,28 @@ internal fun festivalAppEntryProvider(
             is ReservantDetails -> NavEntry(key) {
                 ReservantDetailRoute(
                     reservantId = key.reservantId,
+                    observeReservant = reservantsRepository::observeReservant,
                     loadReservant = reservantsRepository::getReservant,
                     loadContacts = reservantsRepository::getContacts,
                     addContact = reservantsRepository::addContact,
                     loadGames = { editorId ->
+                        val cachedGames = gamesRepository.observeGames()
+                            .first()
+                            .filter { game -> game.editorId == editorId }
                         gamesRepository.refreshGames(
                             filters = com.projetmobile.mobile.data.entity.games.GameFilters(editorId = editorId),
                             page = 1,
                             limit = 50,
-                        ).map { page -> page.items }
+                        ).fold(
+                            onSuccess = { page -> Result.success(page.items) },
+                            onFailure = { error ->
+                                if (cachedGames.isNotEmpty()) {
+                                    Result.success(cachedGames)
+                                } else {
+                                    Result.failure(error)
+                                }
+                            },
+                        )
                     },
                     currentUserRole = sessionUiState.currentUser?.role,
                     refreshSignal = reservantsRefreshSignal,
