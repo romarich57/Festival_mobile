@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran le formulaire de festival et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.festivalForm
 
 import androidx.compose.foundation.layout.*

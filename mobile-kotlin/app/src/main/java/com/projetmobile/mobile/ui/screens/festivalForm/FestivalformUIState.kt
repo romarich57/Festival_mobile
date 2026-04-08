@@ -1,3 +1,7 @@
+/**
+ * Rôle : Décrit l'état immuable du module le formulaire de festival.
+ */
+
 package com.projetmobile.mobile.ui.screens.festivalForm
 
 /**
@@ -44,6 +48,9 @@ data class FestivalFormUiState(
                 && zonesTarifaires.all { it.isValid }
 }
 
+/**
+ * Rôle : Décrit le composant zone tarifaire draft du module le formulaire de festival.
+ */
 data class ZoneTarifaireDraft(
     val name: String = "",
     val nbTables: String = "0",

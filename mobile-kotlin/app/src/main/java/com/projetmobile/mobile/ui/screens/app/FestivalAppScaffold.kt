@@ -42,6 +42,13 @@ import com.projetmobile.mobile.ui.utils.navigation.specFor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action festival app scaffold du module app.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun FestivalAppScaffold(
     chrome: AppChromeState,
     tabsToShow: List<TopLevelTab>,
@@ -129,6 +136,13 @@ internal fun FestivalAppScaffold(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action app nav display du module app.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun AppNavDisplay(
     backStack: NavBackStack<AppNavKey>,
     entryDecorators: List<NavEntryDecorator<AppNavKey>>,
@@ -162,6 +176,13 @@ private fun AppNavDisplay(
 
 @Composable
 @Suppress("UNCHECKED_CAST")
+/**
+ * Rôle : Exécute l'action remember app nav back stack du module app.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun rememberAppNavBackStack(startKey: AppNavKey): NavBackStack<AppNavKey> {
     return rememberNavBackStack(startKey) as NavBackStack<AppNavKey>
 }

@@ -8,6 +8,9 @@ package com.projetmobile.mobile.ui.screens.auth.login
 
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 
+/**
+ * Rôle : Décrit l'état immuable du module l'authentification.
+ */
 data class LoginUiState(
     val identifier: String = "",
     val password: String = "",

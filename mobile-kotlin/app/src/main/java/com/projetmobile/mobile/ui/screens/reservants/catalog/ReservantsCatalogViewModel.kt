@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module les réservants catalogue pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.lifecycle.ViewModel
@@ -46,22 +50,57 @@ internal class ReservantsCatalogViewModel(
         refreshReservants()
     }
 
+    /**
+     * Rôle : Gère la modification du champ query.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onQueryChanged(value: String) {
         _uiState.update { state -> stateReducer.onQueryChanged(state, value) }
     }
 
+    /**
+     * Rôle : Gère la sélection de type.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onTypeSelected(value: String?) {
         _uiState.update { state -> stateReducer.onTypeSelected(state, value) }
     }
 
+    /**
+     * Rôle : Gère la modification du champ linked éditeur only.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onLinkedEditorOnlyChanged(value: Boolean) {
         _uiState.update { state -> stateReducer.onLinkedEditorOnlyChanged(state, value) }
     }
 
+    /**
+     * Rôle : Gère la sélection de tri.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onSortSelected(sort: ReservantsSortOption) {
         _uiState.update { state -> stateReducer.onSortSelected(state, sort) }
     }
 
+    /**
+     * Rôle : Rafraîchit réservants.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun refreshReservants() {
         viewModelScope.launch {
             _uiState.update { state ->
@@ -86,6 +125,13 @@ internal class ReservantsCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Déclenche la demande de suppression.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun requestDelete(reservant: ReservantListItem) {
         if (!_uiState.value.canDeleteReservants) {
             return
@@ -107,10 +153,24 @@ internal class ReservantsCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Ferme suppression dialogue.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissDeleteDialog() {
         _uiState.update { state -> stateReducer.onDismissDeleteDialog(state) }
     }
 
+    /**
+     * Rôle : Confirme suppression.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun confirmDelete() {
         val reservant = _uiState.value.pendingDeletion ?: return
         if (!_uiState.value.canDeleteReservants) {
@@ -137,6 +197,13 @@ internal class ReservantsCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Consomme external rafraîchissement.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumeExternalRefresh(infoMessage: String?) {
         refreshReservants()
         if (infoMessage != null) {
@@ -144,15 +211,36 @@ internal class ReservantsCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Ferme information message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissInfoMessage() {
         _uiState.update { state -> stateReducer.onDismissInfoMessage(state) }
     }
 
+    /**
+     * Rôle : Ferme erreur message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissErrorMessage() {
         _uiState.update { state -> stateReducer.onDismissErrorMessage(state) }
     }
 }
 
+/**
+ * Rôle : Exécute l'action réservants catalogue vue modèle factory du module les réservants catalogue.
+ *
+ * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+ *
+ * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+ */
 internal fun reservantsCatalogViewModelFactory(
     loadReservants: ReservantsLoader,
     observeReservants: Flow<List<ReservantListItem>>,

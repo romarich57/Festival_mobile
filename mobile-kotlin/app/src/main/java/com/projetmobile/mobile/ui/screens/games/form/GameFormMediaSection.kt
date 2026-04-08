@@ -1,3 +1,10 @@
+/**
+ * Rôle : Regroupe les médias (images et affiches) dans l'écran d'édition d'un jeu.
+ *
+ * Précondition : Un gestionnaire de Pick Media URI et réseau.
+ *
+ * Postcondition : Affiche, permet la suppression ou modifie l'affiche principale du jeu de société.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import android.content.Context
@@ -20,6 +27,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.FestivalTextField
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu formulaire media section du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameFormMediaSection(
     imageSourceMode: GameImageSourceMode,
     imageUrl: String,
@@ -46,6 +60,13 @@ internal fun GameFormMediaSection(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu image source section du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun GameImageSourceSection(
     imageSourceMode: GameImageSourceMode,
     imageUrl: String,
@@ -96,6 +117,13 @@ private fun GameImageSourceSection(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu rules video section du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun GameRulesVideoSection(
     rulesVideoUrl: String,
     onRulesVideoUrlChanged: (String) -> Unit,
@@ -117,6 +145,13 @@ private fun GameRulesVideoSection(
     }
 }
 
+/**
+ * Rôle : Charge jeu image selection.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun loadGameImageSelection(context: Context, uri: Uri): GameImageSelectionPayload? {
     val contentResolver = context.contentResolver
     val fileName = contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)

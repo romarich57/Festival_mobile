@@ -1,3 +1,7 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module le formulaire de réservation.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservationform
 
 import com.projetmobile.mobile.data.entity.reservants.ReservantListItem

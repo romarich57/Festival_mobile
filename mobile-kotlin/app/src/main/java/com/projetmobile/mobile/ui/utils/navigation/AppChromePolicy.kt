@@ -8,6 +8,9 @@ package com.projetmobile.mobile.ui.utils.navigation
 
 import com.projetmobile.mobile.data.entity.auth.VerificationResultStatus
 
+/**
+ * Rôle : Décrit l'état immuable du module navigation.
+ */
 data class AppChromeState(
     val title: String,
     val showBack: Boolean,
@@ -15,6 +18,13 @@ data class AppChromeState(
     val selectedTab: TopLevelTab,
 )
 
+/**
+ * Rôle : Exécute l'action owner onglet du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun ownerTab(key: AppNavKey): TopLevelTab {
     return when (key) {
         Festivals,
@@ -38,6 +48,13 @@ fun ownerTab(key: AppNavKey): TopLevelTab {
     }
 }
 
+/**
+ * Rôle : Exécute l'action chrome for du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun chromeFor(
     activeKey: AppNavKey,
     activeBackStack: List<AppNavKey>,
@@ -59,6 +76,13 @@ fun chromeFor(
     )
 }
 
+/**
+ * Rôle : Exécute l'action top bar title for du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun topBarTitleFor(key: AppNavKey): String {
     return when (key) {
         Festivals -> "Festivals"
@@ -89,6 +113,13 @@ fun topBarTitleFor(key: AppNavKey): String {
     }
 }
 
+/**
+ * Rôle : Exécute l'action verification title for du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun verificationTitleFor(status: VerificationResultStatus): String {
     return when (status) {
         VerificationResultStatus.Success -> "Email confirmé"

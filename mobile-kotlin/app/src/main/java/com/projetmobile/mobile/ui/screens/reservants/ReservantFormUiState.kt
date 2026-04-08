@@ -1,13 +1,29 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module les réservants.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import com.projetmobile.mobile.data.entity.reservants.ReservantEditorOption
 
+/**
+ * Rôle : Définit le contrat du module les réservants.
+ */
 sealed interface ReservantFormMode {
+    /**
+     * Rôle : Expose un singleton de support pour le module les réservants.
+     */
     data object Create : ReservantFormMode
 
+    /**
+     * Rôle : Décrit le composant édition du module les réservants.
+     */
     data class Edit(val reservantId: Int) : ReservantFormMode
 }
 
+/**
+ * Rôle : Décrit le composant réservant formulaire champs du module les réservants.
+ */
 internal data class ReservantFormFields(
     val name: String = "",
     val nameError: String? = null,
@@ -23,6 +39,13 @@ internal data class ReservantFormFields(
     val siret: String = "",
     val notes: String = "",
 ) {
+    /**
+     * Rôle : Retourne l'état enrichi de champ erreurs.
+     *
+     * Précondition : Les données du module doivent être disponibles pour initialiser ou exposer l'état.
+     *
+     * Postcondition : L'objet retourné décrit un état cohérent et immuable.
+     */
     fun withFieldErrors(errors: ReservantFormFieldErrors): ReservantFormFields {
         return copy(
             nameError = errors.nameError,
@@ -34,6 +57,9 @@ internal data class ReservantFormFields(
     }
 }
 
+/**
+ * Rôle : Décrit le composant réservant formulaire snapshot du module les réservants.
+ */
 internal data class ReservantFormSnapshot(
     val type: String? = null,
     val linkedEditorId: Int? = null,

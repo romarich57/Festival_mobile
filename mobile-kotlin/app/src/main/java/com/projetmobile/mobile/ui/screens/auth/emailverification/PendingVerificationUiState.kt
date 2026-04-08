@@ -6,6 +6,9 @@
  */
 package com.projetmobile.mobile.ui.screens.auth.emailverification
 
+/**
+ * Rôle : Décrit l'état immuable du module l'authentification emailverification.
+ */
 data class PendingVerificationUiState(
     val email: String = "",
     val isLoading: Boolean = false,

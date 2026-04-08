@@ -20,6 +20,13 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action festival date picker du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun FestivalDatePicker(
     value: String,
     onValueChange: (String) -> Unit,

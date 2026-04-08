@@ -6,6 +6,9 @@
  */
 package com.projetmobile.mobile.ui.screens.auth.resetpassword
 
+/**
+ * Rôle : Décrit l'état immuable du module l'authentification.
+ */
 data class ResetPasswordUiState(
     val token: String = "",
     val password: String = "",

@@ -26,6 +26,13 @@ import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
+/**
+ * Rôle : Exécute l'action forgot mot de passe écran du module l'authentification.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 fun ForgotPasswordScreen(
     uiState: ForgotPasswordUiState,
     onEmailChanged: (String) -> Unit,

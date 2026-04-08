@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran le formulaire de réservation et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservationform
 
 import androidx.compose.foundation.layout.*
@@ -32,6 +36,7 @@ fun ReservationFormScreen(
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
+            // Une réservation créée avec succès renvoie immédiatement à l'écran précédent.
             onNavigateBack()
         }
     }
@@ -54,11 +59,13 @@ fun ReservationFormScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         if (uiState.useExistingReservant) {
+            // Ce mode réutilise un réservant déjà connu, donc on n'affiche que la sélection.
             @OptIn(ExperimentalMaterial3Api::class)
             ExposedDropdownMenuBox(
                 expanded = reservantExpanded,
                 onExpandedChange = {
                     if (uiState.reservantOptions.isNotEmpty()) {
+                        // L'ouverture est bloquée tant qu'aucune option exploitable n'est disponible.
                         reservantExpanded = !reservantExpanded
                     }
                 },
@@ -112,6 +119,7 @@ fun ReservationFormScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (selectedReservant != null) {
+                // Le type affiché ici est informatif: il découle du réservant choisi et ne se saisit pas manuellement.
                 OutlinedTextField(
                     value = selectedReservant.type.replaceFirstChar { it.uppercase() },
                     onValueChange = {},
@@ -122,6 +130,7 @@ fun ReservationFormScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         } else {
+            // Dans le mode de création, l'utilisateur saisit directement un nouveau réservant.
             OutlinedTextField(
                 value = uiState.nom,
                 onValueChange = onNomChanged,

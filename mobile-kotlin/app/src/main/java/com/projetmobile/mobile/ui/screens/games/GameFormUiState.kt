@@ -1,23 +1,42 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module les jeux.
+ */
+
 package com.projetmobile.mobile.ui.screens.games
 
 import com.projetmobile.mobile.data.entity.games.EditorOption
 import com.projetmobile.mobile.data.entity.games.GameTypeOption
 import com.projetmobile.mobile.data.entity.games.MechanismOption
 
+/**
+ * Rôle : Définit le contrat du module les jeux.
+ */
 sealed interface GameFormMode {
+    /**
+     * Rôle : Décrit le composant création du module les jeux.
+     */
     data class Create(
         val prefilledEditorId: Int? = null,
         val lockEditorSelection: Boolean = false,
     ) : GameFormMode
 
+    /**
+     * Rôle : Décrit le composant édition du module les jeux.
+     */
     data class Edit(val gameId: Int) : GameFormMode
 }
 
+/**
+ * Rôle : Décrit le composant jeu image source mode du module les jeux.
+ */
 enum class GameImageSourceMode {
     Url,
     File,
 }
 
+/**
+ * Rôle : Décrit le composant local jeu image selection du module les jeux.
+ */
 data class LocalGameImageSelection(
     val fileName: String,
     val mimeType: String,
@@ -25,6 +44,9 @@ data class LocalGameImageSelection(
     val previewUriString: String,
 )
 
+/**
+ * Rôle : Décrit le composant jeu image selection payload du module les jeux.
+ */
 data class GameImageSelectionPayload(
     val fileName: String,
     val mimeType: String,
@@ -32,6 +54,9 @@ data class GameImageSelectionPayload(
     val previewUriString: String,
 )
 
+/**
+ * Rôle : Décrit le composant jeu formulaire champs du module les jeux.
+ */
 data class GameFormFields(
     val title: String = "",
     val titleError: String? = null,

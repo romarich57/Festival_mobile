@@ -17,6 +17,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 @Composable
+/**
+ * Rôle : Exécute l'action gradient écran background du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun GradientScreenBackground(
     modifier: Modifier = Modifier,
     contentAlignment: Alignment = Alignment.TopCenter,

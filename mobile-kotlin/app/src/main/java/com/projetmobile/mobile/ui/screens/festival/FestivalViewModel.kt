@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module les festivals pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.festival
 
 import androidx.lifecycle.ViewModel
@@ -50,6 +54,13 @@ class FestivalViewModel(
 
     // ── Chargement ─────────────
 
+    /**
+     * Rôle : Charge festivals.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun loadFestivals() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
@@ -71,30 +82,58 @@ class FestivalViewModel(
 
     // ── Sélection (équivalent festivalStore.setCurrentFestival) ──────────────
 
-    /** Sélectionne un festival par son id. */
+    /**
+     * Rôle : Sélectionne un festival par son identifiant.
+     *
+     * Précondition : L'identifiant transmis doit correspondre à un festival exploitable par l'écran courant.
+     *
+     * Postcondition : `currentFestivalId` pointe vers le festival choisi et l'UI peut refléter la sélection.
+     */
     fun selectFestival(id: Int) {
         _currentFestivalId.value = id
     }
 
-    /** Désélectionne le festival courant (émet null comme Angular). */
+    /**
+     * Rôle : Désélectionne le festival courant.
+     *
+     * Précondition : Aucune.
+     *
+     * Postcondition : `currentFestivalId` redevient `null`.
+     */
     fun clearSelection() {
         _currentFestivalId.value = null
     }
 
     // ── Suppression (équivalent requestDeleteFestival / confirmDeleteFestival) ─
 
-    /** Ouvre la confirmation de suppression. */
+    /**
+     * Rôle : Ouvre la confirmation de suppression pour un festival donné.
+     *
+     * Précondition : L'identifiant transmis doit identifier le festival que l'utilisateur veut supprimer.
+     *
+     * Postcondition : `pendingDeleteFestivalId` contient l'identifiant en attente de validation.
+     */
     fun requestDeleteFestival(id: Int) {
         _pendingDeleteFestivalId.value = id
     }
 
-    /** Annule la suppression. */
+    /**
+     * Rôle : Annule la suppression en attente.
+     *
+     * Précondition : Aucune.
+     *
+     * Postcondition : `pendingDeleteFestivalId` redevient `null`.
+     */
     fun cancelDelete() {
         _pendingDeleteFestivalId.value = null
     }
 
     /**
-     * Confirme et exécute la suppression.
+     * Rôle : Confirme et exécute la suppression du festival en attente.
+     *
+     * Précondition : `pendingDeleteFestivalId` doit contenir un identifiant valide; sinon la méthode s'arrête sans effet.
+     *
+     * Postcondition : Le festival est supprimé côté repository, la sélection est nettoyée si nécessaire et le callback de succès peut être invoqué.
      */
     fun confirmDelete(onSuccess: (String) -> Unit = {}) {
         val id = _pendingDeleteFestivalId.value ?: return
@@ -115,14 +154,35 @@ class FestivalViewModel(
         }
     }
 
+    /**
+     * Rôle : Consomme erreur.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumeError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 
+    /**
+     * Rôle : Consomme information message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumeInfoMessage() {
         _uiState.value = _uiState.value.copy(infoMessage = null)
     }
 
+    /**
+     * Rôle : Consomme external rafraîchissement.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumeExternalRefresh(infoMessage: String?) {
         if (infoMessage != null) {
             _uiState.value = _uiState.value.copy(infoMessage = infoMessage)
@@ -130,7 +190,17 @@ class FestivalViewModel(
         loadFestivals()
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module les festivals.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module les festivals.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(festivalRepository: FestivalRepository): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer { FestivalViewModel(festivalRepository) }

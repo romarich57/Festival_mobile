@@ -24,6 +24,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.data.entity.ReservationDashboardRowEntity
 
 @Composable
+/**
+ * Rôle : Exécute l'action réservation carte du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun ReservationCard(
     reservation: ReservationDashboardRowEntity,
     onViewDetailsClick: (Int) -> Unit,

@@ -19,6 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 @Composable
+/**
+ * Rôle : Exécute l'action festival text champ du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun FestivalTextField(
     value: String,
     onValueChange: (String) -> Unit,

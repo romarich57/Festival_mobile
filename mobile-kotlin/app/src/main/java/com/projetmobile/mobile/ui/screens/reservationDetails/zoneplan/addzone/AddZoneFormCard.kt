@@ -1,3 +1,10 @@
+/**
+ * Rôle : Composant visuel (Card) présentant le formulaire d'ajout de zone.
+ *
+ * Précondition : Nécessite l'état du formulaire, et un callback pour écouter les actions.
+ *
+ * Postcondition : Interfère avec l'utilisateur pour ajouter visuellement une nouvelle configuration de zone.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone
 
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +39,13 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action add zone formulaire carte du module la zone plan des réservations.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun AddZoneFormCard(
     form: AddZoneFormState,
     zonesTarifaires: List<ZoneTarifaireOptionState>,

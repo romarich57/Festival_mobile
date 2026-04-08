@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module les jeux pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.lifecycle.ViewModel
@@ -48,9 +52,11 @@ internal class GamesCatalogViewModel(
     }
 
     /**
-     * Observe Room en continu (SSOT offline-first).
-     * Utilise flatMapLatest pour redémarrer l'observation quand le filtre titre change.
-     * Items mis à jour dès qu'une écriture locale ou réseau modifie Room.
+     * Rôle : Observe Room en continu pour maintenir le catalogue synchronisé avec le filtre de titre courant.
+     *
+     * Précondition : Le ViewModel doit être initialisé et `gamesRepository` doit exposer un flux d'observation valide.
+     *
+     * Postcondition : L'état UI reçoit les éléments Room correspondants et l'écran reste à jour sans rechargement manuel.
      */
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private fun startObservingRoom() {
@@ -71,6 +77,13 @@ internal class GamesCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ title.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onTitleChanged(value: String) {
         _uiState.update { state -> stateReducer.onTitleChanged(state, value) }
         hasPendingFilterRefresh = true
@@ -81,18 +94,39 @@ internal class GamesCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la sélection de type.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onTypeSelected(value: String?) {
         _uiState.update { state -> stateReducer.onTypeSelected(state, value) }
         hasPendingFilterRefresh = true
         refreshGames()
     }
 
+    /**
+     * Rôle : Gère la sélection de éditeur.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEditorSelected(editorId: Int?) {
         _uiState.update { state -> stateReducer.onEditorSelected(state, editorId) }
         hasPendingFilterRefresh = true
         refreshGames()
     }
 
+    /**
+     * Rôle : Gère la modification du champ min age.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onMinAgeChanged(value: String) {
         val previousState = _uiState.value
         _uiState.update { state -> stateReducer.onMinAgeChanged(state, value) }
@@ -102,24 +136,59 @@ internal class GamesCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la sélection de tri.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onSortSelected(sort: GameSort) {
         _uiState.update { state -> stateReducer.onSortSelected(state, sort) }
         hasPendingFilterRefresh = true
         refreshGames()
     }
 
+    /**
+     * Rôle : Inverse visible column.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun toggleVisibleColumn(column: GameVisibleColumn) {
         _uiState.update { state -> stateReducer.onToggleVisibleColumn(state, column) }
     }
 
+    /**
+     * Rôle : Déclenche la demande de suppression.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun requestDelete(game: GameListItem) {
         _uiState.update { state -> stateReducer.onRequestDelete(state, game) }
     }
 
+    /**
+     * Rôle : Ferme suppression dialogue.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissDeleteDialog() {
         _uiState.update { state -> stateReducer.onDismissDeleteDialog(state) }
     }
 
+    /**
+     * Rôle : Confirme suppression.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun confirmDelete() {
         val game = _uiState.value.pendingDeletion ?: return
         if (!_uiState.value.canManageGames) {
@@ -153,6 +222,13 @@ internal class GamesCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Rafraîchit jeux.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun refreshGames(infoMessage: String? = null) {
         viewModelScope.launch {
             hasPendingFilterRefresh = false
@@ -184,6 +260,13 @@ internal class GamesCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Charge next page.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun loadNextPage() {
         val currentState = _uiState.value
         if (currentState.isLoading ||
@@ -224,18 +307,46 @@ internal class GamesCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Consomme external rafraîchissement.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumeExternalRefresh(infoMessage: String?) {
         refreshGames(infoMessage = infoMessage)
     }
 
+    /**
+     * Rôle : Ferme information message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissInfoMessage() {
         _uiState.update { state -> stateReducer.onDismissInfoMessage(state) }
     }
 
+    /**
+     * Rôle : Ferme erreur message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissErrorMessage() {
         _uiState.update { state -> stateReducer.onDismissErrorMessage(state) }
     }
 
+    /**
+     * Rôle : Charge lookups.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun loadLookups() {
         viewModelScope.launch {
             val lookups = lookupsLoader.load()
@@ -243,11 +354,25 @@ internal class GamesCatalogViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action next demande version du module les jeux.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun nextRequestVersion(): Long {
         requestVersion += 1
         return requestVersion
     }
 
+    /**
+     * Rôle : Exécute l'action is latest demande du module les jeux.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun isLatestRequest(
         version: Long,
         filters: com.projetmobile.mobile.data.entity.games.GameFilters,

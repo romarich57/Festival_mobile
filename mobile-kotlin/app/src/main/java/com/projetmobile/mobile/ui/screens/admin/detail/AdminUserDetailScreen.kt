@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran l'administration détail et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.detail
 
 import androidx.compose.foundation.layout.Arrangement
@@ -121,6 +125,13 @@ internal fun AdminUserDetailScreen(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action administration utilisateur détail carte du module l'administration détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun AdminUserDetailCard(
     user: AuthUser,
     modifier: Modifier = Modifier,
@@ -148,6 +159,13 @@ private fun AdminUserDetailCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action détail champ du module l'administration détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun DetailField(
     label: String,
     value: String,

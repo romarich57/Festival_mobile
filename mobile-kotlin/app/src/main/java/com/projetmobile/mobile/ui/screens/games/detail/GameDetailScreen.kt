@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les jeux détail et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.background
@@ -156,6 +160,13 @@ internal fun GameDetailScreen(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu détail hero carte du module les jeux détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun GameDetailHeroCard(
     game: GameDetail,
     canManageGames: Boolean,
@@ -206,6 +217,13 @@ private fun GameDetailHeroCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu détail cover du module les jeux détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun GameDetailCover(
     game: GameDetail,
     modifier: Modifier = Modifier,
@@ -237,6 +255,13 @@ private fun GameDetailCover(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu détail hero content du module les jeux détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun GameDetailHeroContent(
     game: GameDetail,
     canManageGames: Boolean,
@@ -277,6 +302,13 @@ private fun GameDetailHeroContent(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu détail information carte du module les jeux détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun GameDetailInformationCard(game: GameDetail) {
     AuthCard(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -294,6 +326,13 @@ private fun GameDetailInformationCard(game: GameDetail) {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu détail champ du module les jeux détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun GameDetailField(
     label: String,
     value: String,

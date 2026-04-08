@@ -1,15 +1,25 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module les réservants.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import com.projetmobile.mobile.data.entity.games.GameListItem
 import com.projetmobile.mobile.data.entity.reservants.ReservantContact
 import com.projetmobile.mobile.data.entity.reservants.ReservantDetail
 
+/**
+ * Rôle : Décrit le composant réservant détail onglet du module les réservants.
+ */
 internal enum class ReservantDetailTab(val label: String) {
     Infos("Infos"),
     Contacts("Contacts"),
     Jeux("Jeux"),
 }
 
+/**
+ * Rôle : Décrit le composant réservant contact formulaire champs du module les réservants.
+ */
 internal data class ReservantContactFormFields(
     val name: String = "",
     val nameError: String? = null,
@@ -21,6 +31,13 @@ internal data class ReservantContactFormFields(
     val jobTitleError: String? = null,
     val priority: Int = 0,
 ) {
+    /**
+     * Rôle : Retourne l'état enrichi de champ erreurs.
+     *
+     * Précondition : Les données du module doivent être disponibles pour initialiser ou exposer l'état.
+     *
+     * Postcondition : L'objet retourné décrit un état cohérent et immuable.
+     */
     fun withFieldErrors(errors: ReservantContactFieldErrors): ReservantContactFormFields {
         return copy(
             nameError = errors.nameError,

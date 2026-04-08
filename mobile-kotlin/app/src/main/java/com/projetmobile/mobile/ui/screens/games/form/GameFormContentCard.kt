@@ -1,3 +1,10 @@
+/**
+ * Rôle : Intégration dans une Card de l'ensemble des champs métier du jeu.
+ *
+ * Précondition : Nécessite l'état complet et dynamique.
+ *
+ * Postcondition : Affiche le regroupement de sections d'édition ou d'affichage de jeu.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +18,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.AuthCard
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu formulaire content carte du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameFormContentCard(
     uiState: GameFormUiState,
     actions: GameFormActions,

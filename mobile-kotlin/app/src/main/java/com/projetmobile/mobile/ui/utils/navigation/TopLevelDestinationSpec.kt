@@ -16,6 +16,9 @@ import androidx.compose.material.icons.outlined.PersonAddAlt1
 import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.ui.graphics.vector.ImageVector
 
+/**
+ * Rôle : Décrit le composant top level destination spec du module navigation.
+ */
 data class TopLevelDestinationSpec(
     val tab: TopLevelTab,
     val label: String,
@@ -78,10 +81,24 @@ val topLevelDestinationSpecs = listOf(
 
 private val specByTab = topLevelDestinationSpecs.associateBy(TopLevelDestinationSpec::tab)
 
+/**
+ * Rôle : Exécute l'action spec for du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun specFor(tab: TopLevelTab): TopLevelDestinationSpec = checkNotNull(specByTab[tab]) {
     "No top-level destination spec found for $tab"
 }
 
+/**
+ * Rôle : Exécute l'action visible tabs du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun visibleTabs(isAuthenticated: Boolean, userRole: String?): List<TopLevelTab> {
     return when {
         !isAuthenticated -> listOf(TopLevelTab.Festivals, TopLevelTab.Login, TopLevelTab.Register)
@@ -102,10 +119,24 @@ fun visibleTabs(isAuthenticated: Boolean, userRole: String?): List<TopLevelTab> 
     }
 }
 
+/**
+ * Rôle : Exécute l'action is administration role du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun isAdminRole(userRole: String?): Boolean {
     return normalizeUserRole(userRole) == "admin"
 }
 
+/**
+ * Rôle : Exécute l'action normalize utilisateur role du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun normalizeUserRole(userRole: String?): String? {
     return userRole
         ?.trim()

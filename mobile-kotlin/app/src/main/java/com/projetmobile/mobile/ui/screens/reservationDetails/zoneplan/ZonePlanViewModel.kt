@@ -1,3 +1,10 @@
+/**
+ * Rôle : ViewModel principal orchestrant la vue du Plan de zone, du placement et des formulaires.
+ *
+ * Précondition : Accède aux cas d'utilisation des réservations et des plans distants.
+ *
+ * Postcondition : Pousse l'état global synchronisé sur l'affichage.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 
 import androidx.compose.runtime.getValue
@@ -16,6 +23,9 @@ import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
+/**
+ * Rôle : Porte l'état et la logique du module la zone plan des réservations.
+ */
 class ZonePlanViewModel(
     internal val zonePlanRepository: ZonePlanRepository,
     internal val reservationRepository: ReservationRepository,
@@ -24,6 +34,13 @@ class ZonePlanViewModel(
     var uiState: ZonePlanUiState by mutableStateOf(ZonePlanUiState.Loading)
         internal set
 
+    /**
+     * Rôle : Charge context.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun loadContext(reservationId: Int) {
         viewModelScope.launch {
             uiState = ZonePlanUiState.Loading
@@ -42,11 +59,25 @@ class ZonePlanViewModel(
         }
     }
 
+    /**
+     * Rôle : Réinitialise message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun clearMessage() {
         val current = uiState as? ZonePlanUiState.Success ?: return
         uiState = current.copy(userMessage = null)
     }
 
+    /**
+     * Rôle : Exécute l'action fetch état du module la zone plan des réservations.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     internal suspend fun fetchState(reservationId: Int, festivalId: Int): ZonePlanUiState.Success {
         val context = zonePlanRepository.getZonePlanContext(reservationId, festivalId)
         val reservedZtIds = context.reservedZonesTarifaires.map { it.zoneTarifaireId }.toSet()
@@ -140,14 +171,38 @@ class ZonePlanViewModel(
         )
     }
 
+    /**
+     * Rôle : Exécute l'action sanitize int du module la zone plan des réservations.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     internal fun sanitizeInt(value: String): String = value.filter { it.isDigit() }
 
+    /**
+     * Rôle : Exécute l'action sanitize decimal du module la zone plan des réservations.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     internal fun sanitizeDecimal(value: String): String =
         value.filter { it.isDigit() || it == '.' || it == ',' }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module la zone plan des réservations.
+     */
     companion object {
         internal const val M2_PER_TABLE = 4.5
 
+        /**
+         * Rôle : Exécute l'action factory du module la zone plan des réservations.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(
             zonePlanRepository: ZonePlanRepository,
             reservationRepository: ReservationRepository,

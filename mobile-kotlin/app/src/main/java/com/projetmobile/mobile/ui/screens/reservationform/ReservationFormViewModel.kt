@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module le formulaire de réservation pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservationform
 
 import androidx.lifecycle.ViewModel
@@ -37,6 +41,13 @@ class ReservationFormViewModel(
         refreshReservants()
     }
 
+    /**
+     * Rôle : Gère la modification du champ use existing réservant.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onUseExistingReservantChanged(useExisting: Boolean) {
         val currentState = _uiState.value
         val selectedReservant = currentState.selectedReservantId
@@ -44,6 +55,7 @@ class ReservationFormViewModel(
 
         _uiState.value = currentState.copy(
             useExistingReservant = useExisting,
+            // Quand on bascule vers un réservant existant, on réinjecte ses champs pour garder le formulaire cohérent.
             nom = if (useExisting && selectedReservant != null) selectedReservant.name else currentState.nom,
             email = if (useExisting && selectedReservant != null) selectedReservant.email else currentState.email,
             type = if (useExisting && selectedReservant != null) selectedReservant.type else currentState.type,
@@ -51,11 +63,19 @@ class ReservationFormViewModel(
         )
     }
 
+    /**
+     * Rôle : Gère la modification du champ selected réservant.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onSelectedReservantChanged(reservantId: Int) {
         val currentState = _uiState.value
         val selectedReservant = currentState.reservantOptions.firstOrNull { it.id == reservantId } ?: return
 
         _uiState.value = currentState.copy(
+            // Une sélection valide synchronise immédiatement les champs dérivés affichés dans l'UI.
             selectedReservantId = reservantId,
             nom = selectedReservant.name,
             email = selectedReservant.email,
@@ -64,22 +84,51 @@ class ReservationFormViewModel(
         )
     }
 
+    /**
+     * Rôle : Gère la modification du champ nom.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onNomChanged(nom: String) {
         _uiState.value = _uiState.value.copy(nom = nom)
     }
 
+    /**
+     * Rôle : Gère la modification du champ email.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEmailChanged(email: String) {
         _uiState.value = _uiState.value.copy(email = email)
     }
 
+    /**
+     * Rôle : Gère la modification du champ type.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onTypeChanged(type: String) {
         _uiState.value = _uiState.value.copy(type = type)
     }
 
+    /**
+     * Rôle : Crée réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun createReservation(festivalId: Int) {
         val state = _uiState.value
 
         if (state.useExistingReservant && state.selectedReservantId == null) {
+            // Le mode "réservant existant" est invalide sans sélection explicite.
             _uiState.value = state.copy(
                 errorMessage = "Sélectionnez un réservant existant ou passez en mode nouveau réservant.",
             )
@@ -87,6 +136,7 @@ class ReservationFormViewModel(
         }
 
         if (!state.useExistingReservant && (state.nom.isBlank() || state.email.isBlank() || state.type.isBlank())) {
+            // Le mode de création libre exige toutes les informations minimales avant l'appel réseau.
             _uiState.value = state.copy(
                 errorMessage = "Nom, email et type sont obligatoires pour créer un nouveau réservant.",
             )
@@ -111,6 +161,7 @@ class ReservationFormViewModel(
         val reservantType = if (state.useExistingReservant) {
             selectedReservant?.type.orEmpty()
         } else {
+            // Le type envoyé à l'API est normalisé pour rester stable quel que soit le libellé affiché.
             state.type.trim().lowercase(Locale.ROOT)
         }
 
@@ -138,13 +189,28 @@ class ReservationFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action réinitialisation success du module le formulaire de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun resetSuccess() {
         _uiState.value = _uiState.value.copy(isSuccess = false)
     }
 
+    /**
+     * Rôle : Exécute l'action observe réservants du module le formulaire de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun observeReservants() {
         viewModelScope.launch {
             reservantsRepository.observeReservants().collect { reservants ->
+                // Les options sont triées avant toute synchronisation pour conserver une liste déterministe.
                 val sortedReservants = sortReservants(reservants)
                 val currentState = _uiState.value
                 val selectedReservantId = currentState.selectedReservantId
@@ -164,6 +230,13 @@ class ReservationFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Rafraîchit réservants.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun refreshReservants() {
         viewModelScope.launch {
             reservantsRepository.refreshReservants().onFailure {
@@ -176,6 +249,13 @@ class ReservationFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action tri réservants du module le formulaire de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun sortReservants(reservants: List<ReservantListItem>): List<ReservantListItem> {
         return reservants.sortedWith(
             compareBy<ReservantListItem>(
@@ -186,7 +266,17 @@ class ReservationFormViewModel(
         )
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module le formulaire de réservation.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module le formulaire de réservation.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(
             reservationRepository: ReservationRepository,
             reservantsRepository: ReservantsRepository,

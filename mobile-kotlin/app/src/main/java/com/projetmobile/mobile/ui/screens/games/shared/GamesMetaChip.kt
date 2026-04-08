@@ -1,3 +1,8 @@
+/**
+ * Rôle : Fournit un chip visuel réutilisable pour afficher une meta-information courte dans les écrans de jeux.
+ * Précondition : Le texte à afficher doit déjà être formaté pour tenir dans un badge compact.
+ * Postcondition : L'UI reçoit un élément arrondi et lisible pour signaler une propriété de jeu.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.background
@@ -14,6 +19,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @Composable
+/**
+ * Rôle : Affiche un badge compact de meta-donnée dans les écrans de jeux.
+ * Précondition : `text` doit contenir une information courte et contextuelle.
+ * Postcondition : Le texte est rendu sous forme de chip avec un style cohérent avec le thème de l'application.
+ */
 internal fun GamesMetaChip(
     text: String,
     modifier: Modifier = Modifier,

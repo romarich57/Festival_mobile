@@ -21,6 +21,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.AuthCard
 
 @Composable
+/**
+ * Rôle : Exécute l'action register écran du module l'authentification.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 fun RegisterScreen(
     uiState: RegisterUiState,
     onUsernameChanged: (String) -> Unit,

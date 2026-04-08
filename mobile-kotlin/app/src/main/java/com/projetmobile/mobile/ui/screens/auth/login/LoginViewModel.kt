@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Porte l'état et la logique du module l'authentification.
+ */
 class LoginViewModel(
     private val authRepository: AuthRepository,
 ) : ViewModel() {
@@ -36,6 +39,13 @@ class LoginViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ identifier.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onIdentifierChanged(value: String) {
         _uiState.update { state ->
             state.copy(
@@ -47,6 +57,13 @@ class LoginViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ mot de passe.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPasswordChanged(value: String) {
         _uiState.update { state ->
             state.copy(
@@ -57,6 +74,13 @@ class LoginViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action submit identifiant du module l'authentification.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun submitLogin() {
         val currentState = _uiState.value
         val validation = AuthFormValidator.validateLogin(
@@ -99,6 +123,13 @@ class LoginViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action resend verification du module l'authentification.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun resendVerification() {
         val emailCandidate = _uiState.value.identifier.trim()
         val validation = AuthFormValidator.validateResendVerification(emailCandidate)
@@ -134,13 +165,30 @@ class LoginViewModel(
         }
     }
 
+    /**
+     * Rôle : Consomme authenticated utilisateur.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumeAuthenticatedUser() {
         _uiState.update { state ->
             state.copy(authenticatedUser = null, password = "", isLoading = false)
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module l'authentification.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module l'authentification.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(authRepository: AuthRepository): ViewModelProvider.Factory {
             return viewModelFactory {
                 initializer {

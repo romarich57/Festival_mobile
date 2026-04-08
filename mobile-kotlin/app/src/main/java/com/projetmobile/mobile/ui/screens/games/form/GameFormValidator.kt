@@ -1,15 +1,45 @@
+/**
+ * Rôle : Mécanisme de validation asynchrone ou synchrone du formulaire de jeu.
+ *
+ * Précondition : Doit vérifier la concordance et validité de types (ex: durée, prix, joueurs).
+ *
+ * Postcondition : Confirme au ViewModel s'il est possible de Post l'entité vers l'API.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
+/**
+ * Rôle : Décrit le composant jeu formulaire validation result du module les jeux formulaire.
+ */
 internal data class GameFormValidationResult(
     val fields: GameFormFields,
     val isValid: Boolean,
 )
 
+/**
+ * Rôle : Définit le contrat du module les jeux formulaire.
+ */
 internal interface GameFormValidator {
+    /**
+     * Rôle : Valide .
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     fun validate(fields: GameFormFields): GameFormValidationResult
 }
 
+/**
+ * Rôle : Décrit le composant default jeu formulaire validator du module les jeux formulaire.
+ */
 internal class DefaultGameFormValidator : GameFormValidator {
+    /**
+     * Rôle : Valide .
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     override fun validate(fields: GameFormFields): GameFormValidationResult {
         var nextFields = fields.copy(
             titleError = null,

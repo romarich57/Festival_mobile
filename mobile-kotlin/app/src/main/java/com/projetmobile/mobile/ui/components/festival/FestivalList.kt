@@ -22,15 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.data.entity.festival.FestivalSummary
 
 /**
- * Liste des festivals.
+ * Rôle : Ordonne l'en-tête, les états de chargement ou d'erreur, la liste des cartes et le bouton de création des festivals.
  *
- * Traduction du FestivalListComponent Angular :
- *  - Ne connaît PAS le ViewModel.
- *  - Reçoit les données et callbacks depuis FestivalScreen.
- *  - `canAdd`     = droit de création selon le rôle courant
- *  - `onAddClick` = navigue vers FestivalFormScreen via FestivalScreen
+ * Précondition : La liste, les flags d'état et les callbacks doivent être fournis par l'écran parent.
  *
- * Principe S : itérer sur la liste + déléguer à FestivalCard. Rien d'autre.
+ * Postcondition : L'écran affiche le bon état visuel et relaie les interactions utilisateur vers le parent.
  */
 @Composable
 fun FestivalList(

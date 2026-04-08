@@ -1,3 +1,10 @@
+/**
+ * Rôle : Conteneur des boutons clés d'interaction en bout de formulaire (Annuler / Sauvegarder).
+ *
+ * Précondition : Nécessite la configuration des actions ViewModel.
+ *
+ * Postcondition : Déclenche l'un des intents finaux.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +20,13 @@ import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 import com.projetmobile.mobile.ui.components.PrimaryAuthButtonTone
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu formulaire action buttons du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameFormActionButtons(
     isEditMode: Boolean,
     isSaving: Boolean,

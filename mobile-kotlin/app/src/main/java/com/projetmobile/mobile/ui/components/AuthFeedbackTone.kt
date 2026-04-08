@@ -5,6 +5,9 @@
  */
 package com.projetmobile.mobile.ui.components
 
+/**
+ * Rôle : Décrit le composant auth feedback tone du module components.
+ */
 enum class AuthFeedbackTone {
     Success,
     Error,

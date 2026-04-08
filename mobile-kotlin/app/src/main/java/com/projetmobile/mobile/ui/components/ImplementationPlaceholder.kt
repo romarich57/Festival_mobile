@@ -16,6 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
+/**
+ * Rôle : Exécute l'action implementation placeholder du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun ImplementationPlaceholder(
     modifier: Modifier = Modifier,
 ) {

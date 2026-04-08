@@ -1,8 +1,25 @@
+/**
+ * Rôle : Mapper pour convertir le flux d'état du formulaire vers un objet réseau "Draft" Game.
+ *
+ * Précondition : Le formulaire doit être dans un état de validation de succès.
+ *
+ * Postcondition : Retourne la requête JSON/DTO attendue par le backend.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import com.projetmobile.mobile.data.entity.games.GameDraft
 
+/**
+ * Rôle : Définit le contrat du module les jeux formulaire.
+ */
 internal interface GameFormDraftMapper {
+    /**
+     * Rôle : Exécute l'action to draft du module les jeux formulaire.
+     *
+     * Précondition : La source à transformer ou à analyser doit être fournie.
+     *
+     * Postcondition : Le résultat retourné est normalisé et exploitable par l'UI.
+     */
     fun toDraft(
         fields: GameFormFields,
         imageSourceMode: GameImageSourceMode,
@@ -10,7 +27,17 @@ internal interface GameFormDraftMapper {
     ): GameDraft
 }
 
+/**
+ * Rôle : Décrit le composant default jeu formulaire draft mapper du module les jeux formulaire.
+ */
 internal class DefaultGameFormDraftMapper : GameFormDraftMapper {
+    /**
+     * Rôle : Exécute l'action to draft du module les jeux formulaire.
+     *
+     * Précondition : La source à transformer ou à analyser doit être fournie.
+     *
+     * Postcondition : Le résultat retourné est normalisé et exploitable par l'UI.
+     */
     override fun toDraft(
         fields: GameFormFields,
         imageSourceMode: GameImageSourceMode,

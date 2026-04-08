@@ -1,3 +1,9 @@
+/**
+ * Rôle : Propose un sélecteur déroulant réutilisable pour les écrans de jeux.
+ * Ce composant unifie l'apparence des menus de choix simples dans les formulaires et les filtres.
+ * Précondition : L'appelant doit fournir un label, une valeur affichée et les options disponibles.
+ * Postcondition : L'utilisateur peut ouvrir la liste et sélectionner une valeur qui sera renvoyée via le callback.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Box
@@ -24,6 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
+/**
+ * Rôle : Affiche un menu déroulant stylisé pour choisir une valeur parmi une liste d'options de jeu.
+ * Précondition : `options` doit contenir des paires libellé/valeur cohérentes avec `selectedLabel`.
+ * Postcondition : Le callback `onValueSelected` est appelé avec l'option choisie et le menu se referme.
+ */
 internal fun <T> GamesDropdownSelector(
     label: String,
     selectedLabel: String,

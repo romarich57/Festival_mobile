@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module les réservations pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservation
 
 import androidx.lifecycle.ViewModel
@@ -49,6 +53,13 @@ class ReservationDashboardViewModel(
 
     private var observationFestivalId: Int? = null
 
+    /**
+     * Rôle : Charge réservations.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun loadReservations(festivalId: Int) {
         // Lance l'observation Room si pas encore démarrée pour ce festival
         if (observationFestivalId != festivalId) {
@@ -79,6 +90,13 @@ class ReservationDashboardViewModel(
         }
     }
 
+    /**
+     * Rôle : Supprime réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun deleteReservation(reservationId: Int, festivalId: Int) {
         viewModelScope.launch {
             repository.deleteReservation(reservationId)
@@ -89,7 +107,17 @@ class ReservationDashboardViewModel(
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module les réservations.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module les réservations.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(repository: ReservationRepository): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 ReservationDashboardViewModel(repository)

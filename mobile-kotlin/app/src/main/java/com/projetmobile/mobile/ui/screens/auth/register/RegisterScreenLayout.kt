@@ -29,6 +29,9 @@ import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.components.InlineAuthLinkButton
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
+/**
+ * Rôle : Décrit le composant register layout mode du module l'authentification.
+ */
 internal enum class RegisterLayoutMode {
     Standard,
     Compact,
@@ -36,6 +39,13 @@ internal enum class RegisterLayoutMode {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action register champs section du module l'authentification.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun RegisterFieldsSection(
     uiState: RegisterUiState,
     onUsernameChanged: (String) -> Unit,
@@ -125,6 +135,13 @@ internal fun RegisterFieldsSection(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action register actions section du module l'authentification.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun RegisterActionsSection(
     uiState: RegisterUiState,
     onSubmit: () -> Unit,
@@ -186,6 +203,13 @@ internal fun RegisterActionsSection(
     }
 }
 
+/**
+ * Rôle : Exécute l'action register layout mode for du module l'authentification.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun registerLayoutModeFor(maxHeight: Dp): RegisterLayoutMode {
     return when {
         maxHeight >= 660.dp -> RegisterLayoutMode.Standard

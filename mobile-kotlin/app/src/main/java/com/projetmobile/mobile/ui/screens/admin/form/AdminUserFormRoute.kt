@@ -1,3 +1,10 @@
+/**
+ * Rôle : Route d'entrée pour le formulaire utilisateur côté administrateur (création ou édition).
+ *
+ * Précondition : Le composant NavHost doit fournir les paramètres de navigation, tels que l'ID utilisateur (si édition).
+ *
+ * Postcondition : Affiche le formulaire utilisateur avec les données initialisées en s'appuyant sur un ViewModel.
+ */
 package com.projetmobile.mobile.ui.screens.admin.form
 
 import androidx.compose.runtime.Composable
@@ -9,6 +16,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.projetmobile.mobile.data.repository.admin.AdminRepository
 
 @Composable
+/**
+ * Rôle : Exécute l'action administration utilisateur formulaire route du module l'administration formulaire.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 internal fun AdminUserFormRoute(
     adminRepository: AdminRepository,
     mode: AdminUserFormMode,

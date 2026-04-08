@@ -1,3 +1,10 @@
+/**
+ * Rôle : Différents écrans et sections liés à la page principale de l'utilisateur.
+ *
+ * Précondition : L'état chargé contient un profil défini et synchronisé avec le backend.
+ *
+ * Postcondition : L'affichage est structuré formellement dans des Card MaterialDesign.
+ */
 package com.projetmobile.mobile.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +22,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.AuthCard
 
 @Composable
+/**
+ * Rôle : Exécute l'action chargement profil carte du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun LoadingProfileCard() {
     AuthCard {
         Column(
@@ -35,6 +49,13 @@ internal fun LoadingProfileCard() {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action empty profil carte du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun EmptyProfileCard() {
     AuthCard {
         Column(

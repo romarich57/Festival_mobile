@@ -1,3 +1,10 @@
+/**
+ * Rôle : Row structurant un champ et son label à l'horizontal pour le mode édition.
+ *
+ * Précondition : Le parent a la place pour afficher plusieurs informations tabulaires.
+ *
+ * Postcondition : Layout unitaire d'un label textuel à côté d'un textField.
+ */
 package com.projetmobile.mobile.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +30,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.FestivalTextField
 
 @Composable
+/**
+ * Rôle : Exécute l'action profil editable champ row du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun ProfileEditableFieldRow(
     label: String,
     value: String,
@@ -61,6 +75,13 @@ internal fun ProfileEditableFieldRow(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action profil read only champ row du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun ProfileReadOnlyFieldRow(
     label: String,
     value: String,
@@ -76,6 +97,13 @@ internal fun ProfileReadOnlyFieldRow(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action profil value row du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun ProfileValueRow(
     label: String,
     value: String,

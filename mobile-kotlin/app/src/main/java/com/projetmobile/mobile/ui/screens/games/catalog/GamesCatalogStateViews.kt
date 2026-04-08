@@ -1,3 +1,10 @@
+/**
+ * Rôle : Différents états statiques (Loading, Error, Empty) du composant Catalogue.
+ *
+ * Précondition : L'état LiveData actuel remonte via StateFlow.
+ *
+ * Postcondition : Transitions dynamiques avec UI Shimmer, Toast ou textes alternatifs.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +26,13 @@ import com.projetmobile.mobile.data.entity.games.GameListItem
 import com.projetmobile.mobile.ui.components.AuthCard
 
 @Composable
+/**
+ * Rôle : Exécute l'action chargement jeux carte du module les jeux catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun LoadingGamesCard() {
     AuthCard(modifier = Modifier.fillMaxWidth()) {
         Box(
@@ -33,6 +47,13 @@ internal fun LoadingGamesCard() {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action empty jeux carte du module les jeux catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun EmptyGamesCard() {
     AuthCard(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -55,6 +76,13 @@ internal fun EmptyGamesCard() {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeux suppression dialogue du module les jeux catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GamesDeleteDialog(
     pendingDeletion: GameListItem,
     onDismissDeleteDialog: () -> Unit,

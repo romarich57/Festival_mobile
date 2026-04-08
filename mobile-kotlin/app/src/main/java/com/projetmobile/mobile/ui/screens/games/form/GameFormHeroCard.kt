@@ -1,3 +1,10 @@
+/**
+ * Rôle : Encart principal en haut d'édition contenant le titre, le nom localisé et le summary.
+ *
+ * Précondition : Contexte de FormUI State.
+ *
+ * Postcondition : Encadre visuellement les données maîtresses et identifiantes du jeu.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +28,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.AuthCard
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu formulaire hero carte du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameFormHeroCard(
     mode: GameFormMode,
     gameTitle: String,

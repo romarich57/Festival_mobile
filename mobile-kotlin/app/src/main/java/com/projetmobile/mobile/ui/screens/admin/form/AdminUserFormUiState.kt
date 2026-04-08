@@ -1,12 +1,28 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module l'administration formulaire.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.form
 
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 
+/**
+ * Rôle : Définit le contrat du module l'administration formulaire.
+ */
 sealed interface AdminUserFormMode {
+    /**
+     * Rôle : Expose un singleton de support pour le module l'administration formulaire.
+     */
     data object Create : AdminUserFormMode
+    /**
+     * Rôle : Décrit le composant édition du module l'administration formulaire.
+     */
     data class Edit(val userId: Int) : AdminUserFormMode
 }
 
+/**
+ * Rôle : Décrit l'état immuable du module l'administration formulaire.
+ */
 data class AdminUserFormState(
     val login: String = "",
     val password: String = "",
@@ -41,6 +57,13 @@ data class AdminUserFormUiState(
     val savedSuccessfully: Boolean = false,
 )
 
+/**
+ * Rôle : Exécute l'action formulaire état from du module l'administration formulaire.
+ *
+ * Précondition : Les données du module doivent être disponibles pour initialiser ou exposer l'état.
+ *
+ * Postcondition : L'objet retourné décrit un état cohérent et immuable.
+ */
 internal fun formStateFrom(user: AuthUser) = AdminUserFormState(
     login = user.login,
     firstName = user.firstName,

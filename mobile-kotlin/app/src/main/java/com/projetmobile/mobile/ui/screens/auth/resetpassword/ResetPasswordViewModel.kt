@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Porte l'état et la logique du module l'authentification.
+ */
 class ResetPasswordViewModel(
     private val authRepository: AuthRepository,
     initialToken: String?,
@@ -35,6 +38,13 @@ class ResetPasswordViewModel(
     )
     val uiState: StateFlow<ResetPasswordUiState> = _uiState.asStateFlow()
 
+    /**
+     * Rôle : Gère la modification du champ mot de passe.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPasswordChanged(value: String) {
         _uiState.update { state ->
             state.copy(
@@ -46,6 +56,13 @@ class ResetPasswordViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ confirmation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onConfirmationChanged(value: String) {
         _uiState.update { state ->
             state.copy(
@@ -57,6 +74,13 @@ class ResetPasswordViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action submit mot de passe réinitialisation du module l'authentification.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun submitPasswordReset() {
         val currentState = _uiState.value
         if (currentState.isTokenMissing) {
@@ -111,7 +135,17 @@ class ResetPasswordViewModel(
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module l'authentification.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module l'authentification.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(
             authRepository: AuthRepository,
             initialToken: String?,

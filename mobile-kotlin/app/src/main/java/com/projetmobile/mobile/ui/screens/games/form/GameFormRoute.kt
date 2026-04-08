@@ -1,3 +1,10 @@
+/**
+ * Rôle : Structure de navigation racine pour l'écran du formulaire de jeu.
+ *
+ * Précondition : Instancié par le NavGraph avec ou sans ID (création/édition).
+ *
+ * Postcondition : Permet à UI global de construire le composable Form et son ViewModel.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.runtime.Composable
@@ -9,6 +16,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.projetmobile.mobile.data.repository.games.GamesRepository
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu formulaire route du module les jeux formulaire.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 internal fun GameFormRoute(
     gamesRepository: GamesRepository,
     mode: GameFormMode,

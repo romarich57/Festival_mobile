@@ -1,3 +1,10 @@
+/**
+ * Rôle : ViewModel gérant la tarification d'une réservation et le calcul des montants dus.
+ *
+ * Précondition : La réservation parente doit exister et ses montants de facturation récupérés via les APIs.
+ *
+ * Postcondition : Permet au composant ReservationTarifaireTab d'afficher sa vérité d'état sans erreur.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails
 
 import androidx.compose.runtime.getValue
@@ -15,6 +22,9 @@ import com.projetmobile.mobile.data.repository.festival.FestivalRepository
 import com.projetmobile.mobile.data.repository.reservation.ReservationRepository
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Porte l'état et la logique du module les détails de réservation.
+ */
 class ReservationTarifaireViewModel(
     private val reservationRepository: ReservationRepository,
     private val festivalRepository: FestivalRepository,
@@ -23,6 +33,13 @@ class ReservationTarifaireViewModel(
     var uiState: ReservationTarifaireUiState by mutableStateOf(ReservationTarifaireUiState.Loading)
         private set
 
+    /**
+     * Rôle : Charge réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun loadReservation(reservationId: Int) {
         viewModelScope.launch {
             uiState = ReservationTarifaireUiState.Loading
@@ -38,6 +55,13 @@ class ReservationTarifaireViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ zone tables.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onZoneTablesChanged(zoneId: Int, value: String) {
         val current = uiState as? ReservationTarifaireUiState.Success ?: return
         val sanitized = sanitizeIntInput(value)
@@ -48,31 +72,73 @@ class ReservationTarifaireViewModel(
         )
     }
 
+    /**
+     * Rôle : Gère la modification du champ nb prises.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onNbPrisesChanged(value: String) {
         val current = uiState as? ReservationTarifaireUiState.Success ?: return
         uiState = current.copy(nbPrises = sanitizeIntInput(value))
     }
 
+    /**
+     * Rôle : Gère la modification du champ table discount.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onTableDiscountChanged(value: String) {
         val current = uiState as? ReservationTarifaireUiState.Success ?: return
         uiState = current.copy(tableDiscountOffered = sanitizeDecimalInput(value))
     }
 
+    /**
+     * Rôle : Gère la modification du champ direct discount.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onDirectDiscountChanged(value: String) {
         val current = uiState as? ReservationTarifaireUiState.Success ?: return
         uiState = current.copy(directDiscount = sanitizeDecimalInput(value))
     }
 
+    /**
+     * Rôle : Gère la modification du champ note.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onNoteChanged(value: String) {
         val current = uiState as? ReservationTarifaireUiState.Success ?: return
         uiState = current.copy(note = value)
     }
 
+    /**
+     * Rôle : Réinitialise message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun clearMessage() {
         val current = uiState as? ReservationTarifaireUiState.Success ?: return
         uiState = current.copy(userMessage = null)
     }
 
+    /**
+     * Rôle : Enregistre réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun saveReservation(reservationId: Int) {
         val current = uiState as? ReservationTarifaireUiState.Success ?: return
         viewModelScope.launch {
@@ -110,6 +176,13 @@ class ReservationTarifaireViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action fetch état du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private suspend fun fetchState(reservationId: Int): ReservationTarifaireUiState.Success {
         val reservationDetails = reservationRepository.getReservationDetails(reservationId)
         val zones = reservationRepository.getZonesTarifaires(reservationDetails.festivalId)
@@ -142,23 +215,58 @@ class ReservationTarifaireViewModel(
         )
     }
 
+    /**
+     * Rôle : Exécute l'action sanitize int input du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun sanitizeIntInput(value: String): String {
         return value.filter { it.isDigit() }
     }
 
+    /**
+     * Rôle : Exécute l'action sanitize decimal input du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun sanitizeDecimalInput(value: String): String {
         return value.filter { it.isDigit() || it == '.' || it == ',' }
     }
 
+    /**
+     * Rôle : Exécute l'action parse int input du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun parseIntInput(value: String): Int {
         return value.toIntOrNull() ?: 0
     }
 
+    /**
+     * Rôle : Exécute l'action parse double input du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun parseDoubleInput(value: String): Double {
         val normalized = value.replace(',', '.')
         return normalized.toDoubleOrNull() ?: 0.0
     }
 
+    /**
+     * Rôle : Exécute l'action number to input du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun numberToInput(value: Double): String {
         return if (value % 1.0 == 0.0) {
             value.toInt().toString()
@@ -167,6 +275,13 @@ class ReservationTarifaireViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action compute résumé du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun computeSummary(state: ReservationTarifaireUiState.Success): ReservationSummary {
         val zonePayloads = state.zones
             .mapNotNull { zone ->
@@ -204,6 +319,9 @@ class ReservationTarifaireViewModel(
         )
     }
 
+    /**
+     * Rôle : Décrit le composant réservation résumé du module les détails de réservation.
+     */
     data class ReservationSummary(
         val startPrice: Double,
         val finalPrice: Double,
@@ -213,7 +331,17 @@ class ReservationTarifaireViewModel(
         val zonePayloads: List<ReservationZoneUpdateDto>,
     )
 
+    /**
+     * Rôle : Expose un singleton de support pour le module les détails de réservation.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module les détails de réservation.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(
             reservationRepository: ReservationRepository,
             festivalRepository: FestivalRepository,

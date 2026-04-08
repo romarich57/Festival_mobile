@@ -21,6 +21,13 @@ import com.projetmobile.mobile.ui.components.AuthLinkButton
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
+/**
+ * Rôle : Exécute l'action en attente verification écran du module l'authentification emailverification.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 fun PendingVerificationScreen(
     uiState: PendingVerificationUiState,
     onResendVerification: () -> Unit,

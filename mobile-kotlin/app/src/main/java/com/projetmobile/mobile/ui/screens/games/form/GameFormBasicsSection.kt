@@ -1,3 +1,10 @@
+/**
+ * Rôle : Isole les champs de configuration de base du jeu (Type, Joueurs, Âge, Durée).
+ *
+ * Précondition : Avoir accès aux menus déroulants et pickers pertinents.
+ *
+ * Postcondition : Rendre dynamiquement ces éléments obligatoires.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +28,13 @@ import com.projetmobile.mobile.data.entity.games.GameTypeOption
 import com.projetmobile.mobile.ui.components.FestivalTextField
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu formulaire basics section du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameFormBasicsSection(
     fields: GameFormFields,
     availableTypes: List<GameTypeOption>,
@@ -59,6 +73,7 @@ internal fun GameFormBasicsSection(
     )
 
     if (availableTypes.isNotEmpty()) {
+        // Les suggestions évitent de ressaisir un type déjà connu du référentiel.
         GameTypeSuggestionsRow(
             types = availableTypes,
             selectedType = fields.type,
@@ -78,6 +93,7 @@ internal fun GameFormBasicsSection(
             .testTag("game-editor-field"),
     )
     if (fields.editorError != null) {
+        // L'erreur d'éditeur est affichée juste sous le sélecteur pour rester liée au bon champ.
         Text(
             text = fields.editorError,
             color = Color(0xFFB42318),
@@ -114,6 +130,7 @@ internal fun GameFormBasicsSection(
             checked = fields.prototype,
             onCheckedChange = actions.onPrototypeChanged,
         )
+        // Le statut prototype influence surtout l'affichage, donc il reste compact dans une ligne dédiée.
         Text(
             text = "Prototype",
             style = MaterialTheme.typography.titleMedium,

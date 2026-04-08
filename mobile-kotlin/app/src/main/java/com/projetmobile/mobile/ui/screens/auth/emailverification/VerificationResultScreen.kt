@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran l'authentification emailverification et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.auth.emailverification
 
 import androidx.compose.foundation.layout.Arrangement

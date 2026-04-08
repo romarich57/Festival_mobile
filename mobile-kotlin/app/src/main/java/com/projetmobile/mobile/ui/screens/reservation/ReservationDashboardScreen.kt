@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les réservations et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservation
 
 import androidx.compose.foundation.layout.*
@@ -36,6 +40,7 @@ fun ReservationDashboardScreen(
     var idToDelete by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(festivalId) {
+        // Chaque changement de festival recharge la liste et réinitialise le contexte du dashboard.
         onLoadReservations(festivalId)
     }
     Scaffold(
@@ -102,6 +107,7 @@ fun ReservationDashboardScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             when {
+                // Le dashboard conserve trois états lisibles: chargement, erreur et liste filtrée.
                 uiState.isLoading -> CircularProgressIndicator()
                 uiState.errorMessage != null -> Text(
                     text = "Erreur: ${uiState.errorMessage}",
@@ -126,6 +132,7 @@ fun ReservationDashboardScreen(
             }
 
             if (showDeleteDialog) {
+                // La suppression reste confirmée dans un dialogue dédié pour éviter les clics accidentels.
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
                     title = { Text("Confirmer la suppression") },

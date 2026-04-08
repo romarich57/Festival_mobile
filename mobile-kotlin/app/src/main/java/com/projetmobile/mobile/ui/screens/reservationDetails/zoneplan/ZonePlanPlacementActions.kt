@@ -1,3 +1,10 @@
+/**
+ * Rôle : Gère les événements d'actions liées au placement sur le plan (éditer prix, chaises).
+ *
+ * Précondition : Différencie l'action d'édition de celle de soumission ou d'annulation.
+ *
+ * Postcondition : Informe le réducteur ou viewModel de la volonté du joueur ou de l'admin.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 
 import androidx.lifecycle.viewModelScope
@@ -8,6 +15,13 @@ import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
+/**
+ * Rôle : Ouvre le formulaire de placement pour une zone de plan donnée.
+ *
+ * Précondition : Le ViewModel doit être dans un état succès et `zonePlanId` doit identifier une zone existante.
+ *
+ * Postcondition : Le formulaire de placement devient visible avec un état initial cohérent.
+ */
 fun ZonePlanViewModel.openPlacementForm(zonePlanId: Int) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -16,11 +30,25 @@ fun ZonePlanViewModel.openPlacementForm(zonePlanId: Int) {
     )
 }
 
+/**
+ * Rôle : Ferme le formulaire de placement sans modifier les allocations existantes.
+ *
+ * Précondition : Le formulaire de placement doit être potentiellement ouvert dans un état succès.
+ *
+ * Postcondition : L'UI masque le formulaire de placement.
+ */
 fun ZonePlanViewModel.closePlacementForm() {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(showPlacementForm = false)
 }
 
+/**
+ * Rôle : Bascule entre un placement simple et un placement lié à un jeu.
+ *
+ * Précondition : Le formulaire de placement doit être actif dans un état succès.
+ *
+ * Postcondition : Le mode sélectionné est mis à jour et la sélection de jeu est réinitialisée si nécessaire.
+ */
 fun ZonePlanViewModel.onWithGameChanged(value: Boolean) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -31,6 +59,13 @@ fun ZonePlanViewModel.onWithGameChanged(value: Boolean) {
     )
 }
 
+/**
+ * Rôle : Enregistre l'allocation de jeu sélectionnée pour le formulaire de placement.
+ *
+ * Précondition : Le formulaire doit être en mode lié à un jeu.
+ *
+ * Postcondition : L'identifiant sélectionné est stocké dans l'état du formulaire.
+ */
 fun ZonePlanViewModel.onGameSelected(allocationId: Int) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -38,6 +73,13 @@ fun ZonePlanViewModel.onGameSelected(allocationId: Int) {
     )
 }
 
+/**
+ * Rôle : Met à jour le nombre de places par exemplaire affiché dans le formulaire.
+ *
+ * Précondition : Le formulaire doit être actif et la saisie peut contenir des séparateurs décimaux.
+ *
+ * Postcondition : La valeur est nettoyée puis stockée dans l'état de formulaire.
+ */
 fun ZonePlanViewModel.onPlacePerCopyChanged(value: String) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -45,6 +87,13 @@ fun ZonePlanViewModel.onPlacePerCopyChanged(value: String) {
     )
 }
 
+/**
+ * Rôle : Met à jour le nombre d'exemplaires saisis pour un jeu à placer.
+ *
+ * Précondition : Le formulaire doit être actif et la valeur saisie doit être interprétée comme un nombre.
+ *
+ * Postcondition : La valeur est nettoyée puis stockée dans l'état de formulaire.
+ */
 fun ZonePlanViewModel.onNbCopiesChanged(value: String) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -52,6 +101,13 @@ fun ZonePlanViewModel.onNbCopiesChanged(value: String) {
     )
 }
 
+/**
+ * Rôle : Met à jour le type de table utilisé par le placement.
+ *
+ * Précondition : Le formulaire de placement doit être visible.
+ *
+ * Postcondition : Le type de table courant est remplacé par la nouvelle valeur saisie.
+ */
 fun ZonePlanViewModel.onTableTypeChanged(value: String) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -59,6 +115,13 @@ fun ZonePlanViewModel.onTableTypeChanged(value: String) {
     )
 }
 
+/**
+ * Rôle : Met à jour le nombre de chaises associé au placement.
+ *
+ * Précondition : Le formulaire doit être actif et la saisie peut contenir des caractères à nettoyer.
+ *
+ * Postcondition : La valeur nettoyée est stockée dans le formulaire.
+ */
 fun ZonePlanViewModel.onChairsChanged(value: String) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -66,6 +129,13 @@ fun ZonePlanViewModel.onChairsChanged(value: String) {
     )
 }
 
+/**
+ * Rôle : Met à jour le nombre de tables saisi pour un placement simple.
+ *
+ * Précondition : Le formulaire de placement doit être actif.
+ *
+ * Postcondition : La valeur numérique nettoyée est conservée dans le formulaire.
+ */
 fun ZonePlanViewModel.onNbTablesChanged(value: String) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -73,6 +143,13 @@ fun ZonePlanViewModel.onNbTablesChanged(value: String) {
     )
 }
 
+/**
+ * Rôle : Active ou désactive la saisie de surface en mètres carrés pour le placement.
+ *
+ * Précondition : Le formulaire doit être ouvert et en état succès.
+ *
+ * Postcondition : Le mode de saisie est basculé et les champs dépendants sont réinitialisés.
+ */
 fun ZonePlanViewModel.onUseM2Changed(value: Boolean) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     uiState = current.copy(
@@ -80,6 +157,13 @@ fun ZonePlanViewModel.onUseM2Changed(value: Boolean) {
     )
 }
 
+/**
+ * Rôle : Met à jour la surface en mètres carrés et déduit le nombre de tables correspondant.
+ *
+ * Précondition : Le formulaire doit être en mode saisie de surface.
+ *
+ * Postcondition : Le champ `m2Value` est nettoyé et `nbTables` est recalculé à partir de la surface saisie.
+ */
 fun ZonePlanViewModel.onM2ValueChanged(value: String) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     val sanitized = sanitizeDecimal(value)
@@ -90,6 +174,13 @@ fun ZonePlanViewModel.onM2ValueChanged(value: String) {
     )
 }
 
+/**
+ * Rôle : Valide puis enregistre le placement courant, simple ou lié à un jeu.
+ *
+ * Précondition : Le formulaire doit être rempli dans un état succès et la zone ciblée doit être éligible à un placement.
+ *
+ * Postcondition : Le repository est mis à jour, l'état est rafraîchi et le formulaire se referme en cas de succès.
+ */
 fun ZonePlanViewModel.savePlacement() {
     val current = uiState as? ZonePlanUiState.Success ?: return
     val form = current.placementForm
@@ -126,7 +217,13 @@ fun ZonePlanViewModel.savePlacement() {
     }
 }
 
-/** Supprimer un placement simple par son ID unique */
+/**
+ * Rôle : Supprime un placement simple existant par son identifiant.
+ *
+ * Précondition : `allocationId` doit identifier un placement simple réellement présent dans le repository.
+ *
+ * Postcondition : Le placement est supprimé, puis l'état est rafraîchi pour refléter la disparition de l'élément.
+ */
 fun ZonePlanViewModel.deleteSimpleAllocation(allocationId: Int) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     viewModelScope.launch {
@@ -147,6 +244,13 @@ fun ZonePlanViewModel.deleteSimpleAllocation(allocationId: Int) {
     }
 }
 
+/**
+ * Rôle : Retire un jeu déjà affecté à une zone de plan.
+ *
+ * Précondition : `allocationId` doit identifier une allocation de jeu existante.
+ *
+ * Postcondition : L'allocation est détachée de la zone et l'état est rechargé.
+ */
 fun ZonePlanViewModel.removeGameFromZone(allocationId: Int) {
     val current = uiState as? ZonePlanUiState.Success ?: return
     viewModelScope.launch {
@@ -170,10 +274,24 @@ fun ZonePlanViewModel.removeGameFromZone(allocationId: Int) {
     }
 }
 
+/**
+ * Rôle : Convertit une exception de zone plan en message lisible pour l'utilisateur final.
+ *
+ * Précondition : L'exception doit provenir d'une opération repository, réseau ou métier du module zone plan.
+ *
+ * Postcondition : Retourne un message prêt à l'affichage, avec repli sur la valeur par défaut si nécessaire.
+ */
 private fun Throwable.zonePlanErrorMessage(defaultMessage: String): String {
     return toRepositoryException(defaultMessage).localizedMessage ?: defaultMessage
 }
 
+/**
+ * Rôle : Enregistre un placement simple sur la zone ciblée.
+ *
+ * Précondition : L'état succès doit contenir une zone valide et au moins une table ou des chaises à allouer.
+ *
+ * Postcondition : Le repository reçoit une allocation simple conforme au formulaire.
+ */
 internal suspend fun ZonePlanViewModel.saveSimplePlacement(state: ZonePlanUiState.Success) {
     val form = state.placementForm
     val nbTables = form.nbTables.toIntOrNull() ?: 0
@@ -191,6 +309,13 @@ internal suspend fun ZonePlanViewModel.saveSimplePlacement(state: ZonePlanUiStat
     )
 }
 
+/**
+ * Rôle : Enregistre un placement de jeu sur la zone ciblée.
+ *
+ * Précondition : L'état succès doit contenir une allocation de jeu sélectionnée et des valeurs numériques exploitables.
+ *
+ * Postcondition : Le repository reçoit une mise à jour de l'allocation du jeu vers la zone choisie.
+ */
 internal suspend fun ZonePlanViewModel.saveGamePlacement(state: ZonePlanUiState.Success) {
     val form = state.placementForm
     val allocationId = form.selectedGameAllocationId

@@ -6,6 +6,9 @@
  */
 package com.projetmobile.mobile.ui.screens.auth.forgotpassword
 
+/**
+ * Rôle : Décrit l'état immuable du module l'authentification.
+ */
 data class ForgotPasswordUiState(
     val email: String = "",
     val emailError: String? = null,

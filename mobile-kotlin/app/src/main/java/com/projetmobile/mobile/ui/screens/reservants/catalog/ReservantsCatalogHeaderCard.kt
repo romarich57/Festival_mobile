@@ -1,3 +1,9 @@
+/**
+ * Rôle : Construit l'en-tête du catalogue des réservants avec filtres, recherche et actions principales.
+ * Ce fichier regroupe les sous-sections qui pilotent l'expérience de filtrage du catalogue.
+ * Précondition : L'état du catalogue et les callbacks de navigation doivent être connus.
+ * Postcondition : L'utilisateur peut rechercher, filtrer, trier et déclencher une création ou un rafraîchissement.
+ */
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +29,11 @@ import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
+/**
+ * Rôle : Affiche l'en-tête du catalogue des réservants en version compacte ou étendue selon la largeur disponible.
+ * Précondition : `uiState`, `actions` et `windowSizeClass` doivent être cohérents avec l'écran courant.
+ * Postcondition : Le catalogue reçoit un header adaptable et prêt à piloter les filtres.
+ */
 internal fun ReservantsCatalogHeaderCard(
     uiState: ReservantsCatalogUiState,
     actions: ReservantsCatalogActions,
@@ -65,6 +76,11 @@ internal fun ReservantsCatalogHeaderCard(
 }
 
 @Composable
+/**
+ * Rôle : Affiche le titre du catalogue, les compteurs et les actions principales de l'en-tête.
+ * Précondition : `uiState` doit contenir les données agrégées du catalogue.
+ * Postcondition : L'utilisateur voit le contexte global du catalogue et les actions de premier niveau.
+ */
 private fun CatalogHeaderActions(
     uiState: ReservantsCatalogUiState,
     actions: ReservantsCatalogActions,
@@ -99,6 +115,11 @@ private fun CatalogHeaderActions(
 }
 
 @Composable
+/**
+ * Rôle : Affiche les filtres de recherche, de type, de tri et de liaison éditeur du catalogue.
+ * Précondition : `uiState` doit exposer les filtres courants et `actions` leurs callbacks de mise à jour.
+ * Postcondition : Les filtres visibles reflètent l'état courant et renvoient les changements à la couche logique.
+ */
 private fun CatalogFilters(
     uiState: ReservantsCatalogUiState,
     actions: ReservantsCatalogActions,

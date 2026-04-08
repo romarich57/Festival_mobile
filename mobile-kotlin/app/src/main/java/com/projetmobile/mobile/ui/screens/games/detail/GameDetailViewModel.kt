@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module les jeux détail pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.lifecycle.ViewModel
@@ -37,6 +41,13 @@ internal class GameDetailViewModel(
         refreshGame()
     }
 
+    /**
+     * Rôle : Exécute l'action observe local jeu du module les jeux détail.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun observeLocalGame() {
         viewModelScope.launch {
             gamesRepository.observeGame(gameId).collectLatest { localGame ->
@@ -53,6 +64,13 @@ internal class GameDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Rafraîchit jeu.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun refreshGame() {
         viewModelScope.launch {
             _uiState.update { state ->
@@ -81,11 +99,25 @@ internal class GameDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Ferme erreur message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissErrorMessage() {
         _uiState.update { state -> state.copy(errorMessage = null) }
     }
 }
 
+/**
+ * Rôle : Exécute l'action jeu détail vue modèle factory du module les jeux détail.
+ *
+ * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+ *
+ * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+ */
 internal fun gameDetailViewModelFactory(
     gamesRepository: GamesRepository,
     gameId: Int,

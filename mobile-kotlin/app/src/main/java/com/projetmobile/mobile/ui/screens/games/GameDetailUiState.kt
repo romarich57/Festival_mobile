@@ -1,3 +1,7 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module les jeux.
+ */
+
 package com.projetmobile.mobile.ui.screens.games
 
 import com.projetmobile.mobile.data.entity.games.GameDetail

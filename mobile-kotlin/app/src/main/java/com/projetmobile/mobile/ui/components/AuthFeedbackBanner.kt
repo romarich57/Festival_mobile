@@ -19,6 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
+/**
+ * Rôle : Exécute l'action auth feedback banner du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun AuthFeedbackBanner(
     message: String,
     tone: AuthFeedbackTone,

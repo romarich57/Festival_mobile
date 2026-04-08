@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche une carte de catalogue pour résumer un réservant et ses actions rapides.
+ * Ce fichier contient la présentation d'un item individuel ainsi que ses sous-lignes d'information.
+ * Précondition : L'item `ReservantListItem` doit contenir les données minimales à afficher dans le catalogue.
+ * Postcondition : L'utilisateur peut ouvrir, éditer ou demander la suppression d'un réservant.
+ */
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +34,11 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
 import com.projetmobile.mobile.ui.components.AuthCard
 
 @Composable
+/**
+ * Rôle : Affiche la carte d'un réservant dans le catalogue.
+ * Précondition : `reservant` doit contenir l'identifiant et les informations principales du réservant.
+ * Postcondition : La carte affiche les informations résumées et déclenche les callbacks associés aux actions.
+ */
 internal fun ReservantCatalogCard(
     reservant: ReservantListItem,
     canManageReservants: Boolean,
@@ -127,6 +138,11 @@ internal fun ReservantCatalogCard(
 }
 
 @Composable
+/**
+ * Rôle : Affiche une ligne d'information simple avec une icône et une valeur textuelle.
+ * Précondition : `icon` et `value` doivent décrire une information lisible en une ligne.
+ * Postcondition : Le contenu est présenté de manière compacte avec un alignement homogène.
+ */
 private fun CatalogCardLine(
     icon: ImageVector,
     value: String,

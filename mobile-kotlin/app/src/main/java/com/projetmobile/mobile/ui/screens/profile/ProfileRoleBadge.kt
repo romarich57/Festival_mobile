@@ -1,3 +1,10 @@
+/**
+ * Rôle : Composant affichant spécifiquement le badge de rôle global de l'utilisateur.
+ *
+ * Précondition : N/A.
+ *
+ * Postcondition : Affiche les couleurs ou le texte correspondant au compte.
+ */
 package com.projetmobile.mobile.ui.screens.profile
 
 import androidx.compose.foundation.layout.padding
@@ -12,6 +19,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
+/**
+ * Rôle : Exécute l'action profil role badge du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun ProfileRoleBadge(role: String) {
     Surface(
         shape = RoundedCornerShape(999.dp),

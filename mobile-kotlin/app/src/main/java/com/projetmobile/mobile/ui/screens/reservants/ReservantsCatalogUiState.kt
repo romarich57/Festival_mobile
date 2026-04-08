@@ -1,7 +1,14 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module les réservants.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
 
+/**
+ * Rôle : Décrit l'état immuable du module les réservants.
+ */
 internal data class ReservantsCatalogFilterState(
     val query: String = "",
     val selectedType: String? = null,

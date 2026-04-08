@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les détails de réservation et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservationDetails
 
 import androidx.compose.foundation.layout.Box
@@ -67,6 +71,13 @@ fun ReservationDetailsScreen(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action workflow onglet du module les détails de réservation.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 fun WorkflowTab(reservationId: Int, viewModel: WorkflowViewModel) {
     // On déclenche le chargement au premier affichage de l'onglet
     LaunchedEffect(reservationId) {
@@ -89,6 +100,13 @@ fun WorkflowTab(reservationId: Int, viewModel: WorkflowViewModel) {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action center text du module les détails de réservation.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 fun CenterText(text: String) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text)

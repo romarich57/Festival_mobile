@@ -67,6 +67,13 @@ import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action festival app du module app.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun FestivalApp(
     appContainer: AppContainer,
     incomingDestinations: Flow<AppNavKey> = emptyFlow(),
@@ -87,6 +94,13 @@ fun FestivalApp(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action festival app du module app.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun FestivalApp(
     authRepository: AuthRepository,
     festivalRepository: FestivalRepository,
@@ -135,6 +149,13 @@ fun FestivalApp(
     }
     val removeViewModelStoreOnPop = ViewModelStoreNavEntryDecoratorDefaults.removeViewModelStoreOnPop()
 
+    /**
+     * Rôle : Exécute l'action back stack for du module app.
+     *
+     * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+     *
+     * Postcondition : Le résultat reflète l'opération demandée.
+     */
     fun backStackFor(tab: TopLevelTab): NavBackStack<AppNavKey> {
         return when (tab) {
             TopLevelTab.Festivals -> festivalsBackStack
@@ -147,6 +168,13 @@ fun FestivalApp(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action réinitialisation to root du module app.
+     *
+     * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+     *
+     * Postcondition : Le résultat reflète l'opération demandée.
+     */
     fun resetToRoot(tab: TopLevelTab) {
         val stack = backStackFor(tab)
         val rootKey = specFor(tab).rootKey
@@ -154,22 +182,45 @@ fun FestivalApp(
         stack.add(rootKey)
     }
 
+    /**
+     * Rôle : Ouvre root.
+     *
+     * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+     *
+     * Postcondition : Le résultat reflète l'opération demandée.
+     */
     fun openRoot(tab: TopLevelTab) {
         resetToRoot(tab)
         selectedTopLevelTab = tab
     }
 
+    /**
+     * Rôle : Ouvre secondary.
+     *
+     * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+     *
+     * Postcondition : Le résultat reflète l'opération demandée.
+     */
     fun openSecondary(tab: TopLevelTab, destination: AppNavKey) {
         val stack = backStackFor(tab)
         val rootKey = specFor(tab).rootKey
+        // On repart toujours de la racine du module avant d'ajouter une destination secondaire.
         stack.clear()
         stack.add(rootKey)
         if (destination != rootKey) {
+            // La destination racine ne doit pas être dupliquée dans la pile.
             stack.add(destination)
         }
         selectedTopLevelTab = tab
     }
 
+    /**
+     * Rôle : Exécute l'action réinitialisation private stacks du module app.
+     *
+     * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+     *
+     * Postcondition : Le résultat reflète l'opération demandée.
+     */
     fun resetPrivateStacks() {
         listOf(
             TopLevelTab.Festivals,
@@ -264,6 +315,7 @@ fun FestivalApp(
             }
 
             previousAuthenticationState == true && !isAuthenticated -> {
+                // La déconnexion invalide les piles privées pour éviter de réafficher un écran protégé.
                 resetPrivateStacks()
                 resetToRoot(TopLevelTab.Login)
                 selectedTopLevelTab = TopLevelTab.Login
@@ -271,6 +323,7 @@ fun FestivalApp(
             }
 
             previousAuthenticationState == false && isAuthenticated -> {
+                // Après authentification, on repart sur l'accueil public avant de restaurer la navigation courante.
                 resetToRoot(TopLevelTab.Login)
                 selectedTopLevelTab = TopLevelTab.Festivals
                 previousAuthenticationState = true
@@ -289,8 +342,10 @@ fun FestivalApp(
     }
 
     LaunchedEffect(incomingDestinations, isAuthenticated) {
+        // Les destinations externes sont normalisées selon l'état d'authentification avant d'être poussées.
         incomingDestinations.collect { destination ->
             if (isAuthenticated && ownerTab(destination) != TopLevelTab.Festivals) {
+                // Un utilisateur connecté ne doit pas être redirigé vers une zone publique intermédiaire.
                 selectedTopLevelTab = TopLevelTab.Festivals
                 return@collect
             }

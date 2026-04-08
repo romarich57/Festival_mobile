@@ -26,18 +26,11 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.data.entity.festival.FestivalSummary
 
 /**
- * Carte d'affichage d'un festival.
+ * Rôle : Affiche une carte festival sélectionnable avec suppression optionnelle.
  *
- * Traduction du FestivalCardComponent Angular :
- *  - `festival`     = input.required<FestivalDto>()
- *  - `isSelected`   = computed(() => selected)       ← calculé par le parent (FestivalScreen)
- *  - `canDelete`    = input(false)
- *  - `onSelect`     = output<number | null>()        ← lambda au lieu d'EventEmitter
- *  - `onDelete`     = output<number>()               ← lambda au lieu d'EventEmitter
+ * Précondition : `festival` doit contenir les données minimales d'affichage et les callbacks doivent être fournis par le parent.
  *
- * ⚠️ Ce composant ne connaît PAS le ViewModel.
- *    C'est FestivalScreen qui calcule `isSelected` et branche les lambdas.
- *    → Principe S (Single Responsibility) : afficher + émettre, rien d'autre.
+ * Postcondition : La carte reflète l'état de sélection courant et déclenche uniquement les callbacks reçus, sans modifier l'état elle-même.
  */
 @Composable
 fun FestivalCard(

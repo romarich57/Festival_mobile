@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module le profil pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.profile
 
 import androidx.lifecycle.ViewModel
@@ -39,6 +43,13 @@ class ProfileViewModel(
         refreshProfile()
     }
 
+    /**
+     * Rôle : Rafraîchit profil.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun refreshProfile() {
         viewModelScope.launch {
             _uiState.update { state ->
@@ -52,6 +63,7 @@ class ProfileViewModel(
             profileRepository.getProfile()
                 .onSuccess { user ->
                     _uiState.update { state ->
+                        // On préserve les champs en cours d'édition pour ne pas écraser une saisie non encore validée.
                         val nextForm = if (state.isEditing) state.form else profileFormStateFor(user)
                         state.copy(
                             profile = user,
@@ -64,6 +76,7 @@ class ProfileViewModel(
                 }
                 .onFailure { error ->
                     _uiState.update { state ->
+                        // Un message hors-ligne n'est affiché que si un profil existe déjà en cache local.
                         val repositoryException = error as? RepositoryException
                         val shouldShowOfflineInfo = state.profile != null &&
                             repositoryException?.kind?.isOfflineFriendlyFailure() == true
@@ -86,6 +99,13 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Démarre editing.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun startEditing() {
         _uiState.update { state ->
             state.copy(
@@ -98,6 +118,13 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Démarre editing champ.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun startEditingField(field: ProfileEditableField) {
         _uiState.update { state ->
             state.copy(
@@ -108,6 +135,13 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Annule editing.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun cancelEditing() {
         _uiState.update { state ->
             state.copy(
@@ -120,19 +154,62 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ identifiant.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onLoginChanged(value: String) = updateForm { copy(login = value, loginError = null) }
 
+    /**
+     * Rôle : Gère la modification du champ first name.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onFirstNameChanged(value: String) = updateForm { copy(firstName = value, firstNameError = null) }
 
+    /**
+     * Rôle : Gère la modification du champ last name.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onLastNameChanged(value: String) = updateForm { copy(lastName = value, lastNameError = null) }
 
+    /**
+     * Rôle : Gère la modification du champ email.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEmailChanged(value: String) = updateForm { copy(email = value, emailError = null) }
 
+    /**
+     * Rôle : Gère la modification du champ téléphone.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPhoneChanged(value: String) = updateForm { copy(phone = value, phoneError = null) }
 
+    /**
+     * Rôle : Gère la sélection de avatar.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onAvatarSelected(selection: AvatarSelectionPayload) {
         val validationMessage = validateAvatarSelection(selection)
         if (validationMessage != null) {
+            // Une sélection invalide est rejetée avant toute mise à jour de l'état visuel.
             _uiState.update { state ->
                 state.copy(
                     errorMessage = validationMessage,
@@ -151,6 +228,13 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Supprime avatar.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun removeAvatar() {
         _uiState.update { state ->
             state.copy(
@@ -161,9 +245,17 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action send mot de passe réinitialisation link du module le profil.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun sendPasswordResetLink() {
         val email = _uiState.value.profile?.email?.trim().orEmpty()
         if (email.isBlank()) {
+            // Sans email de profil, on s'arrête immédiatement pour éviter un appel réseau inutile.
             _uiState.update { state ->
                 state.copy(errorMessage = "Aucun email disponible pour envoyer le lien.")
             }
@@ -200,6 +292,13 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Enregistre profil.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun saveProfile() {
         val currentState = _uiState.value
         val currentProfile = currentState.profile ?: return
@@ -211,10 +310,12 @@ class ProfileViewModel(
             phone = currentState.form.phone,
         )
         if (validation.isInvalid) {
+            // Les erreurs de validation sont publiées localement avant toute tentative de persistance.
             _uiState.update { state -> state.withValidationErrors(validation) }
             return
         }
         if (!currentState.hasPendingChanges) {
+            // Aucun changement réel ne doit déclencher une requête d'écriture.
             return
         }
 
@@ -229,6 +330,7 @@ class ProfileViewModel(
 
             val uploadedAvatarUrl = when (val avatarState = _uiState.value.avatarState) {
                 is ProfileAvatarState.LocalSelection -> {
+                    // L'avatar local est d'abord téléversé pour obtenir une URL réutilisable dans la mise à jour.
                     profileRepository.uploadAvatar(
                         fileName = avatarState.fileName,
                         mimeType = avatarState.mimeType,
@@ -254,6 +356,7 @@ class ProfileViewModel(
                 uploadedAvatarUrl = uploadedAvatarUrl,
             )
             if (updateInput == null) {
+                // Si les données agrégées deviennent incohérentes, on abandonne la sauvegarde sans persister d'état partiel.
                 _uiState.update { state ->
                     state.copy(isSaving = false).recalculated()
                 }
@@ -287,18 +390,39 @@ class ProfileViewModel(
         }
     }
 
+    /**
+     * Rôle : Consomme en attente session utilisateur mise à jour.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumePendingSessionUserUpdate() {
         _uiState.update { state ->
             state.copy(pendingSessionUserUpdate = null)
         }
     }
 
+    /**
+     * Rôle : Ferme information message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissInfoMessage() {
         _uiState.update { state ->
             state.copy(infoMessage = null)
         }
     }
 
+    /**
+     * Rôle : Exécute l'action mise à jour formulaire du module le profil.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun updateForm(transform: ProfileFormState.() -> ProfileFormState) {
         _uiState.update { state ->
             state.copy(

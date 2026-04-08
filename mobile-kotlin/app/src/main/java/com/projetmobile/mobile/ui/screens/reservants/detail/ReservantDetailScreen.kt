@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les réservants détail et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.background
@@ -62,6 +66,7 @@ internal fun ReservantDetailScreen(
         if (uiState.infoMessage == null) {
             return@LaunchedEffect
         }
+        // Les messages de succès sont temporaires et disparaissent sans intervention utilisateur.
         delay(4_000)
         actions.onDismissInfoMessage()
     }
@@ -114,6 +119,7 @@ internal fun ReservantDetailScreen(
                 }
 
                 when {
+                    // On distingue le chargement initial, la fiche disponible et le cas d'absence de données.
                     uiState.isLoading && uiState.reservant == null -> item {
                         ReservantsLoadingCard(text = "Chargement du réservant…")
                     }
@@ -164,6 +170,13 @@ internal fun ReservantDetailScreen(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action réservant détail hero carte du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun ReservantDetailHeroCard(
     reservant: ReservantDetail,
     canManageReservants: Boolean,
@@ -200,6 +213,13 @@ private fun ReservantDetailHeroCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action réservant infos onglet du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun ReservantInfosTab(reservant: ReservantDetail) {
     AuthCard(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -219,6 +239,13 @@ private fun ReservantInfosTab(reservant: ReservantDetail) {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action réservant contacts onglet du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun ReservantContactsTab(
     uiState: ReservantDetailUiState,
     actions: ReservantDetailActions,
@@ -329,6 +356,13 @@ private fun ReservantContactsTab(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action contact row du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun ContactRow(contact: ReservantContact) {
     AuthCard(modifier = Modifier.fillMaxWidth(), containerColor = Color(0xFFFAFCFF)) {
         Column(
@@ -351,6 +385,13 @@ private fun ContactRow(contact: ReservantContact) {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action réservant jeux onglet du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun ReservantGamesTab(
     uiState: ReservantDetailUiState,
     actions: ReservantDetailActions,
@@ -417,6 +458,13 @@ private fun ReservantGamesTab(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu row du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun GameRow(
     game: GameListItem,
     onOpenGameDetails: (Int) -> Unit,
@@ -475,6 +523,13 @@ private fun GameRow(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action détail champ du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun DetailField(
     label: String,
     value: String,
@@ -494,6 +549,13 @@ private fun DetailField(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action détail chip du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun DetailChip(label: String) {
     AuthCard(containerColor = Color(0xFFEAF0FB)) {
         Text(
@@ -505,6 +567,13 @@ private fun DetailChip(label: String) {
     }
 }
 
+/**
+ * Rôle : Exécute l'action priority label du module les réservants détail.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun priorityLabel(priority: Int): String {
     return if (priority == 1) {
         "1 - Prioritaire"

@@ -1,3 +1,10 @@
+/**
+ * Rôle : Route principale pour le catalogue des utilisateurs dans l'espace administrateur.
+ *
+ * Précondition : L'utilisateur doit être de type "admin" et la navigation Jetpack doit router vers ce composant.
+ *
+ * Postcondition : Affiche l'écran de gestion du catalogue avec ses filtres et la liste des entités (ex: utilisateurs).
+ */
 package com.projetmobile.mobile.ui.screens.admin.catalog
 
 import androidx.compose.runtime.Composable
@@ -10,6 +17,13 @@ import com.projetmobile.mobile.data.repository.admin.AdminRepository
 import kotlinx.coroutines.delay
 
 @Composable
+/**
+ * Rôle : Exécute l'action administration catalogue route du module l'administration catalogue.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 internal fun AdminCatalogRoute(
     adminRepository: AdminRepository,
     adminRefreshSignal: Int,

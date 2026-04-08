@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module l'administration détail pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.detail
 
 import androidx.lifecycle.ViewModel
@@ -33,6 +37,13 @@ internal class AdminUserDetailViewModel(
         loadUser()
     }
 
+    /**
+     * Rôle : Charge utilisateur.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun loadUser() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -58,7 +69,17 @@ internal class AdminUserDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module l'administration détail.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module l'administration détail.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(adminRepository: AdminRepository, userId: Int): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer { AdminUserDetailViewModel(adminRepository, userId) }

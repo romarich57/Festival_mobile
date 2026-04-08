@@ -33,6 +33,13 @@ import com.projetmobile.mobile.ui.components.InlineAuthLinkButton
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
+/**
+ * Rôle : Exécute l'action identifiant écran du module l'authentification.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 fun LoginScreen(
     uiState: LoginUiState,
     sessionUser: AuthUser?,
@@ -56,6 +63,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (sessionUser != null) {
+                // Quand une session valide existe déjà, on évite d'exposer le formulaire de connexion.
                 Text(
                     text = "Vous êtes déjà connecté en tant que ${sessionUser.firstName}.",
                     style = MaterialTheme.typography.bodyLarge,
@@ -93,6 +101,7 @@ fun LoginScreen(
                 supportingText = uiState.passwordError,
             )
 
+            // Les messages métier sont affichés séparément pour ne pas masquer les erreurs de validation des champs.
             uiState.errorMessage?.let { message ->
                 Text(text = message, color = MaterialTheme.colorScheme.error)
             }
@@ -111,6 +120,7 @@ fun LoginScreen(
             )
 
             if (uiState.isLoading) {
+                // L'indicateur reste visible pendant l'appel réseau pour signaler que l'action est en cours.
                 CircularProgressIndicator(
                     modifier = Modifier.size(28.dp),
                     color = MaterialTheme.colorScheme.primary,

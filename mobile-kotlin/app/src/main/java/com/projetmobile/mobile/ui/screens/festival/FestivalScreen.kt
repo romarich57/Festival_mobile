@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les festivals et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.festival
 
 import androidx.compose.foundation.layout.Column

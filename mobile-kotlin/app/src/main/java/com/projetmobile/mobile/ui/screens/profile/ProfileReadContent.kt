@@ -1,3 +1,10 @@
+/**
+ * Rôle : Interface de consultation seule (sans édition) des informations de l'utilisateur.
+ *
+ * Précondition : Appelé lorsque l'UI n'est pas en mode édition.
+ *
+ * Postcondition : Rendu basique Material3 de toutes les variables du profil avec un design soigné.
+ */
 package com.projetmobile.mobile.ui.screens.profile
 
 import androidx.compose.foundation.BorderStroke
@@ -29,6 +36,13 @@ private val LogoutBorderColor = Color(0xFFD14343)
 private val LogoutContainerColor = Color(0xFFFFEFEF)
 
 @Composable
+/**
+ * Rôle : Exécute l'action profil overview carte du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun ProfileOverviewCard(
     uiState: ProfileUiState,
     isLoggingOut: Boolean,
@@ -140,6 +154,13 @@ internal fun ProfileOverviewCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action mot de passe réinitialisation carte du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun PasswordResetCard(
     email: String,
     isSending: Boolean,
@@ -184,6 +205,13 @@ internal fun PasswordResetCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action header row du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun HeaderRow(isRefreshing: Boolean) {
     Row(
         modifier = Modifier
@@ -204,6 +232,13 @@ private fun HeaderRow(isRefreshing: Boolean) {
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action inline édition actions du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun InlineEditActions(
     showHorizontalActions: Boolean,
     isSaving: Boolean,
@@ -237,6 +272,13 @@ private fun InlineEditActions(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action logout action du module le profil.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun LogoutAction(
     isLoggingOut: Boolean,
     onLogout: () -> Unit,

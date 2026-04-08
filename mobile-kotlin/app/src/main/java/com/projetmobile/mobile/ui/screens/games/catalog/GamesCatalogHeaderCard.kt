@@ -1,3 +1,10 @@
+/**
+ * Rôle : Carte de filtre et de recherche située au sommet de la vue catalogue.
+ *
+ * Précondition : Etat courant des filtres.
+ *
+ * Postcondition : Transmission des mots-clés ou critères de prix/joueurs en temps réel.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +43,13 @@ import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeux catalogue header carte du module les jeux catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GamesCatalogHeaderCard(
     canManageGames: Boolean,
     filters: GameCatalogFilterState,
@@ -197,6 +211,13 @@ internal fun GamesCatalogHeaderCard(
     }
 }
 
+/**
+ * Rôle : Convertit l'option de tri des jeux en libellé lisible dans l'interface.
+ *
+ * Précondition : La valeur doit appartenir à `GameSort`.
+ *
+ * Postcondition : Retourne une chaîne stable prête à être affichée dans un menu ou un badge.
+ */
 internal fun GameSort.toLabel(): String {
     return when (this) {
         GameSort.TitleAsc -> "Titre A → Z"

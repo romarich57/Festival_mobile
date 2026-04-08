@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran l'administration catalogue et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.catalog
 
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +62,7 @@ internal fun AdminCatalogScreen(
     modifier: Modifier = Modifier,
 ) {
     if (uiState.pendingDeletion != null) {
+        // La confirmation de suppression reste hors de la liste pour éviter un déclenchement accidentel.
         AlertDialog(
             onDismissRequest = onDismissDeleteDialog,
             title = { Text("Supprimer l'utilisateur") },
@@ -113,6 +118,7 @@ internal fun AdminCatalogScreen(
 
         if (uiState.errorMessage != null) {
             item {
+                // Les messages de retour métier restent visibles au-dessus de la liste filtrée.
                 AuthFeedbackBanner(
                     message = uiState.errorMessage,
                     tone = AuthFeedbackTone.Error,
@@ -146,6 +152,7 @@ internal fun AdminCatalogScreen(
         }
 
         if (uiState.isLoading) {
+            // Le catalogue affiche un état de chargement plein écran tant que la première page n'est pas prête.
             item {
                 Row(
                     modifier = Modifier
@@ -158,6 +165,7 @@ internal fun AdminCatalogScreen(
             }
         } else if (uiState.filteredUsers.isEmpty()) {
             item {
+                // Un résultat vide ne doit pas être confondu avec un échec réseau.
                 Text(
                     text = "Aucun utilisateur trouvé.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -189,6 +197,13 @@ internal fun AdminCatalogScreen(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action administration stats row du module l'administration catalogue.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun AdminStatsRow(
     uiState: AdminCatalogUiState,
     modifier: Modifier = Modifier,
@@ -222,6 +237,13 @@ private fun AdminStatsRow(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action administration stat carte du module l'administration catalogue.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun AdminStatCard(
     value: Int,
     label: String,

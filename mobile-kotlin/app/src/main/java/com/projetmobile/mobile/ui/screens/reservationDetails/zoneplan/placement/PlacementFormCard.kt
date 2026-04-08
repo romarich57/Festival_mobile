@@ -1,3 +1,10 @@
+/**
+ * Rôle : Composant Compose (Carte) encadrant le formulaire final avant le placement sur la zone.
+ *
+ * Précondition : Doit connaitre l'objet PlacementFormState courant de manière détaillée.
+ *
+ * Postcondition : Permet l'édition du placement lié à l'infrastructure de réservation.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement
 
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +45,13 @@ import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.StockState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action placement formulaire carte du module la zone plan des réservations.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun PlacementFormCard(
     form: PlacementFormState,
     unplacedGames: List<GameAllocationState>,
@@ -216,6 +230,13 @@ fun PlacementFormCard(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action jeu selector dropdown du module la zone plan des réservations.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun GameSelectorDropdown(
     games: List<GameAllocationState>,
     selectedId: Int?,
@@ -265,6 +286,13 @@ fun GameSelectorDropdown(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action table type dropdown du module la zone plan des réservations.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun TableTypeDropdown(
     selected: String,
     stock: StockState,

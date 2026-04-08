@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module le formulaire de festival pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.festivalForm
 
 import androidx.lifecycle.ViewModel
@@ -28,6 +32,13 @@ class FestivalFormViewModel(
 
     // ── Mise à jour des champs ────────────────────────────────────────────────
 
+    /**
+     * Rôle : Exécute l'action on name modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onNameChange(value: String) {
         val error = when {
             value.isBlank() -> "Le nom est obligatoire"
@@ -38,36 +49,92 @@ class FestivalFormViewModel(
         _uiState.value = _uiState.value.copy(name = value, nameError = error)
     }
 
+    /**
+     * Rôle : Exécute l'action on démarrage date modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onStartDateChange(value: String) {
         val error = if (value.isBlank()) "La date de début est obligatoire" else null
         _uiState.value = _uiState.value.copy(startDate = value, startDateError = error)
     }
 
+    /**
+     * Rôle : Exécute l'action on end date modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEndDateChange(value: String) {
         val error = if (value.isBlank()) "La date de fin est obligatoire" else null
         _uiState.value = _uiState.value.copy(endDate = value, endDateError = error)
     }
 
+    /**
+     * Rôle : Exécute l'action on stock tables standard modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onStockTablesStandardChange(value: String) {
         _uiState.value = _uiState.value.copy(stockTablesStandard = value)
     }
 
+    /**
+     * Rôle : Exécute l'action on stock tables grande modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onStockTablesGrandeChange(value: String) {
         _uiState.value = _uiState.value.copy(stockTablesGrande = value)
     }
 
+    /**
+     * Rôle : Exécute l'action on stock tables mairie modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onStockTablesMairieChange(value: String) {
         _uiState.value = _uiState.value.copy(stockTablesMairie = value)
     }
 
+    /**
+     * Rôle : Exécute l'action on stock chaises modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onStockChaisesChange(value: String) {
         _uiState.value = _uiState.value.copy(stockChaises = value)
     }
 
+    /**
+     * Rôle : Exécute l'action on prix prises modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPrixPrisesChange(value: String) {
         _uiState.value = _uiState.value.copy(prixPrises = value)
     }
 
+    /**
+     * Rôle : Exécute l'action on zone name modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onZoneNameChange(index: Int, value: String) {
         updateZone(index) { zone ->
             val error = if (value.isBlank()) "Le nom est obligatoire" else null
@@ -75,6 +142,13 @@ class FestivalFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action on zone nb tables modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onZoneNbTablesChange(index: Int, value: String) {
         updateZone(index) { zone ->
             val nbTables = value.toIntOrNull()
@@ -88,6 +162,13 @@ class FestivalFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action on zone price per table modification du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onZonePricePerTableChange(index: Int, value: String) {
         updateZone(index) { zone ->
             val price = value.toDoubleOrNull()
@@ -101,6 +182,13 @@ class FestivalFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action add zone du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun addZone() {
         val zones = _uiState.value.zonesTarifaires + ZoneTarifaireDraft()
         _uiState.value = _uiState.value.copy(
@@ -109,6 +197,13 @@ class FestivalFormViewModel(
         )
     }
 
+    /**
+     * Rôle : Supprime zone.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun removeZone(index: Int) {
         val current = _uiState.value.zonesTarifaires
         if (current.size <= 1) return
@@ -122,11 +217,11 @@ class FestivalFormViewModel(
     // ── Soumission ────────────────────────────────────────────────────────────
 
     /**
-     * Équivalent submit() Angular :
-     * - Valide le formulaire
-     * - Appelle festivalRepository.addFestival()
-     * - Émet successMessage ou errorMessage
-     * - onSuccess est appelé par FestivalFormScreen pour naviguer en arrière
+     * Rôle : Valide le formulaire puis crée un nouveau festival via le repository.
+     *
+     * Précondition : L'état du formulaire doit être cohérent et `onSuccess` doit être fourni par l'écran appelant.
+     *
+     * Postcondition : Un festival est créé si la validation passe; sinon l'état UI expose les erreurs de validation ou de création.
      */
     fun submit(onSuccess: (String) -> Unit) {
         val state = validateForm()
@@ -177,10 +272,24 @@ class FestivalFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Consomme erreur.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumeError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 
+    /**
+     * Rôle : Exécute l'action mise à jour zone du module le formulaire de festival.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun updateZone(index: Int, update: (ZoneTarifaireDraft) -> ZoneTarifaireDraft) {
         val zones = _uiState.value.zonesTarifaires.toMutableList()
         if (index !in zones.indices) return
@@ -191,6 +300,13 @@ class FestivalFormViewModel(
         )
     }
 
+    /**
+     * Rôle : Valide formulaire.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun validateForm(): FestivalFormUiState {
         val state = _uiState.value
         val zones = state.zonesTarifaires.map { zone ->
@@ -219,7 +335,17 @@ class FestivalFormViewModel(
 
     // ── Factory ───────────────────────────────────────────────────────────────
 
+    /**
+     * Rôle : Expose un singleton de support pour le module le formulaire de festival.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module le formulaire de festival.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(festivalRepository: FestivalRepository): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer { FestivalFormViewModel(festivalRepository) }

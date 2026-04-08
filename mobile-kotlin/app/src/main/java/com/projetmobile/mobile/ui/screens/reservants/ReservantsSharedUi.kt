@@ -1,3 +1,9 @@
+/**
+ * Rôle : Regroupe les briques UI réutilisables propres aux écrans de réservants.
+ * Ce fichier contient les éléments visuels partagés pour les badges, cartes de chargement et lignes d'information.
+ * Précondition : Les écrans de réservants doivent composer ces briques au lieu de dupliquer le style.
+ * Postcondition : L'interface garde une présentation homogène dans tout le sous-domaine réservants.
+ */
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.background
@@ -20,6 +26,11 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.AuthCard
 
 @Composable
+/**
+ * Rôle : Affiche un chip compact pour signaler un attribut ou un type de réservant.
+ * Précondition : `text` doit être un libellé court et déjà prêt à afficher.
+ * Postcondition : Retourne un badge arrondi cohérent avec le style des écrans de réservants.
+ */
 internal fun ReservantMetaChip(
     text: String,
     modifier: Modifier = Modifier,
@@ -41,6 +52,11 @@ internal fun ReservantMetaChip(
 }
 
 @Composable
+/**
+ * Rôle : Affiche une carte de chargement standardisée pour les écrans de réservants.
+ * Précondition : Le composant doit être utilisé pendant une phase de chargement asynchrone.
+ * Postcondition : L'utilisateur voit une carte avec progression et message d'attente.
+ */
 internal fun ReservantsLoadingCard(
     text: String = "Chargement…",
     modifier: Modifier = Modifier,
@@ -64,6 +80,11 @@ internal fun ReservantsLoadingCard(
 }
 
 @Composable
+/**
+ * Rôle : Affiche un état vide standardisé pour les écrans de réservants.
+ * Précondition : Le titre et le corps doivent résumer clairement l'absence de données.
+ * Postcondition : L'utilisateur voit une carte explicative à la place d'une liste vide silencieuse.
+ */
 internal fun ReservantsEmptyCard(
     title: String,
     body: String,
@@ -91,6 +112,11 @@ internal fun ReservantsEmptyCard(
 }
 
 @Composable
+/**
+ * Rôle : Affiche une ligne d'information clé/valeur dans les écrans de réservants.
+ * Précondition : `label` et `value` doivent décrire une information simple à présenter.
+ * Postcondition : La valeur est rendue sur une ligne lisible, avec un fallback visuel si la donnée est vide.
+ */
 internal fun ReservantInfoRow(
     label: String,
     value: String,

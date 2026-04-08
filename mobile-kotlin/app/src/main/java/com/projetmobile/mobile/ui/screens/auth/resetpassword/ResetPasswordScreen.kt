@@ -25,6 +25,13 @@ import com.projetmobile.mobile.ui.components.FestivalPasswordField
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
+/**
+ * Rôle : Exécute l'action réinitialisation mot de passe écran du module l'authentification.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 fun ResetPasswordScreen(
     uiState: ResetPasswordUiState,
     onPasswordChanged: (String) -> Unit,

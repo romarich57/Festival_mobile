@@ -1,3 +1,10 @@
+/**
+ * Rôle : Composant gérant les lignes d'édition spécifiques de certains champs (ex: prix, stock).
+ *
+ * Précondition : Fournir l'état et l'action de mise à jour relative.
+ *
+ * Postcondition : Modification en direct du flux UiState.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.background
@@ -30,6 +37,13 @@ import com.projetmobile.mobile.data.entity.games.GameTypeOption
 import com.projetmobile.mobile.ui.components.FestivalTextField
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu image preview row du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameImagePreviewRow(
     imageUrl: String,
     imageSourceMode: GameImageSourceMode,
@@ -115,6 +129,13 @@ internal fun GameImagePreviewRow(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu number champ row du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameNumberFieldRow(
     minAgeInput: String,
     minAgeError: String?,
@@ -187,6 +208,13 @@ internal fun GameNumberFieldRow(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu type suggestions row du module les jeux formulaire.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameTypeSuggestionsRow(
     types: List<GameTypeOption>,
     selectedType: String,

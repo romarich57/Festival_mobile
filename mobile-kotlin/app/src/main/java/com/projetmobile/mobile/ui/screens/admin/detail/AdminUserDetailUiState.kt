@@ -1,3 +1,7 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module l'administration détail.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.detail
 
 import com.projetmobile.mobile.data.entity.auth.AuthUser

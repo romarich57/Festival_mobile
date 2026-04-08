@@ -6,6 +6,9 @@
  */
 package com.projetmobile.mobile.ui.screens.auth.register
 
+/**
+ * Rôle : Décrit l'état immuable du module l'authentification.
+ */
 data class RegisterUiState(
     val username: String = "",
     val firstName: String = "",

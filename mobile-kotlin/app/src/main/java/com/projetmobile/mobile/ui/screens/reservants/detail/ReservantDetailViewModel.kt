@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module les réservants détail pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.lifecycle.ViewModel
@@ -41,6 +45,13 @@ internal class ReservantDetailViewModel(
         refreshReservant()
     }
 
+    /**
+     * Rôle : Démarre observing local réservant.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun startObservingLocalReservant() {
         viewModelScope.launch {
             observeReservant(reservantId).collectLatest { localReservant ->
@@ -57,10 +68,24 @@ internal class ReservantDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Sélectionne onglet.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun selectTab(tab: ReservantDetailTab) {
         _uiState.update { state -> state.copy(activeTab = tab) }
     }
 
+    /**
+     * Rôle : Rafraîchit réservant.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun refreshReservant() {
         viewModelScope.launch {
             _uiState.update { state ->
@@ -93,6 +118,13 @@ internal class ReservantDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Rafraîchit contacts.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun refreshContacts() {
         viewModelScope.launch {
             _uiState.update { state ->
@@ -121,6 +153,13 @@ internal class ReservantDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Rafraîchit jeux.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun refreshGames(editorId: Int? = _uiState.value.linkedEditorId) {
         if (editorId == null) {
             _uiState.update { state ->
@@ -159,6 +198,13 @@ internal class ReservantDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Inverse contact formulaire.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun toggleContactForm() {
         _uiState.update { state ->
             state.copy(
@@ -172,20 +218,62 @@ internal class ReservantDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ contact name.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onContactNameChanged(value: String) = updateContactForm { copy(name = value, nameError = null) }
 
+    /**
+     * Rôle : Gère la modification du champ contact email.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onContactEmailChanged(value: String) = updateContactForm { copy(email = value, emailError = null) }
 
+    /**
+     * Rôle : Gère la modification du champ contact téléphone number.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onContactPhoneNumberChanged(value: String) = updateContactForm {
         copy(phoneNumber = value, phoneNumberError = null)
     }
 
+    /**
+     * Rôle : Gère la modification du champ contact job title.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onContactJobTitleChanged(value: String) = updateContactForm {
         copy(jobTitle = value, jobTitleError = null)
     }
 
+    /**
+     * Rôle : Gère la sélection de contact priority.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onContactPrioritySelected(value: Int) = updateContactForm { copy(priority = value) }
 
+    /**
+     * Rôle : Enregistre contact.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun saveContact() {
         val validationErrors = validateReservantContact(_uiState.value.contactForm)
         if (validationErrors.hasAny()) {
@@ -230,22 +318,57 @@ internal class ReservantDetailViewModel(
         }
     }
 
+    /**
+     * Rôle : Ferme information message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissInfoMessage() {
         _uiState.update { state -> state.copy(infoMessage = null) }
     }
 
+    /**
+     * Rôle : Ferme erreur message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissErrorMessage() {
         _uiState.update { state -> state.copy(errorMessage = null) }
     }
 
+    /**
+     * Rôle : Ferme contacts erreur message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissContactsErrorMessage() {
         _uiState.update { state -> state.copy(contactsErrorMessage = null) }
     }
 
+    /**
+     * Rôle : Ferme jeux erreur message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun dismissGamesErrorMessage() {
         _uiState.update { state -> state.copy(gamesErrorMessage = null) }
     }
 
+    /**
+     * Rôle : Exécute l'action show information message du module les réservants détail.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun showInfoMessage(message: String?) {
         if (message.isNullOrBlank()) {
             return
@@ -253,6 +376,13 @@ internal class ReservantDetailViewModel(
         _uiState.update { state -> state.copy(infoMessage = message) }
     }
 
+    /**
+     * Rôle : Exécute l'action mise à jour contact formulaire du module les réservants détail.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun updateContactForm(
         transform: ReservantContactFormFields.() -> ReservantContactFormFields,
     ) {
@@ -265,6 +395,13 @@ internal class ReservantDetailViewModel(
     }
 }
 
+/**
+ * Rôle : Transforme le formulaire de contact en brouillon persistant prêt à être envoyé au repository.
+ *
+ * Précondition : Les champs du formulaire doivent déjà avoir passé la validation locale de base.
+ *
+ * Postcondition : Retourne un draft nettoyé et normalisé pour la création ou la mise à jour d'un contact.
+ */
 private fun ReservantContactFormFields.toDraft(): ReservantContactDraft {
     return ReservantContactDraft(
         name = name.trim(),
@@ -275,6 +412,13 @@ private fun ReservantContactFormFields.toDraft(): ReservantContactDraft {
     )
 }
 
+/**
+ * Rôle : Exécute l'action réservant détail vue modèle factory du module les réservants détail.
+ *
+ * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+ *
+ * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+ */
 internal fun reservantDetailViewModelFactory(
     reservantId: Int,
     observeReservant: ReservantObserver,

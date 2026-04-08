@@ -91,6 +91,13 @@ import com.projetmobile.mobile.ui.utils.navigation.VerificationResult
 import com.projetmobile.mobile.ui.utils.session.AppSessionUiState
 import com.projetmobile.mobile.ui.utils.session.AppSessionViewModel
 
+/**
+ * Rôle : Exécute l'action festival app entry provider du module app.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun festivalAppEntryProvider(
     authRepository: AuthRepository,
     festivalRepository: FestivalRepository,
@@ -136,6 +143,7 @@ internal fun festivalAppEntryProvider(
                 val canDeleteFestivalCatalog = canDeleteFestivals(currentUserRole)
                 LaunchedEffect(festivalRefreshSignal) {
                     if (festivalRefreshSignal == 0) {
+                        // Le premier passage ne correspond pas à un refresh métier, on ignore donc le signal.
                         return@LaunchedEffect
                     }
                     festivalViewModel.consumeExternalRefresh(festivalFlashMessage)
@@ -147,6 +155,7 @@ internal fun festivalAppEntryProvider(
                     canDelete = canDeleteFestivalCatalog,
                     onFestivalClick = { festivalId ->
                         if (sessionUiState.currentUser == null) {
+                            // Les utilisateurs non authentifiés sont renvoyés vers la connexion avant d'ouvrir un dashboard.
                             onOpenRoot(TopLevelTab.Login)
                         } else {
                             festivalsBackStack.add(ReservationDashboard(festivalId))
@@ -174,6 +183,7 @@ internal fun festivalAppEntryProvider(
                 val reservationDashboardViewModel: ReservationDashboardViewModel = viewModel(
                     factory = ReservationDashboardViewModel.factory(reservationRepository)
                 )
+                // Les trois flux d'état restent collectés séparément pour éviter de recomposer l'écran complet à chaque mutation.
                 val dashboardUiState by reservationDashboardViewModel.uiState.collectAsStateWithLifecycle()
                 val filteredReservations by reservationDashboardViewModel.filteredReservations.collectAsStateWithLifecycle()
                 val searchQuery by reservationDashboardViewModel.searchQuery.collectAsStateWithLifecycle()
@@ -228,6 +238,7 @@ internal fun festivalAppEntryProvider(
                     onNomChanged = reservationFormViewModel::onNomChanged,
                     onEmailChanged = reservationFormViewModel::onEmailChanged,
                     onTypeChanged = reservationFormViewModel::onTypeChanged,
+                    // L'ID du festival provient directement de la route courante et alimente la création.
                     onSubmit = { reservationFormViewModel.createReservation(key.festivalId) },
                     onNavigateBack = {
                         festivalsBackStack.removeLastOrNull()

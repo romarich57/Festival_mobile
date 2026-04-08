@@ -18,6 +18,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Porte l'état et la logique du module l'authentification emailverification.
+ */
 class PendingVerificationViewModel(
     private val authRepository: AuthRepository,
     initialEmail: String?,
@@ -34,6 +37,13 @@ class PendingVerificationViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action resend verification du module l'authentification emailverification.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun resendVerification() {
         val email = _uiState.value.email.trim()
         if (email.isBlank()) {
@@ -64,7 +74,17 @@ class PendingVerificationViewModel(
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module l'authentification emailverification.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module l'authentification emailverification.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(authRepository: AuthRepository, initialEmail: String?): ViewModelProvider.Factory {
             return viewModelFactory {
                 initializer {

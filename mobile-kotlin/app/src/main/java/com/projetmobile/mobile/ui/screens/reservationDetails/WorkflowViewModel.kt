@@ -1,3 +1,10 @@
+/**
+ * Rôle : ViewModel pilotant la dynamique de validation (statuts du workflow) pour une réservation ou un jeu.
+ *
+ * Précondition : Le repository de workflow correspondant doit être fonctionnel et fournir l'état courant.
+ *
+ * Postcondition : Met à jour son flux d'état (UiState) et transmet les résultats des requêtes au frontend de l'UI.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails
 
 import androidx.compose.runtime.getValue
@@ -15,6 +22,9 @@ import com.projetmobile.mobile.data.repository.workflow.WorkflowRepository
 import com.projetmobile.mobile.ui.screens.festivalForm.FestivalFormViewModel
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Porte l'état et la logique du module les détails de réservation.
+ */
 class WorkflowViewModel(
     private val repository: WorkflowRepository
 ) : ViewModel() {
@@ -23,6 +33,13 @@ class WorkflowViewModel(
         private set
 
     // Charger les données (Appelé quand l'onglet s'affiche)
+    /**
+     * Rôle : Charge workflow.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun loadWorkflow(reservationId: Int) {
         viewModelScope.launch {
             uiState = WorkflowUiState.Loading
@@ -40,6 +57,13 @@ class WorkflowViewModel(
     }
 
     // Sauvegarder les changements
+    /**
+     * Rôle : Exécute l'action mise à jour workflow du module les détails de réservation.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun updateWorkflow(id: Int, payload: WorkflowUpdatePayload) {
         val currentState = uiState as? WorkflowUiState.Success ?: return
 
@@ -62,13 +86,30 @@ class WorkflowViewModel(
         }
     }
 
+    /**
+     * Rôle : Réinitialise message.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun clearMessage() {
         (uiState as? WorkflowUiState.Success)?.let {
             uiState = it.copy(userMessage = null)
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module les détails de réservation.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module les détails de réservation.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(workflowRepository: WorkflowRepository): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer { WorkflowViewModel(workflowRepository) }

@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran l'administration formulaire et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.form
 
 import androidx.compose.foundation.layout.Arrangement
@@ -93,6 +97,7 @@ internal fun AdminUserFormScreen(
 
         if (uiState.errorMessage != null) {
             item {
+                // Les erreurs métier sont affichées avant le formulaire pour rester immédiatement visibles.
                 AuthFeedbackBanner(
                     message = uiState.errorMessage,
                     tone = AuthFeedbackTone.Error,
@@ -101,6 +106,7 @@ internal fun AdminUserFormScreen(
         }
 
         if (uiState.isLoading) {
+            // L'écran garde un état de progression tant que la fiche utilisateur n'est pas prête.
             item {
                 Row(
                     modifier = Modifier
@@ -132,6 +138,7 @@ internal fun AdminUserFormScreen(
                         )
 
                         if (!isEdit) {
+                            // Le mot de passe n'est demandé qu'à la création afin d'éviter une saisie inutile en édition.
                             FestivalTextField(
                                 value = uiState.form.password,
                                 onValueChange = onPasswordChanged,
@@ -216,6 +223,7 @@ internal fun AdminUserFormScreen(
                         }
 
                         if (isEdit) {
+                            // Le basculeur de vérification email n'existe qu'en mode édition.
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -1,3 +1,9 @@
+/**
+ * Rôle : Relie la route du formulaire de réservant à son ViewModel et à l'écran Compose.
+ * Ce fichier prépare les callbacks de saisie, de sauvegarde et de navigation associés au formulaire.
+ * Précondition : Le mode du formulaire et les chargeurs nécessaires doivent être fournis par la navigation.
+ * Postcondition : L'écran reçoit un état observable et des actions prêtes à être déclenchées par l'utilisateur.
+ */
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.runtime.Composable
@@ -7,6 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+/**
+ * Rôle : Décrit le composant réservant formulaire actions du module les réservants formulaire.
+ */
 internal data class ReservantFormActions(
     val onNameChanged: (String) -> Unit,
     val onEmailChanged: (String) -> Unit,
@@ -21,6 +30,11 @@ internal data class ReservantFormActions(
     val onBackToList: () -> Unit,
 )
 
+/**
+ * Rôle : Monte l'écran du formulaire de réservant avec son ViewModel et ses callbacks de navigation.
+ * Précondition : `mode`, les chargeurs et les callbacks de sortie doivent être connus au moment du routage.
+ * Postcondition : Le formulaire peut charger, valider et signaler la sauvegarde du réservant.
+ */
 @Composable
 internal fun ReservantFormRoute(
     mode: ReservantFormMode,

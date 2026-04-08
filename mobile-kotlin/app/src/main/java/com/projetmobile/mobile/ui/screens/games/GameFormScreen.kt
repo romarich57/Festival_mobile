@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les jeux et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.activity.compose.rememberLauncherForActivityResult

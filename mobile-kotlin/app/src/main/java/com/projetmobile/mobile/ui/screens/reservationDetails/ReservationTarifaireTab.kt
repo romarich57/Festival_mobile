@@ -1,3 +1,10 @@
+/**
+ * Rôle : Onglet (Tab) permettant d'afficher la tarification liée à une réservation donnée.
+ *
+ * Précondition : Le contexte d'affichage doit concerner une réservation valide possédant un détail des prix applicables.
+ *
+ * Postcondition : Le total et le détail de chaque option payante sont présentés clairement par ce composable.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails
 
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +37,13 @@ import androidx.compose.ui.unit.dp
 import java.util.Locale
 
 @Composable
+/**
+ * Rôle : Exécute l'action zones tarifaires onglet du module les détails de réservation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun ZonesTarifairesTab(
     reservationId: Int,
     viewModel: ReservationTarifaireViewModel,
@@ -130,6 +144,13 @@ fun ZonesTarifairesTab(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action zone tarifaire carte du module les détails de réservation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun ZoneTarifaireCard(
     zone: ZoneTarifaireFormState,
     reservedTablesPrice: Double,
@@ -176,6 +197,13 @@ private fun ZoneTarifaireCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action prises carte du module les détails de réservation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun PrisesCard(
     nbPrises: String,
     prixParPrise: Double,
@@ -209,6 +237,13 @@ private fun PrisesCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action remises carte du module les détails de réservation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun RemisesCard(
     tableDiscountOffered: String,
     directDiscount: String,
@@ -258,6 +293,13 @@ private fun RemisesCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action recap carte du module les détails de réservation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun RecapCard(summary: ReservationPriceSummary) {
     Card(modifier = Modifier
         .fillMaxWidth(),
@@ -289,16 +331,37 @@ private fun RecapCard(summary: ReservationPriceSummary) {
     }
 }
 
+/**
+ * Rôle : Exécute l'action zone tables price du module les détails de réservation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun zoneTablesPrice(zone: ZoneTarifaireFormState): Double {
     val count = zone.reservedTables.toIntOrNull() ?: 0
     return count * zone.pricePerTable
 }
 
+/**
+ * Rôle : Formate currency.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun formatCurrency(value: Double): String {
     val formatted = String.format(Locale.FRANCE, "%.2f", value)
     return "EUR$formatted"
 }
 
+/**
+ * Rôle : Construit résumé.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun buildSummary(state: ReservationTarifaireUiState.Success): ReservationPriceSummary {
     val tablesPrice = state.zones.sumOf { zoneTablesPrice(it) }
     val totalTables = state.zones.sumOf { it.reservedTables.toIntOrNull() ?: 0 }
@@ -321,6 +384,9 @@ private fun buildSummary(state: ReservationTarifaireUiState.Success): Reservatio
     )
 }
 
+/**
+ * Rôle : Décrit le composant réservation price résumé du module les détails de réservation.
+ */
 private data class ReservationPriceSummary(
     val totalTables: Int,
     val tablesPrice: Double,

@@ -1,5 +1,15 @@
+/**
+ * Rôle : Actions associées à l'édition ou l'ajout d'un jeu au système.
+ *
+ * Précondition : Requises par le `GameFormViewModel` pour réagir asynchrone.
+ *
+ * Postcondition : Démarrage des processus métier correspondants.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
+/**
+ * Rôle : Décrit le composant jeu formulaire actions du module les jeux formulaire.
+ */
 internal data class GameFormActions(
     val onTitleChanged: (String) -> Unit,
     val onTypeChanged: (String) -> Unit,

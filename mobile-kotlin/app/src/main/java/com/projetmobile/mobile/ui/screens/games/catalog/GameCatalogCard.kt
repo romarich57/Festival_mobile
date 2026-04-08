@@ -1,3 +1,10 @@
+/**
+ * Rôle : Représente une seule et même carte graphique du tableau des jeux du catalogue.
+ *
+ * Précondition : Prend un GameDTO local.
+ *
+ * Postcondition : Affiche les étiquettes de mécanismes et les détails graphiques de la boîte.
+ */
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.background
@@ -33,6 +40,13 @@ import com.projetmobile.mobile.ui.components.AuthCard
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
 @Composable
+/**
+ * Rôle : Exécute l'action jeu catalogue carte du module les jeux catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun GameCatalogCard(
     game: GameListItem,
     visibleColumns: Set<GameVisibleColumn>,

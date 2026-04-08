@@ -1,3 +1,10 @@
+/**
+ * Rôle : Composant visuel représentant une carte (Card) d'un utilisateur dans la liste d'administration.
+ *
+ * Précondition : Doit recevoir un objet de type utilisateur contenant au minimum le nom et le rôle.
+ *
+ * Postcondition : Affiche les informations de base de l'utilisateur et gère l'interaction de clic.
+ */
 package com.projetmobile.mobile.ui.screens.admin.catalog
 
 import androidx.compose.foundation.clickable
@@ -38,6 +45,13 @@ import com.projetmobile.mobile.ui.screens.admin.shared.roleDisplayName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action administration utilisateur carte du module l'administration catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun AdminUserCard(
     user: AuthUser,
     isDeleting: Boolean,
@@ -151,6 +165,13 @@ internal fun AdminUserCard(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action email verified badge du module l'administration catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun EmailVerifiedBadge(verified: Boolean) {
     val bgColor = if (verified) Color(0xFFDCFCE7) else Color(0xFFFEF2F2)
     val textColor = if (verified) Color(0xFF16A34A) else Color(0xFFB91C1C)

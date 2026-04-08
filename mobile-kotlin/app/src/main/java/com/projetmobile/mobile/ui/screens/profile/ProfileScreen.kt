@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran le profil et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +46,7 @@ fun ProfileScreen(
         if (uiState.infoMessage == null) {
             return@LaunchedEffect
         }
+        // Les messages de succès du profil disparaissent automatiquement après quelques secondes.
         delay(4_000)
         onDismissInfoMessage()
     }
@@ -77,6 +82,7 @@ fun ProfileScreen(
 
             item {
                 when {
+                    // Le profil distingue clairement le chargement initial, la fiche prête et le cas d'absence de données.
                     uiState.isLoading && uiState.profile == null -> LoadingProfileCard()
                     uiState.profile != null -> ProfileOverviewCard(
                         uiState = uiState,
@@ -99,6 +105,7 @@ fun ProfileScreen(
 
             item {
                 if (uiState.profile != null) {
+                    // La carte de réinitialisation n'apparaît que lorsqu'un email exploitable existe réellement.
                     PasswordResetCard(
                         email = uiState.profile.email,
                         isSending = uiState.isSendingPasswordReset,

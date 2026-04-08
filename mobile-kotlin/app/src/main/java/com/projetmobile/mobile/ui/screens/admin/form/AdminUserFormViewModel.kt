@@ -1,3 +1,7 @@
+/**
+ * Rôle : Porte l'état et la logique du module l'administration formulaire pour l'écran Compose associé.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.form
 
 import androidx.lifecycle.ViewModel
@@ -33,6 +37,13 @@ internal class AdminUserFormViewModel(
         if (mode is AdminUserFormMode.Edit) loadUser(mode.userId)
     }
 
+    /**
+     * Rôle : Charge utilisateur.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun loadUser(userId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -57,15 +68,78 @@ internal class AdminUserFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Gère la modification du champ identifiant.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onLoginChanged(value: String) = updateForm { copy(login = value, loginError = null) }
+    /**
+     * Rôle : Gère la modification du champ mot de passe.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPasswordChanged(value: String) = updateForm { copy(password = value, passwordError = null) }
+    /**
+     * Rôle : Gère la modification du champ first name.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onFirstNameChanged(value: String) = updateForm { copy(firstName = value, firstNameError = null) }
+    /**
+     * Rôle : Gère la modification du champ last name.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onLastNameChanged(value: String) = updateForm { copy(lastName = value, lastNameError = null) }
+    /**
+     * Rôle : Gère la modification du champ email.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEmailChanged(value: String) = updateForm { copy(email = value, emailError = null) }
+    /**
+     * Rôle : Gère la modification du champ téléphone.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPhoneChanged(value: String) = updateForm { copy(phone = value) }
+    /**
+     * Rôle : Gère la sélection de role.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onRoleSelected(role: String) = updateForm { copy(role = role) }
+    /**
+     * Rôle : Gère la modification du champ email verified.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEmailVerifiedChanged(value: Boolean) = updateForm { copy(emailVerified = value) }
 
+    /**
+     * Rôle : Exécute l'action submit du module l'administration formulaire.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun submit() {
         val form = _uiState.value.form
         if (!validate(form)) return
@@ -79,6 +153,13 @@ internal class AdminUserFormViewModel(
         }
     }
 
+    /**
+     * Rôle : Crée utilisateur.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private suspend fun createUser(form: AdminUserFormState) {
         adminRepository.createUser(
             AdminUserCreateInput(
@@ -101,6 +182,13 @@ internal class AdminUserFormViewModel(
             }
     }
 
+    /**
+     * Rôle : Exécute l'action mise à jour utilisateur du module l'administration formulaire.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private suspend fun updateUser(userId: Int, form: AdminUserFormState) {
         adminRepository.updateUser(
             id = userId,
@@ -124,6 +212,13 @@ internal class AdminUserFormViewModel(
             }
     }
 
+    /**
+     * Rôle : Valide .
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun validate(form: AdminUserFormState): Boolean {
         var valid = true
         var updated = form
@@ -154,11 +249,28 @@ internal class AdminUserFormViewModel(
         return valid
     }
 
+    /**
+     * Rôle : Exécute l'action mise à jour formulaire du module l'administration formulaire.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun updateForm(transform: AdminUserFormState.() -> AdminUserFormState) {
         _uiState.update { it.copy(form = it.form.transform()) }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module l'administration formulaire.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module l'administration formulaire.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(
             adminRepository: AdminRepository,
             mode: AdminUserFormMode,

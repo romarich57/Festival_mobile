@@ -1,3 +1,10 @@
+/**
+ * Rôle : Section de l'interface qui contient les différents filtres applicables sur le catalogue admin (ex: rechercher, filtrer par rôle).
+ *
+ * Précondition : Le parent doit fournir l'état actuel des filtres et les callbacks (onFilterChanged).
+ *
+ * Postcondition : Permet à l'utilisateur de modifier les critères de recherche dynamiquement.
+ */
 package com.projetmobile.mobile.ui.screens.admin.catalog
 
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +41,13 @@ import com.projetmobile.mobile.ui.screens.admin.shared.roleDisplayName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action administration catalogue filtre section du module l'administration catalogue.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun AdminCatalogFilterSection(
     uiState: AdminCatalogUiState,
     onSearchQueryChanged: (String) -> Unit,
@@ -68,6 +82,7 @@ internal fun AdminCatalogFilterSection(
 
             Text("Role", style = MaterialTheme.typography.labelMedium, color = Color(0xFF6B7280))
             Spacer(modifier = Modifier.height(4.dp))
+            // Chaque menu déroulant conserve son propre état ouvert pour éviter les fermetures croisées.
             ExposedDropdownMenuBox(
                 expanded = roleDropdownExpanded,
                 onExpandedChange = { roleDropdownExpanded = it },
@@ -167,6 +182,7 @@ internal fun AdminCatalogFilterSection(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                // Le toggle de tri et la réinitialisation restent côte à côte pour réduire les allers-retours visuels.
                 Button(
                     onClick = onToggleSortOrder,
                     modifier = Modifier.weight(1f),

@@ -1,13 +1,34 @@
+/**
+ * Rôle : Assiste dans la création et l'envoi du formulaire de modification de profil utilisateur.
+ *
+ * Précondition : Possède la nouvelle base de texte ou avatar à envoyer au serveur.
+ *
+ * Postcondition : Transforme l'état local en objet réseau complet pour les APIS.
+ */
 package com.projetmobile.mobile.ui.screens.profile
 
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 import com.projetmobile.mobile.data.entity.profile.OptionalField
 import com.projetmobile.mobile.data.entity.profile.ProfileUpdateInput
 
+/**
+ * Rôle : Recalcule les drapeaux dérivés du profil après une modification locale.
+ *
+ * Précondition : L'état courant doit déjà contenir le profil, le formulaire et l'état d'avatar à comparer.
+ *
+ * Postcondition : Le champ `hasPendingChanges` reflète précisément la différence entre l'état sauvegardé et l'édition en cours.
+ */
 internal fun ProfileUiState.recalculated(): ProfileUiState {
     return copy(hasPendingChanges = hasPendingProfileChanges(profile, form, avatarState))
 }
 
+/**
+ * Rôle : Indique si en attente profil changes est présent.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun hasPendingProfileChanges(
     profile: AuthUser?,
     form: ProfileFormState,
@@ -33,6 +54,13 @@ internal fun hasPendingProfileChanges(
     return textChanged || avatarChanged
 }
 
+/**
+ * Rôle : Construit profil mise à jour input.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 internal fun buildProfileUpdateInput(
     savedProfile: AuthUser,
     form: ProfileFormState,

@@ -1,3 +1,7 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module les détails de réservation.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservationDetails
 
 /**
@@ -18,9 +22,18 @@ data class ZoneTarifaireFormState(
     val reservedTablesInitial: Int,
 )
 
+/**
+ * Rôle : Définit le contrat du module les détails de réservation.
+ */
 sealed interface ReservationTarifaireUiState {
+    /**
+     * Rôle : Expose un singleton de support pour le module les détails de réservation.
+     */
     object Loading : ReservationTarifaireUiState
 
+    /**
+     * Rôle : Décrit le composant success du module les détails de réservation.
+     */
     data class Success(
         val festivalId: Int,
         val zones: List<ZoneTarifaireFormState>,
@@ -33,5 +46,8 @@ sealed interface ReservationTarifaireUiState {
         val userMessage: String? = null,
     ) : ReservationTarifaireUiState
 
+    /**
+     * Rôle : Décrit le composant erreur du module les détails de réservation.
+     */
     data class Error(val message: String) : ReservationTarifaireUiState
 }

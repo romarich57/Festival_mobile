@@ -16,12 +16,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+/**
+ * Rôle : Décrit le composant primary auth button tone du module components.
+ */
 enum class PrimaryAuthButtonTone {
     Primary,
     Accent,
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action primary auth button du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun PrimaryAuthButton(
     text: String,
     modifier: Modifier = Modifier,

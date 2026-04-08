@@ -1,13 +1,23 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module l'administration catalogue.
+ */
+
 package com.projetmobile.mobile.ui.screens.admin.catalog
 
 import com.projetmobile.mobile.data.entity.auth.AuthUser
 
+/**
+ * Rôle : Décrit le composant administration utilisateur tri option du module l'administration catalogue.
+ */
 enum class AdminUserSortOption(val label: String) {
     CreatedAtDesc("Date de création"),
     NameAsc("Nom"),
     RoleAsc("Rôle"),
 }
 
+/**
+ * Rôle : Décrit le composant administration email filtre du module l'administration catalogue.
+ */
 enum class AdminEmailFilter(val label: String) {
     All("Tous les statuts"),
     Verified("Vérifié"),
@@ -42,6 +52,13 @@ data class AdminCatalogUiState(
     val adminCount: Int get() = allUsers.count { it.role == "admin" }
 }
 
+/**
+ * Rôle : Recalcule la liste filtrée du catalogue administrateur à partir de l'état courant.
+ *
+ * Précondition : Les filtres stockés dans l'état doivent déjà refléter la saisie ou les sélections utilisateur.
+ *
+ * Postcondition : L'état retourné expose `filteredUsers` cohérent avec les critères actifs, sans modifier la liste brute.
+ */
 internal fun AdminCatalogUiState.withAppliedFilters(): AdminCatalogUiState {
     var result = allUsers
 

@@ -12,10 +12,24 @@ import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
+/**
+ * Rôle : Exécute l'action parse app deep link du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun parseAppDeepLink(uri: Uri?): AppNavKey? {
     return parseAppDeepLinkString(uri?.toString())
 }
 
+/**
+ * Rôle : Exécute l'action parse app deep link string du module navigation.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun parseAppDeepLinkString(rawUri: String?): AppNavKey? {
     val parsedUri = rawUri
         ?.takeIf { it.isNotBlank() }
@@ -45,6 +59,13 @@ fun parseAppDeepLinkString(rawUri: String?): AppNavKey? {
     }
 }
 
+/**
+ * Rôle : Extrait les paramètres de requête d'une URI standard et les retourne sous forme de dictionnaire.
+ *
+ * Précondition : L'URI doit être déjà parsée et contenir éventuellement une chaîne de requête.
+ *
+ * Postcondition : Retourne une map décodée en UTF-8, vide si aucun paramètre n'est présent.
+ */
 private fun URI.queryParameters(): Map<String, String?> {
     val rawQuery = query ?: return emptyMap()
     if (rawQuery.isBlank()) {

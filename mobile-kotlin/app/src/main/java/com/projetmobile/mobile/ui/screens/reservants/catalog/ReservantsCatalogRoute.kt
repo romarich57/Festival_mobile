@@ -1,3 +1,9 @@
+/**
+ * Rôle : Relie la route du catalogue des réservants à son ViewModel et à l'écran Compose.
+ * Ce fichier prépare les callbacks de navigation, de chargement et de suppression autour du catalogue.
+ * Précondition : Les dépendances du catalogue doivent être injectées par la navigation parente.
+ * Postcondition : L'écran de catalogue reçoit un état observable et des actions prêtes à l'emploi.
+ */
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.runtime.Composable
@@ -10,6 +16,11 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantListItem
 import kotlinx.coroutines.flow.Flow
 
 @Composable
+/**
+ * Rôle : Monte l'écran de catalogue des réservants avec son état observable et ses callbacks.
+ * Précondition : Les chargeurs, suppressions et callbacks de navigation doivent être fournis par la route.
+ * Postcondition : Le catalogue est affiché avec les actions de création, détail, édition et rafraîchissement.
+ */
 internal fun ReservantsCatalogRoute(
     loadReservants: ReservantsLoader,
     observeReservants: Flow<List<ReservantListItem>>,

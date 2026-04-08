@@ -1,3 +1,9 @@
+/**
+ * Rôle : Fournit un sélecteur déroulant réutilisable pour les écrans de réservants.
+ * Ce composant aligne l'apparence des menus de choix utilisés dans les formulaires et les filtres.
+ * Précondition : L'appelant doit fournir un label, la valeur affichée et la liste des options.
+ * Postcondition : L'utilisateur peut choisir une option et le callback reçoit la valeur sélectionnée.
+ */
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.layout.Box
@@ -24,6 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
+/**
+ * Rôle : Affiche un menu déroulant stylisé pour sélectionner une valeur parmi des options de réservants.
+ * Précondition : `options` doit contenir des paires libellé/valeur cohérentes avec `selectedLabel`.
+ * Postcondition : L'option sélectionnée est renvoyée via `onValueSelected` et le menu se referme.
+ */
 internal fun <T> ReservantsDropdownSelector(
     label: String,
     selectedLabel: String,

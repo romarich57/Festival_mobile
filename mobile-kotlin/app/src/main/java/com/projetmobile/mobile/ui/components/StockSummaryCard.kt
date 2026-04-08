@@ -26,6 +26,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.StockState
 
 @Composable
+/**
+ * Rôle : Exécute l'action stock résumé carte du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun StockSummaryCard(stock: StockState) {
     Card(
         modifier = Modifier.fillMaxWidth(),

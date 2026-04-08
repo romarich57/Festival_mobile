@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les réservants catalogue et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.layout.Arrangement

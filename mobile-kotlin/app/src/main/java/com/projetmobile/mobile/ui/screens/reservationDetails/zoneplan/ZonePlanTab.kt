@@ -1,3 +1,10 @@
+/**
+ * Rôle : Affiche l'onglet du plan de la zone avec son contenu map/placement.
+ *
+ * Précondition : Doit être appelé lors de la création de la vue des détails et du layout tab.
+ *
+ * Postcondition : Affiche les informations sur la disposition avec la mécanique du plan.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +34,13 @@ import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.Ad
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.placement.PlacementFormCard
 
 @Composable
+/**
+ * Rôle : Exécute l'action zone plan onglet du module la zone plan des réservations.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun ZonePlanTab(
     reservationId: Int,
     viewModel: ZonePlanViewModel,
@@ -55,6 +69,13 @@ fun ZonePlanTab(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action zone plan content du module la zone plan des réservations.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 private fun ZonePlanContent(
     state: ZonePlanUiState.Success,
     viewModel: ZonePlanViewModel,

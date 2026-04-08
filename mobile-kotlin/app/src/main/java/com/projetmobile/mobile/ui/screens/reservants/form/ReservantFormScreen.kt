@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les réservants formulaire et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.foundation.layout.Arrangement
@@ -51,6 +55,7 @@ internal fun ReservantFormScreen(
             contentAlignment = Alignment.TopCenter,
         ) {
             if (uiState.isLoading) {
+                // Un chargement initial remplace le formulaire pour éviter d'exposer un état partiellement prêt.
                 ReservantsLoadingCard(text = "Chargement du réservant…")
                 return@Box
             }
@@ -64,6 +69,7 @@ internal fun ReservantFormScreen(
             ) {
                 if (uiState.errorMessage != null) {
                     item {
+                        // Les erreurs bloquantes prennent la priorité sur les messages de lookup secondaires.
                         AuthFeedbackBanner(
                             message = uiState.errorMessage,
                             tone = AuthFeedbackTone.Error,
@@ -73,6 +79,7 @@ internal fun ReservantFormScreen(
                 }
                 if (uiState.errorMessage == null && uiState.lookupErrorMessage != null) {
                     item {
+                        // Un échec de chargement des lookups reste visible mais ne doit pas masquer un formulaire valide.
                         AuthFeedbackBanner(
                             message = uiState.lookupErrorMessage,
                             tone = AuthFeedbackTone.Error,
@@ -105,6 +112,7 @@ internal fun ReservantFormScreen(
                                 supportingText = uiState.fields.emailError,
                                 modifier = Modifier.fillMaxWidth(),
                             )
+                            // Le sélecteur de type ouvre aussi le choix de l'éditeur lié quand le modèle métier l'exige.
                             ReservantsDropdownSelector(
                                 label = "Type",
                                 selectedLabel = defaultReservantTypes()
@@ -125,6 +133,7 @@ internal fun ReservantFormScreen(
                                 )
                             }
                             if (uiState.shouldShowEditorSelector) {
+                                // Le champ éditeur n'apparaît que pour les types qui en ont besoin.
                                 ReservantsDropdownSelector(
                                     label = "Éditeur lié",
                                     selectedLabel = uiState.availableEditors
@@ -169,6 +178,7 @@ internal fun ReservantFormScreen(
                                 singleLine = false,
                                 modifier = Modifier.fillMaxWidth(),
                             )
+                            // La barre d'actions s'adapte à la largeur pour conserver des boutons lisibles sur mobile.
                             FormActionRow(
                                 showHorizontalActions = showHorizontalActions,
                                 isSaving = uiState.isSaving,
@@ -184,6 +194,13 @@ internal fun ReservantFormScreen(
 }
 
 @Composable
+/**
+ * Rôle : Exécute l'action formulaire action row du module les réservants formulaire.
+ *
+ * Précondition : L'état UI et les callbacks ou dépendances nécessaires doivent être disponibles.
+ *
+ * Postcondition : L'interface reflète l'état courant et propage les événements utilisateur.
+ */
 private fun FormActionRow(
     showHorizontalActions: Boolean,
     isSaving: Boolean,

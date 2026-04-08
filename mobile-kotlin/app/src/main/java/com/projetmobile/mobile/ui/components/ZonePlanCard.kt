@@ -35,6 +35,13 @@ import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.PlacementD
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanZoneState
 
 @Composable
+/**
+ * Rôle : Exécute l'action zone plan carte du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun ZonePlanCard(
     zone: ZonePlanZoneState,
     currentReservationId: Int,

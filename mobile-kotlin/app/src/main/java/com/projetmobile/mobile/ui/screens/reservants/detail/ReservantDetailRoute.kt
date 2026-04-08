@@ -1,3 +1,9 @@
+/**
+ * Rôle : Relie la route de détail d'un réservant à son ViewModel et à l'écran Compose.
+ * Ce fichier prépare les callbacks de navigation et les rafraîchissements contextuels autour de la page détail.
+ * Précondition : L'identifiant du réservant et les chargeurs nécessaires doivent être fournis par la navigation.
+ * Postcondition : Le détail du réservant est affiché avec des actions prêtes à être déclenchées.
+ */
 package com.projetmobile.mobile.ui.screens.reservants
 
 import androidx.compose.runtime.Composable
@@ -7,6 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+/**
+ * Rôle : Décrit le composant réservant détail actions du module les réservants détail.
+ */
 internal data class ReservantDetailActions(
     val onSelectTab: (ReservantDetailTab) -> Unit,
     val onRetry: () -> Unit,
@@ -26,6 +35,11 @@ internal data class ReservantDetailActions(
     val onCreateLinkedGame: (Int, Int) -> Unit,
 )
 
+/**
+ * Rôle : Monte l'écran de détail d'un réservant avec ses dépendances de données et ses callbacks de navigation.
+ * Précondition : `reservantId`, les chargeurs et les callbacks de sortie doivent être disponibles au moment du routage.
+ * Postcondition : L'écran reçoit un état observable et un objet d'actions complet pour piloter le détail.
+ */
 @Composable
 internal fun ReservantDetailRoute(
     reservantId: Int,

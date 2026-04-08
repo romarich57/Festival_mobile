@@ -5,16 +5,17 @@
  * Postcondition : Formatage de date uniformisé sans crasher l'app en cas d'erreur.
  */
 package com.projetmobile.mobile.ui.utils
-Rôle : Formate une date ISO 8601 (ex: "2025-08-21T22:00:00.000Z") en "21/08/2025".
- * Supporté sur API < 26 grâce au desugaring configuré dans build.gradle.kts.
- * Précondition : La chaîne en entrée doit être idéalement une date ISO 8601 valide.
- * Postcondition : Renvoie la date formatée ou la chaîne d'origine en guise de fallback (en cas d'erreur)
+
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * Formate une date ISO 8601 (ex: "2025-08-21T22:00:00.000Z") en "21/08/2025".
- * Supporté sur API < 26 grâce au desugaring configuré dans build.gradle.kts.
+ * Rôle : Formate une date ISO 8601 (ex: "2025-08-21T22:00:00.000Z") en "21/08/2025".
+ *
+ * Précondition : La chaîne en entrée doit idéalement être une date ISO 8601 valide.
+ *
+ * Postcondition : Renvoie la date formatée sous forme usuelle ou la chaîne d'origine en guise de fallback (en cas d'erreur de parsing).
  */
 fun formatDate(isoDate: String): String {
     return try {

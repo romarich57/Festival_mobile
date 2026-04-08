@@ -8,7 +8,17 @@ package com.projetmobile.mobile.ui.utils.validation
 
 private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
 
+/**
+ * Rôle : Expose un singleton de support pour le module validation.
+ */
 object AuthFormValidator {
+    /**
+     * Rôle : Valide identifiant.
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     fun validateLogin(identifier: String, password: String): LoginValidationResult {
         val identifierError = if (identifier.isBlank()) {
             "Veuillez renseigner votre email ou pseudo"
@@ -27,6 +37,13 @@ object AuthFormValidator {
         )
     }
 
+    /**
+     * Rôle : Valide register.
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     fun validateRegister(
         username: String,
         firstName: String,
@@ -64,6 +81,13 @@ object AuthFormValidator {
         )
     }
 
+    /**
+     * Rôle : Valide resend verification.
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     fun validateResendVerification(email: String): ResendVerificationValidationResult {
         val emailError = when {
             email.isBlank() -> "Veuillez saisir votre email"
@@ -74,6 +98,13 @@ object AuthFormValidator {
         return ResendVerificationValidationResult(emailError = emailError)
     }
 
+    /**
+     * Rôle : Valide forgot mot de passe.
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     fun validateForgotPassword(email: String): ForgotPasswordValidationResult {
         val emailError = when {
             email.isBlank() -> "Veuillez saisir l'email associé à votre compte"
@@ -84,6 +115,13 @@ object AuthFormValidator {
         return ForgotPasswordValidationResult(emailError = emailError)
     }
 
+    /**
+     * Rôle : Valide réinitialisation mot de passe.
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     fun validateResetPassword(
         password: String,
         confirmation: String,
@@ -105,6 +143,13 @@ object AuthFormValidator {
         )
     }
 
+    /**
+     * Rôle : Valide profil mise à jour.
+     *
+     * Précondition : Les données à contrôler doivent être présentes.
+     *
+     * Postcondition : La structure d'erreurs reflète les champs invalides.
+     */
     fun validateProfileUpdate(
         username: String,
         firstName: String,
@@ -131,6 +176,9 @@ object AuthFormValidator {
     }
 }
 
+/**
+ * Rôle : Décrit le composant identifiant validation result du module validation.
+ */
 data class LoginValidationResult(
     val identifierError: String?,
     val passwordError: String?,
@@ -139,6 +187,9 @@ data class LoginValidationResult(
     val isInvalid: Boolean = !isValid
 }
 
+/**
+ * Rôle : Décrit le composant register validation result du module validation.
+ */
 data class RegisterValidationResult(
     val usernameError: String?,
     val firstNameError: String?,
@@ -158,6 +209,9 @@ data class RegisterValidationResult(
     val isInvalid: Boolean = !isValid
 }
 
+/**
+ * Rôle : Décrit le composant resend verification validation result du module validation.
+ */
 data class ResendVerificationValidationResult(
     val emailError: String?,
 ) {
@@ -165,6 +219,9 @@ data class ResendVerificationValidationResult(
     val isInvalid: Boolean = !isValid
 }
 
+/**
+ * Rôle : Décrit le composant forgot mot de passe validation result du module validation.
+ */
 data class ForgotPasswordValidationResult(
     val emailError: String?,
 ) {
@@ -172,6 +229,9 @@ data class ForgotPasswordValidationResult(
     val isInvalid: Boolean = !isValid
 }
 
+/**
+ * Rôle : Décrit le composant réinitialisation mot de passe validation result du module validation.
+ */
 data class ResetPasswordValidationResult(
     val passwordError: String?,
     val confirmationError: String?,
@@ -180,6 +240,9 @@ data class ResetPasswordValidationResult(
     val isInvalid: Boolean = !isValid
 }
 
+/**
+ * Rôle : Décrit le composant profil mise à jour validation result du module validation.
+ */
 data class ProfileUpdateValidationResult(
     val usernameError: String?,
     val firstNameError: String?,

@@ -19,12 +19,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Porte l'état et la logique du module l'authentification.
+ */
 class ForgotPasswordViewModel(
     private val authRepository: AuthRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ForgotPasswordUiState())
     val uiState: StateFlow<ForgotPasswordUiState> = _uiState.asStateFlow()
 
+    /**
+     * Rôle : Gère la modification du champ email.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEmailChanged(value: String) {
         _uiState.update { state ->
             state.copy(
@@ -36,6 +46,13 @@ class ForgotPasswordViewModel(
         }
     }
 
+    /**
+     * Rôle : Exécute l'action submit mot de passe réinitialisation demande du module l'authentification.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun submitPasswordResetRequest() {
         val currentState = _uiState.value
         val validation = AuthFormValidator.validateForgotPassword(currentState.email)
@@ -77,7 +94,17 @@ class ForgotPasswordViewModel(
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module l'authentification.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module l'authentification.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(authRepository: AuthRepository): ViewModelProvider.Factory {
             return viewModelFactory {
                 initializer {

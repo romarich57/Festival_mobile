@@ -25,6 +25,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import com.projetmobile.mobile.R
 
 @Composable
+/**
+ * Rôle : Exécute l'action festival mot de passe champ du module components.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun FestivalPasswordField(
     value: String,
     onValueChange: (String) -> Unit,

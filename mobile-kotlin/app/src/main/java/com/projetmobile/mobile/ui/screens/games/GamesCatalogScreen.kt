@@ -1,3 +1,7 @@
+/**
+ * Rôle : Compose l'écran les jeux et orchestre l'affichage de l'état et des actions utilisateur.
+ */
+
 package com.projetmobile.mobile.ui.screens.games
 
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +46,7 @@ internal fun GamesCatalogScreen(
         if (uiState.infoMessage == null) {
             return@LaunchedEffect
         }
+        // Les messages de succès sont temporaires et s'effacent sans interaction.
         delay(4_000)
         actions.onDismissInfoMessage()
     }
@@ -54,6 +59,7 @@ internal fun GamesCatalogScreen(
         val windowSizeClass = gamesWindowSizeClass(maxWidth)
         val useGrid = windowSizeClass == GamesWindowSizeClass.Expanded
         val rows = remember(uiState.items, useGrid) {
+            // Le catalogue adapte son découpage à la largeur disponible pour rester lisible sur tablette.
             if (useGrid) {
                 uiState.items.chunked(2)
             } else {
@@ -108,11 +114,13 @@ internal fun GamesCatalogScreen(
                 }
 
                 when {
+                    // Les trois états principaux restent séparés pour éviter de mélanger chargement, vide et contenu.
                     uiState.isLoading && uiState.items.isEmpty() -> item { LoadingGamesCard() }
                     uiState.items.isEmpty() -> item { EmptyGamesCard() }
                     else -> {
                         itemsIndexed(rows) { rowIndex, rowItems ->
                             if (rowIndex >= rows.lastIndex - 1 && uiState.hasNext) {
+                                // Le chargement de la page suivante est déclenché quand on approche de la fin visible.
                                 LaunchedEffect(rowIndex, uiState.items.size, uiState.hasNext) {
                                     actions.onLoadNextPage()
                                 }

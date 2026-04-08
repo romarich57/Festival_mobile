@@ -20,19 +20,71 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Porte l'état et la logique du module l'authentification.
+ */
 class RegisterViewModel(
     private val authRepository: AuthRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(RegisterUiState())
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
+    /**
+     * Rôle : Gère la modification du champ identifiant.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onUsernameChanged(value: String) = updateState { copy(username = value, usernameError = null) }
+    /**
+     * Rôle : Gère la modification du champ first name.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onFirstNameChanged(value: String) = updateState { copy(firstName = value, firstNameError = null) }
+    /**
+     * Rôle : Gère la modification du champ last name.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onLastNameChanged(value: String) = updateState { copy(lastName = value, lastNameError = null) }
+    /**
+     * Rôle : Gère la modification du champ email.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onEmailChanged(value: String) = updateState { copy(email = value, emailError = null) }
+    /**
+     * Rôle : Gère la modification du champ mot de passe.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPasswordChanged(value: String) = updateState { copy(password = value, passwordError = null) }
+    /**
+     * Rôle : Gère la modification du champ téléphone.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun onPhoneChanged(value: String) = updateState { copy(phone = value, phoneError = null) }
 
+    /**
+     * Rôle : Exécute l'action submit registration du module l'authentification.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun submitRegistration() {
         val currentState = _uiState.value
         val validation = AuthFormValidator.validateRegister(
@@ -92,19 +144,43 @@ class RegisterViewModel(
         }
     }
 
+    /**
+     * Rôle : Consomme en attente verification email.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     fun consumePendingVerificationEmail() {
         _uiState.update { state ->
             state.copy(pendingVerificationEmail = null)
         }
     }
 
+    /**
+     * Rôle : Exécute l'action mise à jour état du module l'authentification.
+     *
+     * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+     *
+     * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+     */
     private fun updateState(transform: RegisterUiState.() -> RegisterUiState) {
         _uiState.update { state ->
             state.transform().copy(errorMessage = null, infoMessage = null)
         }
     }
 
+    /**
+     * Rôle : Expose un singleton de support pour le module l'authentification.
+     */
     companion object {
+        /**
+         * Rôle : Exécute l'action factory du module l'authentification.
+         *
+         * Précondition : Les dépendances injectées et l'état courant du ViewModel doivent être disponibles.
+         *
+         * Postcondition : L'état exposé par le ViewModel est mis à jour ou l'action métier est déclenchée.
+         */
         fun factory(authRepository: AuthRepository): ViewModelProvider.Factory {
             return viewModelFactory {
                 initializer {

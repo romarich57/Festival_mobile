@@ -37,6 +37,13 @@ import com.projetmobile.mobile.data.remote.reservation.WorkflowUpdatePayload
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+/**
+ * Rôle : Exécute l'action workflow content du module workflow.
+ *
+ * Précondition : Les dépendances nécessaires à l'opération doivent être disponibles.
+ *
+ * Postcondition : Le résultat reflète l'opération demandée.
+ */
 fun WorkflowContent(
     workflow: WorkflowDto,
     isSaving: Boolean,

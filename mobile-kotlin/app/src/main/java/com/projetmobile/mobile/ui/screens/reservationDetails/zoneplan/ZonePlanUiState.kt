@@ -1,3 +1,10 @@
+/**
+ * Rôle : Structure de données encadrant l'état général du gestionnaire de plan (état isLoading, zones actives).
+ *
+ * Précondition : Géré et initié par défaut via le ZonePlanViewModel.
+ *
+ * Postcondition : Reflète l'évolution globale du plan UI.
+ */
 package com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan
 
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.addzone.AddZoneFormState
@@ -18,6 +25,9 @@ data class PlacementDisplayItem(
     val allocationId: Int? = null,          // for game placements (jeux_alloues.id)
 )
 
+/**
+ * Rôle : Décrit l'état immuable du module la zone plan des réservations.
+ */
 data class ZonePlanZoneState(
     val id: Int,
     val name: String,
@@ -31,6 +41,9 @@ data class ZonePlanZoneState(
     val hasReservationInLinkedZone: Boolean = false,
 )
 
+/**
+ * Rôle : Décrit l'état immuable du module la zone plan des réservations.
+ */
 data class StockState(
     val tablesStandard: Int = 0,
     val tablesStandardOccupied: Int = 0,
@@ -41,6 +54,13 @@ data class StockState(
     val chaisesTotal: Int = 0,
     val chaisesAllocated: Int = 0,
 ) {
+    /**
+     * Rôle : Exécute l'action available for type du module la zone plan des réservations.
+     *
+     * Précondition : Les données du module doivent être disponibles pour initialiser ou exposer l'état.
+     *
+     * Postcondition : L'objet retourné décrit un état cohérent et immuable.
+     */
     fun availableForType(type: String): Int = when (type) {
         "standard" -> tablesStandard - tablesStandardOccupied
         "grande" -> tablesGrande - tablesGrandeOccupied
@@ -51,9 +71,18 @@ data class StockState(
     val chaisesAvailable: Int get() = chaisesTotal - chaisesAllocated
 }
 
+/**
+ * Rôle : Définit le contrat du module la zone plan des réservations.
+ */
 sealed interface ZonePlanUiState {
+    /**
+     * Rôle : Expose un singleton de support pour le module la zone plan des réservations.
+     */
     data object Loading : ZonePlanUiState
 
+    /**
+     * Rôle : Décrit le composant success du module la zone plan des réservations.
+     */
     data class Success(
         val reservationId: Int,
         val festivalId: Int,
@@ -70,5 +99,8 @@ sealed interface ZonePlanUiState {
         val ztAvailableTables: Map<Int, Int> = emptyMap(), // zone_tarifaire_id -> tables disponibles
     ) : ZonePlanUiState
 
+    /**
+     * Rôle : Décrit le composant erreur du module la zone plan des réservations.
+     */
     data class Error(val message: String) : ZonePlanUiState
 }

@@ -1,3 +1,7 @@
+/**
+ * Rôle : Décrit l'état UI immuable du module les festivals.
+ */
+
 package com.projetmobile.mobile.ui.screens.festival
 
 import com.projetmobile.mobile.data.entity.festival.FestivalSummary
