@@ -25,6 +25,13 @@ import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import kotlinx.coroutines.delay
 
+/**
+ * Rôle : Affiche le catalogue complet des jeux (liste paginée avec filtres et tri).
+ *
+ * Précondition : Le ViewModel doit fournir l'état via [GamesCatalogUiState] ainsi que les actions via [GamesCatalogActions].
+ *
+ * Postcondition : Affiche les jeux sous forme de liste et permet la navigation vers le détail ou l'édition d'un jeu.
+ */
 @Composable
 internal fun GamesCatalogScreen(
     uiState: GamesCatalogUiState,

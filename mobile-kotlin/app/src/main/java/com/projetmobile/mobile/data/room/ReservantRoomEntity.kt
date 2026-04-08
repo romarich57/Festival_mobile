@@ -4,10 +4,14 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * Entité Room représentant un réservant dans la base de données locale.
+ * Rôle : Entité Room définissant le schéma de base de données pour un "réservant" (éditeur ou créateur).
+ * Elle gère à la fois ses caractéristiques métiers et son état de synchronisation local (Off-line first).
  *
- * Convention des IDs : id > 0 = serveur, id < 0 = local temporaire (hors-ligne).
- * [pendingDraftJson] : [ReservantDraft] sérialisé en JSON pour PENDING_CREATE / PENDING_UPDATE.
+ * Précondition : Utilisée conjointement avec le [com.projetmobile.mobile.data.dao.ReservantDao]
+ * et les autres composants de la base locale Room.
+ * Postcondition : Autorise la mise en cache réseau locale grâce à ses attributs :
+ * Convention des IDs : (id > 0 = ID serveur, id < 0 = ID local temporaire).
+ * [pendingDraftJson] : Structure métier sérialisée contenant les modifications de brouillon à remonter.
  */
 @Entity(tableName = "reservants")
 data class ReservantRoomEntity(

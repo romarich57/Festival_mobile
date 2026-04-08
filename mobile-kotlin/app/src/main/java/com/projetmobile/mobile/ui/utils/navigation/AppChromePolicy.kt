@@ -1,3 +1,9 @@
+/**
+ * Rôle : Gère la politique d'affichage du "Chrome" de l'application (Barres de navigation, Titres, Bouton Retour).
+ * Ce fichier déduit l'état de l'UI globale en fonction de la destination courante et de l'état d'authentification.
+ * Précondition : Appelé à chaque changement de navigation dans le composant racine `FestivalApp`.
+ * Postcondition : Fournit un objet `AppChromeState` décrivant exactement comment configurer le composant Scaffold.
+ */
 package com.projetmobile.mobile.ui.utils.navigation
 
 import com.projetmobile.mobile.data.entity.auth.VerificationResultStatus

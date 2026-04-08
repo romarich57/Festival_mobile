@@ -14,6 +14,13 @@ import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import kotlinx.coroutines.delay
 
+/**
+ * Rôle : Rend la vue de profil de la session en cours et initie les modals de mise à jour.
+ *
+ * Précondition : Un utilisateur logué [ProfileUiState] est indispensable.
+ *
+ * Postcondition : Affiche l'Avatar, ou le pseudo couramment enregistré, et gère les feedbacks temporaires du viewModel.
+ */
 @Composable
 fun ProfileScreen(
     uiState: ProfileUiState,

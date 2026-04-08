@@ -21,6 +21,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Implémenter le planificateur des envois/demandes en file d'attente (Offline-First) grâce à `WorkManager` : 
+ * il détermine quand rétablir la connexion (`CONNECTED`), comment relancer et quel Worker lancer.
+ * 
+ * Précondition : Le service demande le descripteur d'application complet et une référence valide vers `AppDatabase`.
+ * Postcondition : Attache des écouteurs au gestionnaire de réseau mobile, scrute les tables SQLite concernées et place les `OneTimeWorkRequestBuilder`.
+ */
 class AndroidSyncWorkScheduler(
     context: Context,
     private val database: AppDatabase,
@@ -33,6 +40,12 @@ class AndroidSyncWorkScheduler(
     @Volatile
     private var started = false
 
+    /**
+     * Rôle : Détecter dynamiquement les retours à la connectivité pour dépiler immédiatement les actions de fond en attente de synchronisation.
+     * 
+     * Précondition : Le dispositif Android implémente un module réseau. Callback attaché sur `start`.
+     * Postcondition : Épuise, relance ou valide les actions réseau via appel à `schedulePendingSyncAsync` sur changement net.
+     */
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             if (hasValidatedNetwork(network)) {
@@ -50,6 +63,12 @@ class AndroidSyncWorkScheduler(
         }
     }
 
+    /**
+     * Rôle : Interroger chaque DAO (donnée) pour déceler la présence de modifications locales différées et programmer un worker associé.
+     * 
+     * Précondition : Le processus a requis une synchronisation. Appelé depuis Flow Coroutines/Worker.
+     * Postcondition : Enqueue les `SyncWorker` correspondants s'il existe plus de 0 tâche pendiente dans les bases de données respectives.
+     */
     override suspend fun schedulePendingSync() {
         if (database.gameDao().countPendingWork() > 0) {
             enqueue<GameSyncWorker>(GameSyncWorker.WORK_NAME)
@@ -65,12 +84,24 @@ class AndroidSyncWorkScheduler(
         }
     }
 
+    /**
+     * Rôle : Lancement non-bloquant du `schedulePendingSync()`.
+     * 
+     * Précondition : L'application n'est pas obligée d'assumer elle-même le cycle de vie Coroutine.
+     * Postcondition : Une tâche en arrière plan est générée et ajoutée dans SupervisorJob.
+     */
     override fun schedulePendingSyncAsync() {
         scope.launch {
             schedulePendingSync()
         }
     }
 
+    /**
+     * Rôle : Engager une écoute permanente sur le réseau grâce au Service de connectivité native.
+     * 
+     * Précondition : Un gestionnaire de connectivité valide.
+     * Postcondition : Lance un check de tâches (`schedulePendingSyncAsync()`) et inscrit l'écouteur `networkCallback`.
+     */
     override fun start() {
         if (started) {
             return

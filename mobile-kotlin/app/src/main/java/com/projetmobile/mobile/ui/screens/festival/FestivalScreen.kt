@@ -13,6 +13,13 @@ import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import com.projetmobile.mobile.ui.components.festival.FestivalList
 
+/**
+ * Rôle : Affiche la liste des festivals disponibles et gère les actions de sélection et suppression.
+ *
+ * Précondition : Le ViewModel doit être initialisé pour fournir l'état (données, chargement, erreurs) et de droit d'action (canAdd, canDelete).
+ *
+ * Postcondition : Présente l'interface utilisateur pour consulter les festivals. Au clic ou à la suppression, déclenche les événements ViewModel appropriés.
+ */
 @Composable
 fun FestivalScreen(
     viewModel: FestivalViewModel,

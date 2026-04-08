@@ -19,6 +19,13 @@ import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import kotlinx.coroutines.delay
 
+/**
+ * Rôle : Composant gérant l'arborescence visuelle du panel complet des Réservants (éditeurs, contacts).
+ *
+ * Précondition : Utilise le state via [uiState] et transite par [actions].
+ *
+ * Postcondition : Render le SearchBar, et une LazyColumn ou LazyVerticalStaggeredGrid suivant les données.
+ */
 @Composable
 internal fun ReservantsCatalogScreen(
     uiState: ReservantsCatalogUiState,

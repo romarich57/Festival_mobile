@@ -20,6 +20,13 @@ import com.projetmobile.mobile.ui.components.workflow.WorkflowContent
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanTab
 import com.projetmobile.mobile.ui.screens.reservationDetails.zoneplan.ZonePlanViewModel
 
+/**
+ * Rôle : Affiche l'historique et les onglets tarifaires liés à une demande de ticket ou abonnement unique.
+ *
+ * Précondition : Doit relieur [workflowViewModel] et l'ID de facture initialisée.
+ *
+ * Postcondition : Affiche les onglets et lance le workflow si non accompli par l'utilisateur.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservationDetailsScreen(

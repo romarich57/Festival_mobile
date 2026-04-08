@@ -13,6 +13,13 @@ import com.projetmobile.mobile.data.sync.shouldPreserveLocalDuringRefresh
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+/**
+ * Rôle : Implémentation Offline-First (SSOT) du Repository [FestivalRepository].
+ * 
+ * Précondition : Dépend des instances Dao Room, de Retrofit, des datastores pour la Sync, 
+ * et d'un Scheduler.
+ * Postcondition : Fusionne la logique `upsert` local/distant au fil du flux et applique les mappings Room <-> Domain.
+ */
 class FestivalRepositoryImpl(
     private val festivalApiService: FestivalApiService,
     private val festivalDao: FestivalDao,

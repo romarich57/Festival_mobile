@@ -20,6 +20,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.math.abs
 
+/**
+ * Rôle : Implémentation complexe SSOT (Single Source Of Truth) du repository [ReservationRepository].
+ * Mixe l'exploitation Offline-First pour la création/suppression et les vues tableaux avec des fetch Directs 
+ * pour les détails de facturation (lourds), trop complexes pour être gardés en Base de Données Room. 
+ * 
+ * Précondition : [ReservationDao] et [ReservationApiService] opérationnels.
+ * Postcondition : Délivre ce comportement hybride dans des suspend functions sans que le composant appelant n'en soit conscient.
+ */
 class ReservationRepositoryImpl(
     private val api: ReservationApiService,
     private val reservationDao: ReservationDao,

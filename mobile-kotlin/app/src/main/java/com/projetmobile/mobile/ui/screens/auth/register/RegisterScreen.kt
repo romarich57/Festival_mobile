@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche l'écran d'inscription pour créer un nouveau compte utilisateur.
+ * Contient un formulaire structuré et délègue l'affichage au composant `RegisterScreenLayout` pour la responsivité.
+ * Précondition : Appelée par le routeur de navigation lors de l'accès à la route `Register`.
+ * Postcondition : Affiche les champs de saisie (pseudo, nom, email...) et relaye les données au `RegisterViewModel`.
+ */
 package com.projetmobile.mobile.ui.screens.auth.register
 
 import androidx.compose.foundation.layout.BoxWithConstraints

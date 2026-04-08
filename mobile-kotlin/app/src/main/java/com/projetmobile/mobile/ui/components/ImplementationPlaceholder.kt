@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche un message de bloc "En cours d'implémentation" mis au milieu d'une vue.
+ * Construit un contenu mock rapidement dans des sections de route non terminées.
+ * Précondition : Placé temporairement à l'intérieur de zones UI en développement.
+ * Postcondition : Affiche le texte par défaut avec une typographie moyenne centrée.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.layout.Box

@@ -1,3 +1,10 @@
+/**
+ * Rôle : Squelette racine de l'interface utilisateur de l'application Jetpack Compose.
+ * Gère l'état global (les différentes piles de navigation, les flags de rafraîchissement d'écran)
+ * et connecte les dépendances aux écrans sous-jacents de la hiérarchie.
+ * Précondition : Appelé dans le `setContent` de l'activité principale.
+ * Postcondition : Construit et orchestre la navigation Compose de manière réactive.
+ */
 package com.projetmobile.mobile.ui.screens.app
 
 import androidx.compose.material3.ExperimentalMaterial3Api

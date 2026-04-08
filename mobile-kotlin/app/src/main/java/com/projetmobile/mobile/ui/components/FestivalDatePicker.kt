@@ -1,3 +1,9 @@
+/**
+ * Rôle : Champ textuel combiné à un sélecteur de date (DatePicker) de Jetpack Compose (Material 3).
+ * Offre un format de calendrier natif pour la sélection, tout en affichant l'icône de calendrier familière.
+ * Précondition : Un gestionnaire de l'état (ViewModel) observe et sauvegarde la chaîne choisie.
+ * Postcondition : Affiche un champ bloqué qui, une fois cliqué, déploie le calendrier modal. La sélection renvoie le jour "yyyy-MM-dd".
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.clickable

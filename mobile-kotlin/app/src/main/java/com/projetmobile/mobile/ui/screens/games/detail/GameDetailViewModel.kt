@@ -12,6 +12,13 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Gère le chargement asynchrone des informations détaillées d'un jeu spécifique.
+ *
+ * Précondition : Un [gameId] de jeu est obligatoire pour formuler la requête de fetch détaillée.
+ *
+ * Postcondition : Informe [GameDetailUiState] de la complétion et gère les rechargements pour affichage.
+ */
 internal class GameDetailViewModel(
     private val gamesRepository: GamesRepository,
     private val gameId: Int,

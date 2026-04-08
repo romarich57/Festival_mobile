@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Gère l'édition du profil (Pseudo, Mail, Avatars, Suppression de compte) et garde la session locale à jour temporairement.
+ *
+ * Précondition : Construit en injectant l'état utilisateur courant depuis le flux de configuration.
+ *
+ * Postcondition : Affiche les chargements partiels [uiState] pendant les mutators HTTP et rafraichit la liste des tokens ou des données applicatives de manière synchrone.
+ */
 class ProfileViewModel(
     private val profileRepository: ProfileRepository,
     initialUser: AuthUser?,

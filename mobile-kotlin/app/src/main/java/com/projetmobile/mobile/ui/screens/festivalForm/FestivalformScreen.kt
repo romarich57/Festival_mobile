@@ -17,7 +17,12 @@ import com.projetmobile.mobile.ui.components.FestivalDatePicker
 import com.projetmobile.mobile.ui.components.FestivalTextField
 
 /**
- * Écran de création d'un festival.
+ * Rôle : Écran de création ou modification d'un festival.
+ *
+ * Précondition : Le ViewModel correspondant doit gérer l'état du formulaire et l'insertion en base de données.
+ *
+ * Postcondition : Affiche les champs de texte et les date pickers, et soumet les informations au réseau via le ViewModel.
+ */
  *
  * Traduction de FestivalFormComponent Angular :
  *  - Chaque FormControl → FestivalTextField + callback onXxxChange()

@@ -1,3 +1,9 @@
+/**
+ * Rôle : Décrit explicitement les destinations de premier niveau (celles présentes dans la barre de navigation basse).
+ * Lie chaque onglet à son icône, son titre et sa route canonique (AppNavKey).
+ * Précondition : Les rôles de l'utilisateur doivent être connus pour évaluer les onglets de menu affichables.
+ * Postcondition : Fournit la liste des onglets de bas de page filtrée selon l'état d'authentification de l'utilisateur.
+ */
 package com.projetmobile.mobile.ui.utils.navigation
 
 import androidx.compose.material.icons.Icons

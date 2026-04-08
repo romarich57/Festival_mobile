@@ -6,6 +6,14 @@ import com.projetmobile.mobile.data.remote.zoneplan.SimpleAllocationPayloadDto
 import com.projetmobile.mobile.data.remote.zoneplan.ZonePlanApiService
 import com.projetmobile.mobile.data.remote.zoneplan.ZonePlanContextDto
 
+/**
+ * Rôle : Implémentation du [ZonePlanRepository] directement liée au backend via [ZonePlanApiService].
+ * Vu le rythme d'évolution (et l'interaction de plusieurs acteurs sur un même plan), 
+ * ce module est Online/Réseau direct (Pas d'hébergement Offline/Room principal).
+ * 
+ * Précondition : Injection Koin active.
+ * Postcondition : Route les payloads réseaux et remonte les matrices de tables et de jeux.
+ */
 class ZonePlanRepositoryImpl(
     private val api: ZonePlanApiService,
 ) : ZonePlanRepository {

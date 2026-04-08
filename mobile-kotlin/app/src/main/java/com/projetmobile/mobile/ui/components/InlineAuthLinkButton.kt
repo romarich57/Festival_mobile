@@ -1,3 +1,8 @@
+/**
+ * Rôle : Variante Inline du `AuthLinkButton`, retire tout espacement pour s'intégrer directement au sein de courtes phrases.
+ * Précondition : Appelé dans la construction des paragraphes complexes ("Vous n'avez pas de compte ? [Créer un compte]").
+ * Postcondition : Bouton textuel sans marges internes s'intégrant au corps du texte standard.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues

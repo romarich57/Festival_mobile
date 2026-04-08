@@ -6,6 +6,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * Rôle : Composant gérant la sous-vue de création globale de session (liaison entre l'éditeur et l'année du festival courant).
+ *
+ * Précondition : Un ID de festival, avec état en fonction de `Reservant` existant ou nouveau.
+ *
+ * Postcondition : Collecte et informe le ViewModel quant à la validation finale afin de déclencher le loader d'enregistrement sur API.
+ */
 @Composable
 fun ReservationFormScreen(
     uiState: ReservationFormUiState,

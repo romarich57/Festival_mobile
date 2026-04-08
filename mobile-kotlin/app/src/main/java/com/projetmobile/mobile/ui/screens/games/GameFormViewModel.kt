@@ -9,6 +9,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Modèle-vue orchestrant la validation et la soumission d'un jeu, ainsi que son chargement pour une édition.
+ *
+ * Précondition : Appelé par GameFormScreen via un factory transmettant le GameFormMode (création ou édition d'ID via repo).
+ *
+ * Postcondition : Charge les choix (éditeurs, types, etc.) et gère la soumission finale de l'entité.
+ */
 internal class GameFormViewModel(
     private val gamesRepository: GamesRepository,
     private val mode: GameFormMode,

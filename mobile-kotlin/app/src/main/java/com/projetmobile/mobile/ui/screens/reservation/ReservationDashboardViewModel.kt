@@ -10,6 +10,13 @@ import com.projetmobile.mobile.data.repository.toRepositoryException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Manipule la liste et le filtre des stands affectés pour le Dashboard des Réservations.
+ *
+ * Précondition : Construit en injectant le ReservationRepository via Factory.
+ *
+ * Postcondition : Envoie continuellement [uiState] et offre l'accès à la méthode updateSearch/Sort pour modifier l'affichage final.
+ */
 class ReservationDashboardViewModel(
     private val repository: ReservationRepository
 ) : ViewModel() {

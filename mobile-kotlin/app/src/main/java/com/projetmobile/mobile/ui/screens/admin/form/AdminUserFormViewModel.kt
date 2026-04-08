@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Gère la création et modification des profils d'utilisateurs par l'administrateur.
+ *
+ * Précondition : Un `adminRepository` doit être initialisé par le constructeur global et gère les droits.
+ *
+ * Postcondition : Vérifie la saisie des formulaires et applique les appels de mutation correspondants.
+ */
 internal class AdminUserFormViewModel(
     private val adminRepository: AdminRepository,
     private val mode: AdminUserFormMode,

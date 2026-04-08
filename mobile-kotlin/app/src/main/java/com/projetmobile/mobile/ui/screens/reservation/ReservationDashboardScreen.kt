@@ -12,6 +12,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.ReservationCard
 
+/**
+ * Rôle : Affiche le tableau de bord des réservations (Dashboard) pour un festival donné.
+ *
+ * Précondition : Un `festivalId` valide est nécessaire en tant que racine de l'affichage pour la liste des stands alloués.
+ *
+ * Postcondition : Affiche les KPI des états des réservations (en cours, facturé) ainsi qu'une FlatList filtrable des détails.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservationDashboardScreen(

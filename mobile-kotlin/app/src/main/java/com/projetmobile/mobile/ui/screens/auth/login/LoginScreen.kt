@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche l'écran de connexion (formulaire email/pseudo et mot de passe).
+ * Intègre également les liens vers l'inscription, le renvoi d'email et mot de passe oublié.
+ * Précondition : Appelé par le routeur de navigation lors de l'accès à la route `Login`.
+ * Postcondition : Affiche les champs de saisie et met à jour l'UI via les callbacks fournis.
+ */
 package com.projetmobile.mobile.ui.screens.auth.login
 
 import androidx.compose.foundation.layout.Arrangement
@@ -134,6 +140,11 @@ fun LoginScreen(
     }
 }
 
+/**
+ * Rôle : Affiche une ligne texte + lien textuel (ex: "Pas de compte ? Créer un compte") pour le pied de page du formulaire de connexion.
+ * Précondition : Appelé à l'intérieur du conteneur parent (colonne) dans `LoginScreen`.
+ * Postcondition : Affiche le texte informatif combiné à un `InlineAuthLinkButton` cliquable.
+ */
 @Composable
 private fun LoginFooterLinkRow(
     prompt: String,

@@ -12,6 +12,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Pré-remplit, valide et sauvegarde un formulaire lié à un Réservant.
+ *
+ * Précondition : [mode] permet de déclencher le loader idoine (création pure ou update reposant sur [id]).
+ *
+ * Postcondition : Informe des champs ou exceptions rencontrés, et notifie en cas de succès final.
+ */
 internal class ReservantFormViewModel(
     private val loadEditors: ReservantEditorsLoader,
     private val loadReservant: ReservantLoader,

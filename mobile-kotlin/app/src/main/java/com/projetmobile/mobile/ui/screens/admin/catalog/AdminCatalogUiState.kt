@@ -14,6 +14,13 @@ enum class AdminEmailFilter(val label: String) {
     NotVerified("Non vérifié"),
 }
 
+/**
+ * Rôle : Décrit l'ensemble des administrateurs et membres filtrables, listés ou en chargement.
+ *
+ * Précondition : Met à jour par [AdminCatalogViewModel].
+ *
+ * Postcondition : Unifie les données brutes sur la session de catalogue de membres.
+ */
 data class AdminCatalogUiState(
     val allUsers: List<AuthUser> = emptyList(),
     val filteredUsers: List<AuthUser> = emptyList(),

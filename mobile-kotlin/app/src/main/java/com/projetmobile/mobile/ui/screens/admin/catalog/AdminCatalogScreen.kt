@@ -31,6 +31,13 @@ import com.projetmobile.mobile.data.entity.auth.AuthUser
 import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 
+/**
+ * Rôle : Modélise et rend à l'écran l'Annuaire des administrateurs et membres des permissions globales.
+ *
+ * Précondition : S'appuie sur un système de grille ou de listes fournies par [uiState].
+ *
+ * Postcondition : Construit une barre de recherche couplée aux profils triables (Pseudo, Email, Role) et notifie les sélections de détails.
+ */
 @Composable
 internal fun AdminCatalogScreen(
     uiState: AdminCatalogUiState,

@@ -15,6 +15,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Gère l'administration et le tri de tous les utilisateurs globaux sur l'application.
+ *
+ * Précondition : Doit avoir les droits d'administration pour charger cet ensemble via le repository.
+ *
+ * Postcondition : Construit et expose un StateFlow comprenant tout le catalogue d'utilisateurs et le mode de tri.
+ */
 internal class AdminCatalogViewModel(
     private val adminRepository: AdminRepository,
 ) : ViewModel() {

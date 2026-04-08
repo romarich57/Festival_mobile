@@ -1,3 +1,9 @@
+/**
+ * Rôle : Bouton purement textuel stylisé (lien d'authentification) utilisé pour les actions secondaires.
+ * Principalement prévu pour des actions comme "Mot de passe oublié" ou basculer vers "Créer un compte".
+ * Précondition : Appelé dans l'affichage d'un formulaire requérant des boutons discrets.
+ * Postcondition : Un lien interactif, sans les bordures fortes du bouton principal Material.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.material3.MaterialTheme

@@ -1,3 +1,9 @@
+/**
+ * Rôle : Fournit un arrière-plan (fond) avec dégradé subtil à utiliser dans toute l'application.
+ * Contribue à homogénéiser l'identité visuelle de l'app de bout en bout.
+ * Précondition : Encapsule les écrans composables ayant besoin d'être sur fond coloré (en opposition à fond blanc uni).
+ * Postcondition : Un conteneur englobant tout son contenu visuel, avec un arrière-plan dégradé coloré.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.background

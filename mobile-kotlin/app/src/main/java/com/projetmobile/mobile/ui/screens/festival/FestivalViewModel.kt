@@ -12,6 +12,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Logique de présentation des festivals (affichage, sélection, suppression).
+ * Gère l'orchestration entre le FestivalRepository, la sélection des festivals et l'état de l'UI.
+ *
+ * Précondition : Doit être initialisé avec le FestivalRepository pour accéder aux données.
+ *
+ * Postcondition : Gère l'affichage, les notifications d'erreur et les effets visuels de suppression d'un festival.
+ */
 class FestivalViewModel(
     private val festivalRepository: FestivalRepository,
 ) : ViewModel() {

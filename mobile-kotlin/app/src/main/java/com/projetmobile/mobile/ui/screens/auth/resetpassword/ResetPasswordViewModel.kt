@@ -1,3 +1,9 @@
+/**
+ * Rôle : Logique métier et validation derrière l'écran du nouveau mot de passe.
+ * S'assure que le jeton (token) n'est pas vide et que la confirmation de mot de passe est exacte avant de contacter l'API.
+ * Précondition : Le ViewModel doit être initialisé à l'aide de sa `Factory` pour recevoir le jeton Deep Link.
+ * Postcondition : Informe la vue d'un succès (pour blocage des champs textuels) ou retourne les erreurs.
+ */
 package com.projetmobile.mobile.ui.screens.auth.resetpassword
 
 import androidx.lifecycle.ViewModel

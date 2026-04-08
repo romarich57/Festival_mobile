@@ -1,3 +1,9 @@
+/**
+ * Rôle : Composant visuel réutilisable servant de "carte" (conteneur) pour les écrans d'authentification.
+ * Applique des styles globaux tels que les coins arrondis et l'élévation par défaut de l'application.
+ * Précondition : Appelé dans n'importe quel écran nécessitant un encadré typique de la charte graphique.
+ * Postcondition : Affiche une carte `Card` de Material 3 entourant ses sous-composants.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.layout.Box

@@ -1,3 +1,9 @@
+/**
+ * Rôle : Objet fournissant des règles de validation pour les différents formulaires d'authentification.
+ * Il vérifie la conformité (ex: format email, longueur mot de passe) avant l'envoi au serveur.
+ * Précondition : Utilisé par les ViewModels gérant les formulaires (login, register, etc.).
+ * Postcondition : Retourne des DataClass contenant les éventuelles erreurs pour chaque champ de saisie.
+ */
 package com.projetmobile.mobile.ui.utils.validation
 
 private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")

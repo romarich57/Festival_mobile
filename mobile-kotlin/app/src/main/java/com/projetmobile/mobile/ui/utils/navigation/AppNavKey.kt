@@ -1,3 +1,9 @@
+/**
+ * Rôle : Décrit l'ensemble des routes (destinations de navigation) permises de l'application.
+ * Les différents écrans y sont définis sous forme de `data object` et `data class` sérialisables pour passer des paramètres typés.
+ * Précondition : Utilisé par la bibliothèque de navigation expérimentale (Navigation 3) propre au projet.
+ * Postcondition : Garantit une navigation fortement typée, sans concaténation manuelle de paramètres d'URL (sécurité).
+ */
 package com.projetmobile.mobile.ui.utils.navigation
 
 import androidx.navigation3.runtime.NavKey

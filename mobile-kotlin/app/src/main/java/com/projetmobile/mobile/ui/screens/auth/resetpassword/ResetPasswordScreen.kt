@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche le formulaire permettant la saisie d'un nouveau mot de passe une fois le lien de réinitialisation cliqué.
+ * Gère dynamiquement l'état des boutons (désactivé si lien manquant ou expiré) et montre le résultat de la requête.
+ * Précondition : Appelé par le routeur lorsqu'un deep link `reset-password` est intercepté.
+ * Postcondition : Affiche deux champs de mot de passe interactifs et valide via le `ResetPasswordViewModel`.
+ */
 package com.projetmobile.mobile.ui.screens.auth.resetpassword
 
 import androidx.compose.foundation.layout.Arrangement

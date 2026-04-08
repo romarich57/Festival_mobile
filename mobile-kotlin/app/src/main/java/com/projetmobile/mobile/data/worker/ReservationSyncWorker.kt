@@ -16,14 +16,14 @@ import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
 import com.projetmobile.mobile.data.sync.resolveRetryAction
 import com.projetmobile.mobile.data.sync.shouldPreserveLocalDuringRefresh
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlin.math.abs
 
 /**
- * Worker chargé de synchroniser les réservations en attente avec le serveur.
+ * Rôle : WorkManager gérant la synchronisation bidirectionnelle complexe spécifique aux réservations. 
+ * Re-télécharge notamment un bloc d'informations pour rafraichir entièrement la liste après création asynchrone d'une nouvelle entité.
+ * 
+ * Précondition : Paramétré sur réseau actif. Des identifiants locaux arbitraires ou des flags de suppression sont trouvés dans Room.
+ * Postcondition : Le backend reçoit les modifications (CREATE ou DELETE), puis le worker réconcilie (merge/upsert) l'entièreté de la base du festival affecté.
  */
 class ReservationSyncWorker(
     context: Context,

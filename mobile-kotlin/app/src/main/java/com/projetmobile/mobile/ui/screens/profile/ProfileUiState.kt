@@ -35,6 +35,13 @@ data class AvatarSelectionPayload(
     val previewUriString: String,
 )
 
+/**
+ * Rôle : Décrit l'état asynchrone des informations du profil incluant l'édition conditionnelle, les avatarts, et les suppressions de session.
+ *
+ * Précondition : Centralise et valide chaque entrée à titre individuel.
+ *
+ * Postcondition : Affiche dynamiquement les options de rafraîchissement au composant UI [ProfileScreen].
+ */
 data class ProfileUiState(
     val profile: AuthUser? = null,
     val form: ProfileFormState = ProfileFormState(),

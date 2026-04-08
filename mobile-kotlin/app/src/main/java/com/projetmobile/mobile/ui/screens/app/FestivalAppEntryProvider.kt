@@ -1,3 +1,10 @@
+/**
+ * Rôle : Fournisseur de routes de la navigation ("Entry Provider").
+ * Contient un énorme `when` listant l'ensemble exhaustif des routes de l'application 
+ * et retournant le Composable associé avec l'instanciation de son ViewModel.
+ * Précondition : Utilisé par le `NavDisplay` de la librairie de Navigation locale.
+ * Postcondition : Affiche l'écran correct tout en injectant les dépendances nécessaires à chaque route.
+ */
 package com.projetmobile.mobile.ui.screens.app
 
 import androidx.compose.runtime.Composable

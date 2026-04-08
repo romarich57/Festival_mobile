@@ -1,3 +1,9 @@
+/**
+ * Rôle : Fichier de thème de l'application Jetpack Compose.
+ * Il définit les couleurs, polices et formes globales utilisées à travers l'application.
+ * Précondition : Appelé à la racine de la hiérarchie Compose (dans `MainActivity`).
+ * Postcondition : Les composants enfants héritent du thème `MaterialTheme` défini.
+ */
 package com.projetmobile.mobile.ui.theme
 
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +21,11 @@ private val LightColors = lightColorScheme(
     onBackground = Color(0xFF18233A),
 )
 
+/**
+ * Rôle : Composant racine pour appliquer le thème "Festival" à l'application.
+ * Précondition : Doit envelopper l'ensemble des écrans dans le bloc `setContent`.
+ * Postcondition : Applique le schéma de couleurs principal et la typographie.
+ */
 @Composable
 fun FestivalMobileTheme(content: @Composable () -> Unit) {
     MaterialTheme(

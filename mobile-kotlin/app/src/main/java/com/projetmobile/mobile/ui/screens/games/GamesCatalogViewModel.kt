@@ -17,6 +17,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Gère le cycle de vie, la pagination, le tri et le filtrage des jeux dans le catalogue.
+ *
+ * Précondition : Le référentiel (GamesRepository) et les utilitaires liés (LookupsLoader, StateReducer) sont injectés.
+ *
+ * Postcondition : Fournit l'état paginé des jeux et expose des méthodes pour mettre à jour les filtres, changer le tri ou supprimer un jeu.
+ */
 internal class GamesCatalogViewModel(
     private val gamesRepository: GamesRepository,
     private val stateReducer: GamesCatalogStateReducer,

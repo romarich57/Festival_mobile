@@ -8,6 +8,14 @@ import com.projetmobile.mobile.data.remote.admin.AdminCreateUserRequestDto
 import com.projetmobile.mobile.data.remote.admin.AdminUpdateUserRequestDto
 import com.projetmobile.mobile.data.repository.runRepositoryCall
 
+/**
+ * Rôle : Implémente l'interface administrative [AdminRepository] pour opérer concrètement 
+ * sur les profils utilisateurs via les endpoints Retrofit dédiés.
+ * 
+ * Précondition : [AdminApiService] doit être injecté et prêt.
+ * Postcondition : Toute réponse brute issue de l'API est mappée localement (ex: toAuthUser) 
+ * et protégée par `runRepositoryCall`.
+ */
 class AdminRepositoryImpl(
     private val adminApiService: AdminApiService,
 ) : AdminRepository {
@@ -43,6 +51,12 @@ class AdminRepositoryImpl(
     }
 }
 
+/**
+ * Rôle : Fonction de conversion de la couche "Entité Métier" vers "Dto Réseau" pour la Création.
+ * 
+ * Précondition : Objet métier renseigné.
+ * Postcondition : Construit le DTO de requête JSON conforme aux spécifications du serveur.
+ */
 private fun AdminUserCreateInput.toDto() = AdminCreateUserRequestDto(
     login = login,
     password = password,
@@ -53,6 +67,12 @@ private fun AdminUserCreateInput.toDto() = AdminCreateUserRequestDto(
     role = role,
 )
 
+/**
+ * Rôle : Fonction de conversion de l'Entité d'altération vers un format de Requête JSON (Update).
+ * 
+ * Précondition : Propriétés métier existantes.
+ * Postcondition : Prépare la charge utile qui sera consommée en PUT/PATCH par le Backend.
+ */
 private fun AdminUserUpdateInput.toDto() = AdminUpdateUserRequestDto(
     login = login,
     firstName = firstName,

@@ -14,6 +14,13 @@ import com.projetmobile.mobile.data.repository.runRepositoryCall
 import com.projetmobile.mobile.data.repository.toRepositoryException
 import retrofit2.HttpException
 
+/**
+ * Rôle : Implémente la couche AuthRepository orchestrant l'API Retrofit [AuthApiService] 
+ * et le stockage interne [AuthPreferenceStore].
+ * 
+ * Précondition : Préférences Datastore et instance ApiService initialisés via le conteneur DI.
+ * Postcondition : Transvase les accès réseaux aux flux d'identités locales avec gestion du cache.
+ */
 class AuthRepositoryImpl(
     private val authApiService: AuthApiService,
     private val authPreferenceStore: AuthPreferenceStore,

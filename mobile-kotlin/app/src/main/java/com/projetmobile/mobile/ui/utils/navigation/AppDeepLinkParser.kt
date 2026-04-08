@@ -1,3 +1,9 @@
+/**
+ * Rôle : Assure le parsing des URLs entrantes (Deep Linking) et les convertit en destinations internes (AppNavKey).
+ * Ce fichier interprète les liens comme "festivalapp://auth/verification..." pour déclencher l'ouverture de certains écrans.
+ * Précondition : Appelé par `MainActivity` lorsqu'une URL est transmise via un `Intent` d'application.
+ * Postcondition : Retourne la bonne clé de navigation scellée d'après l'URI s'il est valide, sinon null.
+ */
 package com.projetmobile.mobile.ui.utils.navigation
 
 import android.net.Uri

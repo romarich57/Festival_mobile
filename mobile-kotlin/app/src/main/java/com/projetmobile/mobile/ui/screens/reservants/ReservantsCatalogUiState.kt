@@ -9,6 +9,13 @@ internal data class ReservantsCatalogFilterState(
     val sort: ReservantsSortOption = ReservantsSortOption.NameAsc,
 )
 
+/**
+ * Rôle : Représente la liste de l'annuaire des réservants avec filtres, tri et mode d'affichage.
+ *
+ * Précondition : Met à jour la liste des éléments calculée dans les ViewModel en fonction des [filters].
+ *
+ * Postcondition : Informe la grille ou la liste d'UI sans recalcul interne.
+ */
 internal data class ReservantsCatalogUiState(
     val filters: ReservantsCatalogFilterState = ReservantsCatalogFilterState(),
     val allItems: List<ReservantListItem> = emptyList(),

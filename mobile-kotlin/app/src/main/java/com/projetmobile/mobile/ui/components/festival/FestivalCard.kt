@@ -1,3 +1,9 @@
+/**
+ * Rôle : Carte d'affichage unique résumant les informations d'un festival 
+ * (dates, nom, stock global restant) sous forme sélectionnable.
+ * Précondition : Le parent "FestivalList" fournit l'état de sélection et les données `FestivalSummary`.
+ * Postcondition : Affiche une carte Material 3 cliquable. N'interagit pas directement avec un ViewModel.
+ */
 package com.projetmobile.mobile.ui.components.festival
 
 import androidx.compose.animation.animateColorAsState

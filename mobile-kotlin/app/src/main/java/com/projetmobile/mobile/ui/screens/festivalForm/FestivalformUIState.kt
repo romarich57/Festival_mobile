@@ -1,9 +1,11 @@
 package com.projetmobile.mobile.ui.screens.festivalForm
 
 /**
- * État UI du formulaire de création de festival.
+ * Rôle : Modèle d'état du formulaire de création de festival.
  *
- * Équivalent Angular : état du FormGroup + loading/error dans FestivalFormComponent.
+ * Précondition : Utilisé par FestivalformViewModel pour stocker les saisiesutilisateur ainsi que les éventuelles erreurs de validation.
+ *
+ * Postcondition : Représente de façon immuable toutes les données nécessaires à l'UI pour dessiner le formulaire.
  */
 data class FestivalFormUiState(
     // Champs du formulaire

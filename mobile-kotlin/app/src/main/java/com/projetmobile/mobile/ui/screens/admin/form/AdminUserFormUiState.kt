@@ -24,6 +24,13 @@ data class AdminUserFormState(
     val emailError: String? = null,
 )
 
+/**
+ * Rôle : Décrit l'état du formulaire complet de la page `AdminUserFormScreen`.
+ *
+ * Précondition : Met à disposition des erreurs liées à chaque champ de manière asynchrone par validation.
+ *
+ * Postcondition : Structure de donnée lisible pour rendre un éditeur ou un créateur `AdminUserFormMode`.
+ */
 data class AdminUserFormUiState(
     val mode: AdminUserFormMode = AdminUserFormMode.Create,
     val initialUser: AuthUser? = null,

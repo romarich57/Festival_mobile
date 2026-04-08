@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche l'écran de mise en attente invitant l'utilisateur à vérifier sa boîte mail.
+ * Propose une interface simplifiée permettant de demander un renvoi du lien de confirmation.
+ * Précondition : Appelé juste après une inscription réussie ou lors d'une tentative de renvoi d'email.
+ * Postcondition : Informe visuellement qu'un email de connexion a été expédié.
+ */
 package com.projetmobile.mobile.ui.screens.auth.emailverification
 
 import androidx.compose.foundation.layout.Arrangement

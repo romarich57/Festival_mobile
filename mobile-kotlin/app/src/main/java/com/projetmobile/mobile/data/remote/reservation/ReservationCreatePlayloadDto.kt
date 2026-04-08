@@ -5,6 +5,15 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Rôle : Formulaire réseau (DTO) expédié à l'API afin d'instancier un lien formel de réservation.
+ * Mixte les données propres au contact (réservant) et au festival, combinées 
+ * au besoin brut en prises électriques, tout en incluant le support natif de 
+ * champs vides sérialisés à zéro par défaut (@EncodeDefault).
+ * 
+ * Précondition : `festivalId` et identité (`name`, `email`, `type`) sont obligatoires.
+ * Postcondition : Produit la chaine JSON adéquate convertie pour la requête HTTP POST.
+ */
 @Serializable
 @OptIn(ExperimentalSerializationApi::class) // Nécessaire pour @EncodeDefault
 data class ReservationCreatePayloadDto(

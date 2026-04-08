@@ -26,6 +26,13 @@ import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
+/**
+ * Rôle : UI permettant l'insertion d'un nouveau contact / éditeur ou la modification des attributs de ces derniers.
+ *
+ * Précondition : Appliqué au mode de fonctionnement `mode` de [uiState] qui définit s'il s'agit d'une création ou édition.
+ *
+ * Postcondition : Assure la validation de premier plan et intercepte la soumission via les callbacks de [actions].
+ */
 @Composable
 internal fun ReservantFormScreen(
     uiState: ReservantFormUiState,

@@ -33,6 +33,13 @@ data class GameCatalogFilterState(
     }
 }
 
+/**
+ * Rôle : Représente l'état complet du catalogue des jeux (filtres, données paginées, colonnes visibles).
+ *
+ * Précondition : Utilisé par GamesCatalogViewModel pour notifier GamesCatalogScreen.
+ *
+ * Postcondition : Fournit de immuables données (liste, chargement, options de filtres) nécessaires à l'UI.
+ */
 data class GamesCatalogUiState(
     val filters: GameCatalogFilterState = GameCatalogFilterState(),
     val visibleColumns: Set<GameVisibleColumn> = GameVisibleColumn.entries.toSet(),

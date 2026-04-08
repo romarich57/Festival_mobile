@@ -13,15 +13,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel du formulaire de création de festival.
+ * Rôle : Gère la logique de validation et d'enregistrement des festivals.
  *
- * Équivalents Angular (FestivalFormComponent) :
- *  - onNameChange()      = FormControl 'name' avec Validators.required + minLength(2)
- *  - onStartDateChange() = FormControl 'start_date' avec Validators.required
- *  - onEndDateChange()   = FormControl 'end_date' avec Validators.required
- *  - submit()            = submit() → festivalService.addFestival()
+ * Précondition : Appelé par FestivalformScreen avec les saisies utilisateur pour créer un festival et ses zones tarifaires.
  *
- * Les zones tarifaires sont reportées (TODO).
+ * Postcondition : Envoie les données au dépôt et notifie l'interface utilisateur de la réussite ou de l'échec de la création.
  */
 class FestivalFormViewModel(
     private val festivalRepository: FestivalRepository,

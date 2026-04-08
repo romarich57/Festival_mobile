@@ -1,3 +1,10 @@
+/**
+ * Rôle : Gère le placement adaptatif de l'écran d'inscription selon l'espace disponible.
+ * Sépare le formulaire (champs de texte) des actions (boutons) et passe en mode "défilement d'urgence"
+ * si l'écran est trop petit ou si les messages d'erreur provoquent un débordement (overflow).
+ * Précondition : Appelé par `RegisterScreen`, s'appuie sur un système de BoxWithConstraints.
+ * Postcondition : Garantit que les champs d'inscriptions restent accessibles sans être masqués par le clavier.
+ */
 package com.projetmobile.mobile.ui.screens.auth.register
 
 import androidx.compose.foundation.layout.Arrangement

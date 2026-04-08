@@ -1,13 +1,17 @@
 package com.projetmobile.mobile.data.room
 
 /**
- * Statuts de synchronisation pour les entités Room.
- *
- * - SYNCED          : Donnée à jour avec le serveur.
- * - PENDING_CREATE  : Créée hors-ligne, en attente d'envoi au serveur.
- * - PENDING_UPDATE  : Modifiée hors-ligne, en attente de mise à jour serveur.
- * - PENDING_DELETE  : Marquée pour suppression, en attente de confirmation serveur.
- * - ERROR           : Dernière tentative de sync échouée (retry possible).
+ * Rôle : Variables constantes servant d'attributs de statut à l'état de validation
+ * d'une entité hors-ligne dans la synchronisation locale de Room.
+ * 
+ * - SYNCED         : Enregistrement identique avec celui existant sur le serveur.
+ * - PENDING_CREATE : Créé exclusivement sur le téléphone, attente d'attribution finale d'ID.
+ * - PENDING_UPDATE : Modifications internes au téléphone, nécessitant un report serveur.
+ * - PENDING_DELETE : Marquée supprimée par l'application locale, le backend doit l'accepter.
+ * - ERROR          : Échec d'une manœuvre : nécessitera que l'app retente à réception de net.
+ * 
+ * Précondition : S'insère dans la structure Room par le biais d'un champ String.
+ * Postcondition : Établit un système distribué de type Eventual Consistency.
  */
 object SyncStatus {
     const val SYNCED         = "SYNCED"

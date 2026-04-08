@@ -1,5 +1,12 @@
 package com.projetmobile.mobile.ui.screens.reservationDetails
 
+/**
+ * Rôle : Décrit l'état modifiable et initial de chaque zone de tarification concernant l'éditeur.
+ *
+ * Précondition : Met à jour constamment le nombre de tables initialement réservées et lues par [ReservationTarifaireUiState].
+ *
+ * Postcondition : Affiche ces informations au sein de la sous-section ou tab du profil de la réservation.
+ */
 data class ZoneTarifaireFormState(
     val id: Int,
     val name: String,

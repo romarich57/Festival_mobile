@@ -13,6 +13,13 @@ import com.projetmobile.mobile.data.entity.auth.VerificationResultStatus
 import com.projetmobile.mobile.ui.components.AuthCard
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
+/**
+ * Rôle : Écran affichant le résultat de la vérification de l'email (succès, expiré, invalide, erreur).
+ *
+ * Précondition : Le statut de vérification doit être fourni.
+ *
+ * Postcondition : Affiche un message adapté au statut et propose un bouton pour retourner à la connexion.
+ */
 @Composable
 fun VerificationResultScreen(
     status: VerificationResultStatus,

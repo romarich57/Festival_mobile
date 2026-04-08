@@ -8,8 +8,11 @@ import com.projetmobile.mobile.data.remote.festival.FestivalDto
 import com.projetmobile.mobile.ui.utils.formatDate
 
 /**
- * Convertit un FestivalDto (couche réseau) en FestivalSummary (couche métier/UI).
+ * Rôle : Convertit un `FestivalDto` (couche réseau) en `FestivalSummary` (couche métier/UI).
  * Les dates ISO 8601 sont formatées en dd/MM/yyyy dès le mapping.
+ * 
+ * Précondition : Le DTO doit contenir des informations de festival (dates valides, nom, etc.). L'API Android O (min SDK) est requise.
+ * Postcondition : Retourne un objet de type `FestivalSummary` prêt à être affiché côté UI.
  */
 @RequiresApi(Build.VERSION_CODES.O)
 fun FestivalDto.toFestivalSummary(): FestivalSummary = FestivalSummary(

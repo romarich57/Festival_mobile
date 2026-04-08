@@ -1,3 +1,9 @@
+/**
+ * Rôle : Contrôleur d'interface d'inscription, vérifie et expédie le formulaire vers le serveur.
+ * Utilise `AuthFormValidator` pour checker exhaustivement chaque champ (complexité MD5/nombres, email valide). 
+ * Précondition : Conservé en mémoire tant que l'écran `RegisterScreen` est affiché.
+ * Postcondition : Informe la vue d'un succès via `pendingVerificationEmail` pointant vers validation, ou émet les erreurs par champ.
+ */
 package com.projetmobile.mobile.ui.screens.auth.register
 
 import androidx.lifecycle.ViewModel

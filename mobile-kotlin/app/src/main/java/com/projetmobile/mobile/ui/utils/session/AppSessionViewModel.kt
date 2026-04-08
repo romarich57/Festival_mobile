@@ -1,3 +1,9 @@
+/**
+ * Rôle : Gère l'état global et persistant de la session d'un utilisateur (connecté ou non) au niveau de l'application.
+ * Agit en coordonnateur entre les processus d'authentification (`AuthRepository`) et la UI racine.
+ * Précondition : Doit être partagé/injecté au plus haut niveau de l'arborescence Compose (généralement `FestivalApp`).
+ * Postcondition : Informe toute la navigation de l'état d'authentification actuel (restauration en cours, déconnecté, identifié).
+ */
 package com.projetmobile.mobile.ui.utils.session
 
 import androidx.lifecycle.ViewModel

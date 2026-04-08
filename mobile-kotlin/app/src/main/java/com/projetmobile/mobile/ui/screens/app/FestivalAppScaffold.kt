@@ -1,3 +1,10 @@
+/**
+ * Rôle : Composant d'échafaudage visuel (Scaffold) de l'application.
+ * Contient la structure visuelle persistante : la barre de navigation supérieure (TopBar),
+ * la barre de navigation inférieure (BottomBar) et un indicateur de chargement global si la session est en restauration.
+ * Précondition : Reçoit l'état d'affichage calculé dynamiquement (`AppChromeState`).
+ * Postcondition : Enveloppe le `NavDisplay` interne avec la marge graphique appropriée.
+ */
 package com.projetmobile.mobile.ui.screens.app
 
 import androidx.compose.foundation.layout.Box

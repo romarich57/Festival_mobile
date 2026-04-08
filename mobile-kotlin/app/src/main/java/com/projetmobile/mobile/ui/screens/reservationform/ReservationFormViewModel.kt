@@ -17,6 +17,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.Locale
 
+/**
+ * Rôle : Préremplit, valide et sauvegarde un formulaire lié à une demande de `Reservation`.
+ *
+ * Précondition : [uiState] s'active sur base de dépôts externes avec un `festivalId` particulier.
+ *
+ * Postcondition : Avertit si la liste des éditeurs est chargée, exécute des enregistrements en aval des API liés.
+ */
 class ReservationFormViewModel(
     private val reservationRepository: ReservationRepository,
     private val reservantsRepository: ReservantsRepository,

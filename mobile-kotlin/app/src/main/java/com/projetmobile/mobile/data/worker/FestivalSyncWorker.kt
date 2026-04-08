@@ -9,6 +9,12 @@ import com.projetmobile.mobile.data.room.SyncRetryAction
 import com.projetmobile.mobile.data.room.SyncStatus
 import com.projetmobile.mobile.data.sync.resolveRetryAction
 
+/**
+ * Rôle : Exécuter la routine de synchronisation (en tâche de fond via WorkManager) spécifiquement pour les suppressions différées de festival.
+ * 
+ * Précondition : Appelé par le `SyncWorkScheduler` lorsqu'une connexion internet est disponible et qu'il y a des entrées locales `pending`.
+ * Postcondition : Rétablit l'état du serveur en appliquant les appels API "DELETE" stockés en cache, gère les échecs et nettoie la base de données Room.
+ */
 class FestivalSyncWorker(
     context: Context,
     params: WorkerParameters,

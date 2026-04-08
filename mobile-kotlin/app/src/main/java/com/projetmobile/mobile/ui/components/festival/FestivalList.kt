@@ -1,3 +1,10 @@
+/**
+ * Rôle : Affiche la structure principale de la liste des festivals.
+ * Englobe l'en-tête, la gestion de l'état de chargement/erreur, le FAB de création,
+ * et la `LazyColumn` contenant les composants `FestivalCard`.
+ * Précondition : Reçoit une liste de données immuables et des fonctions de rappels depuis le ViewModel hôte.
+ * Postcondition : Rend l'interface graphique de l'accueil "Liste des festivals" tout en gérant le défilement.
+ */
 package com.projetmobile.mobile.ui.components.festival
 
 import androidx.compose.foundation.layout.*

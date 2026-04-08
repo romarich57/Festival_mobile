@@ -1,3 +1,9 @@
+/**
+ * Rôle : Gère la logique métier et l'état interactif de l'écran de connexion.
+ * Intercepte les saisies utilisateur, réalise les validations et exécute les appels vers l'`AuthRepository`.
+ * Précondition : Lié au cycle de vie de `LoginScreen` au sein de Jetpack Compose.
+ * Postcondition : Met à jour le StateFlow `uiState` en réaction aux entrées et au résultat des appels réseau.
+ */
 package com.projetmobile.mobile.ui.screens.auth.login
 
 import androidx.lifecycle.ViewModel

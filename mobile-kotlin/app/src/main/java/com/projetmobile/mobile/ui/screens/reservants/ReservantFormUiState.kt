@@ -41,6 +41,13 @@ internal data class ReservantFormSnapshot(
     val siret: String? = null,
 )
 
+/**
+ * Rôle : L'état complet du formulaire de saisie pour un éditeur ou un individu.
+ *
+ * Précondition : Centralisé pour contenir les champs avec leurs erreurs respectives.
+ *
+ * Postcondition : Garantit qu'un modèle de données correspond toujours à l'UI sans altération directe.
+ */
 internal data class ReservantFormUiState(
     val mode: ReservantFormMode,
     val fields: ReservantFormFields = ReservantFormFields(),

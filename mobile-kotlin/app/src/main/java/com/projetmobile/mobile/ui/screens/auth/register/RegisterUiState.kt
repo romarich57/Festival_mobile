@@ -1,3 +1,9 @@
+/**
+ * Rôle : Représente l'état immuable du formulaire d'inscription.
+ * Conserve chaque valeur saisie, ses erreurs associées, l'état de chargement et l'email en attente de vérification.
+ * Précondition : Conservé et mis à jour par le `RegisterViewModel`.
+ * Postcondition : Lu par la vue `RegisterScreen` de façon réactive.
+ */
 package com.projetmobile.mobile.ui.screens.auth.register
 
 data class RegisterUiState(

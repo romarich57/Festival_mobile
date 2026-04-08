@@ -36,6 +36,13 @@ import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 
+/**
+ * Rôle : Affiche les informations complètes d'un jeu spécifique en détail.
+ *
+ * Précondition : Un identifiant de jeu valide a été sélectionné pour ce chargement.
+ *
+ * Postcondition : Affiche l'image, la durée, le type, et les éventuelles actions de modification selon les droits de l'utilisateur.
+ */
 @Composable
 internal fun GameDetailScreen(
     uiState: GameDetailUiState,

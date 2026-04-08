@@ -1,3 +1,9 @@
+/**
+ * Rôle : Ordonne la logique fonctionnelle de la réinitialisation du mot de passe.
+ * S'assure que l'email est correctement formaté via l'`AuthFormValidator` avant d'attaquer l'API.
+ * Précondition : Un `AuthRepository` d'interface au serveur HTTP doit être fourni via la Factory.
+ * Postcondition : Émet des objets `ForgotPasswordUiState` successifs (Chargement, puis Succès ou Erreur).
+ */
 package com.projetmobile.mobile.ui.screens.auth.forgotpassword
 
 import androidx.lifecycle.ViewModel

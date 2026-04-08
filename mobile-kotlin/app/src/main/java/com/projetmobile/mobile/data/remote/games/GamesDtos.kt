@@ -7,12 +7,24 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 
+/**
+ * Rôle : Modélisation des Data Transfer Objects (DTO) requis par Retrofit 
+ * pour faire transiter les JSON liés aux jeux et catalogues associés (Éditeurs, Mécaniques).
+ *
+ * Précondition : En lien avec l'API /games, /mechanisms, et /editors.
+ * Postcondition : Garantissent la convertibilité JSON en entités fortement typées en Kotlin.
+ */
+
+/**
+ * Rôle : Récipient global typé pour abriter une réponse paginée du catalogue de jeu.
+ */
 @Serializable
 data class GamesPageResponseDto(
     val items: List<GameDto>,
     val pagination: GamesPaginationDto,
 )
 
+/** Rôle : Objet de contexte d'une page retournée (numéro de page, limites, nombre total disponible). */
 @Serializable
 data class GamesPaginationDto(
     val page: Int,
@@ -23,6 +35,7 @@ data class GamesPaginationDto(
     val sortOrder: String,
 )
 
+/** Rôle : Encapsule la forme lue exhaustive d'un Jeu validé depuis l'API. */
 @Serializable
 data class GameDto(
     val id: Int,
@@ -43,6 +56,7 @@ data class GameDto(
     val mechanisms: List<MechanismDto> = emptyList(),
 )
 
+/** Rôle : Modélise structurellement un Mécanisme (tag) tel que formaté par le code base Backend. */
 @Serializable
 data class MechanismDto(
     val id: Int,
@@ -50,6 +64,7 @@ data class MechanismDto(
     val description: String? = null,
 )
 
+/** Rôle : Modélise un point sur un professionnel de l'édition d'un jeu (`Editor`). */
 @Serializable
 data class EditorDto(
     val id: Int,
@@ -62,17 +77,23 @@ data class EditorDto(
     @SerialName("is_distributor") val isDistributor: Boolean = false,
 )
 
+/** Rôle : Constat de fin renvoyé par la requête de Destructuration en cascade. */
 @Serializable
 data class DeleteGameResponseDto(
     val message: String,
 )
 
+/** Rôle : Résultat API contenant la racine finalisée de l'image insérée distante. */
 @Serializable
 data class UploadGameImageResponseDto(
     val url: String,
     val message: String,
 )
 
+/**
+ * Rôle : Spécification d'un paquet de données orienté `POST`/`PUT` du formulaire métier Jeu.
+ * Utilise explicitement des `JsonElement` pour ne transmettre `NULL` que des données véritablement existantes.
+ */
 @Serializable
 data class GameUpsertRequestDto(
     val title: String,
@@ -91,6 +112,13 @@ data class GameUpsertRequestDto(
     val mechanismIds: List<Int> = emptyList(),
 )
 
+/**
+ * Rôle : Méthode d'extension isolant la transformation d'un Brouillon (Draft) local 
+ * vers une requète brute serveur en s'assurant du nettoyage et formattage d'erreur.
+ * 
+ * Précondition : Draft d'interface pré-rempli.
+ * Postcondition : Produit des valeurs saines via des `.trim()` successifs pour le formattage.
+ */
 internal fun GameDraft.toRequestDto(): GameUpsertRequestDto {
     return GameUpsertRequestDto(
         title = title.trim(),
@@ -110,10 +138,12 @@ internal fun GameDraft.toRequestDto(): GameUpsertRequestDto {
     )
 }
 
+/** Rôle : Mapper rudimentaire d'une valeur numérale vers un format supporté en Nullity-Check par kotlinx (JsonPrimitive ou JsonNull). */
 private fun Int?.toJsonElement(): JsonElement {
     return this?.let(::JsonPrimitive) ?: JsonNull
 }
 
+/** Rôle : Mappe les `String?` tout en refusant les châînes de caractères complètement neutres (ex: "  ") pour les exclure du payload via Null. */
 private fun String?.toTrimmedJsonElement(): JsonElement {
     val trimmedValue = this?.trim()?.takeIf { value -> value.isNotEmpty() }
     return trimmedValue?.let(::JsonPrimitive) ?: JsonNull

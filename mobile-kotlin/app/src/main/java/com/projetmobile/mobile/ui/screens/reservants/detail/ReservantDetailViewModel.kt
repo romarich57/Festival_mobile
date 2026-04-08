@@ -12,6 +12,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Contrôle l'état du composant de détail d'un Contact/Éditeur.
+ *
+ * Précondition : Un [reservantId] unique injecté par le router.
+ *
+ * Postcondition : Informe le composant via [uiState] dès l'obtention des informations détaillées depuis le repo.
+ */
 internal class ReservantDetailViewModel(
     private val reservantId: Int,
     private val observeReservant: ReservantObserver,

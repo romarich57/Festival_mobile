@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Manipule la récupération d'un membre global par son ID et initie la suppression de celui-ci si demandé.
+ *
+ * Précondition : Construit par la factory correspondante qui injecte les variables de droits et la clé étrangère [userId].
+ *
+ * Postcondition : Émet l'état [uiState] et exécute les suppressions.
+ */
 internal class AdminUserDetailViewModel(
     private val adminRepository: AdminRepository,
     private val userId: Int,

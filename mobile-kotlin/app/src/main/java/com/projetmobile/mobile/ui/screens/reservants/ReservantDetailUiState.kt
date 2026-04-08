@@ -31,6 +31,13 @@ internal data class ReservantContactFormFields(
     }
 }
 
+/**
+ * Rôle : Modèle de la vue de détail liée à un Réservant.
+ *
+ * Précondition : Construit continuellement par le [ReservantDetailViewModel].
+ *
+ * Postcondition : Stocke l'option de l'onglet actif et les données potentiellement complètes du réservant.
+ */
 internal data class ReservantDetailUiState(
     val reservantId: Int,
     val activeTab: ReservantDetailTab = ReservantDetailTab.Infos,

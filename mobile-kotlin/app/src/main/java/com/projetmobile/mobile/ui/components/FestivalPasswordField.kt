@@ -1,3 +1,9 @@
+/**
+ * Rôle : Composant spécifique de saisie de mot de passe basé sur `FestivalTextField`.
+ * Propose une bascule intégrée pour masquer/afficher le mot de passe via une icône oeil.
+ * Précondition : Un gestionnaire d'état de texte doit être couplé (viewModel).
+ * Postcondition : Affiche un champ de texte de mot de passe interactif prêt à l'emploi.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.text.KeyboardOptions

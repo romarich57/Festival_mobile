@@ -29,7 +29,14 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlin.math.abs
 
-
+/**
+ * Rôle : L'implémentation maîtresse de la source de vérité unifiée (SSOT) pour l'espace "Jeux".
+ * Il réalise la complexité Offline-First : UPSERT massif, gestion des états PENDING_UPDATE/CREATE, 
+ * et arbitrage Remote vs Local via les algorithmes utilitaires de synchronisation Room.
+ * 
+ * Précondition : [GamesApiService], [GameDao] et les Stores de préférences montés.
+ * Postcondition : L'ensemble des UI consomment sereinement ses Flows réactifs et confient l'écriture asynchrone hors-ligne.
+ */
 class GamesRepositoryImpl(
     private val gamesApiService: GamesApiService,
     private val gameDao: GameDao,

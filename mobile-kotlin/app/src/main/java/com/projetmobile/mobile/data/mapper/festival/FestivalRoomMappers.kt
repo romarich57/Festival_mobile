@@ -9,8 +9,11 @@ import com.projetmobile.mobile.ui.utils.formatDate
 // ── DTO réseau → Entité Room ─────────────────────────────────────────────────
 
 /**
- * Stocke les dates au format ISO brut en Room.
- * Le formatage (dd/MM/yyyy) est appliqué lors de la lecture vers le domaine.
+ * Rôle : Traduire un DTO envoyé par le réseau vers son format de sauvegarde local (base de données).
+ * Les dates au format ISO brut sont stockées telles quelles dans Room.
+ * 
+ * Précondition : Le DTO entrant contient les informations associées aux festivals provenant de l'API.
+ * Postcondition : Convertit les informations en instance `FestivalRoomEntity` destinée à l'insertion locale, avec statut de synchronisation.
  */
 fun FestivalDto.toFestivalRoomEntity(
     syncStatus: String = SyncStatus.SYNCED,
@@ -33,6 +36,12 @@ fun FestivalDto.toFestivalRoomEntity(
 
 // ── Entité Room → Domaine ────────────────────────────────────────────────────
 
+/**
+ * Rôle : Préparer une entité lue depuis le cache local (Room) à être traitée et affichée par la couche supérieure.
+ * 
+ * Précondition : L'entité festival `FestivalRoomEntity` existe dans la base locale et est bien formatée.
+ * Postcondition : Construit et retourne le `FestivalSummary` requis par les écrans.
+ */
 fun FestivalRoomEntity.toFestivalSummary(): FestivalSummary = FestivalSummary(
     id = id,
     name = name,

@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche et gère le formulaire du Cycle de Vie (Workflow) d'une réservation (ex: "Contact_pris", "Facture_payee").
+ * Fournit une série de cases à cocher logistiques (jeux reçus, présents etc.) et un menu déroulant d'états.
+ * Précondition : Appelé dans l'écran de détail de réservation avec l'actuel `WorkflowDto` en paramètre.
+ * Postcondition : Déclenche l'événement `onSave` avec un `WorkflowUpdatePayload` mis à jour selon les clics.
+ */
 package com.projetmobile.mobile.ui.components.workflow
 
 import androidx.compose.foundation.clickable
@@ -106,6 +112,12 @@ fun WorkflowContent(
     }
 }
 
+/**
+ * Rôle : Extrait la ligne d'interface visuelle pour afficher côte à côte une case à cocher (`Checkbox`) et son étiquette textuelle (`label`).
+ * Permet qu'un clic n'importe où sur la rangée coche/décoche la ligne.
+ * Précondition : Reçoit l'état courant (checked) et le callback d'inversion.
+ * Postcondition : Affiche la Row cliquable Material 3.
+ */
 @Composable
 fun WorkflowCheckbox(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(

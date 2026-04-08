@@ -15,7 +15,10 @@ import com.projetmobile.mobile.data.sync.resolveRetryAction
 import kotlin.math.abs
 
 /**
- * Worker chargé de synchroniser les réservants en attente avec le serveur.
+ * Rôle : Worker délégué responsable d'appliquer sur le serveur les modifications asynchrones effectuées hors-ligne pour la table Reservants (Éditeurs/Créateurs).
+ * 
+ * Précondition : Des éléments en état 'pending' (SyncStatus) existent dans le cache local `reservantDao`.
+ * Postcondition : Lance séquentiellement les appels CREATE, UPDATE, DELETE réseau. Si succès, purge ou actualise la donnée locale (SYNCED). Sinon, place l'erreur.
  */
 class ReservantSyncWorker(
     context: Context,

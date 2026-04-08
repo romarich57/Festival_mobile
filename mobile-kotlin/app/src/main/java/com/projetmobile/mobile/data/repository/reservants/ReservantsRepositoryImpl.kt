@@ -25,6 +25,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlin.math.abs
 
+/**
+ * Rôle : Implémentation Offline-First du Repository Gérant les Réservants.
+ * Réduit le couple réseau/BDD locale par un principe d’Upsert conditionné selon les états de synchro
+ * (PENDING_CREATE, DELETE).
+ * 
+ * Précondition : Appels orchestrables en background et API configurée.
+ * Postcondition : Maintenabilité du Mode Hors-Ligne pour les utilisateurs via le Flow SSOT (Source unique de vérité).
+ */
 class ReservantsRepositoryImpl(
     private val reservantsApiService: ReservantsApiService,
     private val reservantDao: ReservantDao,

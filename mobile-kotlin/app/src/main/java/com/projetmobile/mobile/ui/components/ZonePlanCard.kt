@@ -1,3 +1,9 @@
+/**
+ * Rôle : Carte visuelle affichant la configuration et le contenu d'un espace géographique ("ZonePlan") lors d'un festival.
+ * Elle détaille ses statistiques de remplissage et liste les jeux/tables alloués par les différents exposants au sein de cette zone.
+ * Précondition : L'ensemble des états locaux (`ZonePlanZoneState`, réservation courante) est passé pour un affichage interactif.
+ * Postcondition : Interface avec un header descriptif, la liste exhaustive des placements, et des boutons ajout/suppression.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -152,11 +158,11 @@ fun ZonePlanCard(
 }
 
 /**
- * Formats a placement line following the rule:
- * [Nom du réservant] : [Nom du jeu] - [X] table(s) - [Type de table] - [Y] chaises
- *
- * If game is "aucun" or null -> don't show it
- * If table type is "aucun" -> don't show it
+ * Rôle : Formate la ligne de placement en suivant la règle concaténée :
+ * [Nom du réservant] : [Nom du jeu] - [X] table(s) - [Type de table] - [Y] chaises.
+ * Masque implicitement les mentions de jeu "aucun" ou de type de table "aucun".
+ * Précondition : L'objet `PlacementDisplayItem` fournit les statistiques brutes non formatées.
+ * Postcondition : Retourne la chaîne textuelle prête à être imprimée dans l'interface utilisateur.
  */
 fun formatPlacementLine(placement: PlacementDisplayItem): String {
     val parts = mutableListOf<String>()

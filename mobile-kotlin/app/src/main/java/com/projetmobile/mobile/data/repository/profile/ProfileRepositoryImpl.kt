@@ -13,6 +13,12 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
+/**
+ * Rôle : Classe concrétisant les opérations "Profile" du repository en s'interfaçant avec [ProfileApiService].
+ * 
+ * Précondition : Initialisation par Koin avec les API clients (Auth et Profile).
+ * Postcondition : Enrobe dans [runRepositoryCall] les requêtes multipart et formattées.
+ */
 class ProfileRepositoryImpl(
     private val profileApiService: ProfileApiService,
     private val authApiService: AuthApiService,

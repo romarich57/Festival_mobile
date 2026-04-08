@@ -14,6 +14,12 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import retrofit2.HttpException
 
+/**
+ * Rôle : Typologie d'erreurs normalisées rencontrées par un composant Repository.
+ * 
+ * Précondition : Résulte de l'analyse d'une exception levée en base distante ou en local.
+ * Postcondition : Utilisé par l'UI pour adapter le message affiché (Offline, Timeout, Auth...).
+ */
 enum class RepositoryFailureKind {
     Offline,
     BackendUnreachable,
@@ -24,6 +30,12 @@ enum class RepositoryFailureKind {
     Unknown,
 }
 
+/**
+ * Rôle : Exception pivot standardisant n'importe quelle erreur d'origine HTTP, Réseau ou Serialization.
+ * 
+ * Précondition : Peut encapsuler un Throwable en cause racine, un code HTTP ou des détails Backend.
+ * Postcondition : Transforme l'erreur technique en une structure manipulable pour le domaine.
+ */
 class RepositoryException(
     val statusCode: Int? = null,
     val kind: RepositoryFailureKind = RepositoryFailureKind.Unknown,
@@ -32,6 +44,12 @@ class RepositoryException(
     cause: Throwable? = null,
 ) : IllegalStateException(message, cause)
 
+/**
+ * Rôle : Encapsule l'exécution asynchrone arbitraire d'un appel (Réseau ou DB) au sein d'un composant Repository.
+ * 
+ * Précondition : La logique enfermée dans `block` doit obéir aux principes Coroutine.
+ * Postcondition : Emarge dans une entité `Result: success ou failure` digérée convenablement. Laisse cependant s'échapper les `CancellationException`.
+ */
 suspend fun <T> runRepositoryCall(
     defaultMessage: String,
     block: suspend () -> T,
@@ -46,6 +64,12 @@ suspend fun <T> runRepositoryCall(
     }
 }
 
+/**
+ * Rôle : Mappe de manière experte toute Throwables variées en une unique `RepositoryException` qualifiée.
+ * 
+ * Précondition : La cause initiale d'un disfonctionnement technique / réseau / Parsing.
+ * Postcondition : Récupère intelligemment la cause profonde, le statut HTTP, et le message convivial via `ApiErrorDto`.
+ */
 fun Throwable.toRepositoryException(defaultMessage: String): Throwable {
     return when (this) {
         is RepositoryException -> this
@@ -97,6 +121,12 @@ private const val BACKEND_UNREACHABLE_ERROR_MESSAGE =
 private const val TIMEOUT_ERROR_MESSAGE =
     "Le serveur ne répond pas pour le moment. Réessayez."
 
+/**
+ * Rôle : Extension pour savoir si l'anomalie peut être contournée / expliquée par l'affichage d'un EmptyState/OfflineUI.
+ * 
+ * Précondition : Avoir évalué le `kind` de la `RepositoryException`.
+ * Postcondition : Retourne `true` si la défaillance réseau est la cause.
+ */
 fun RepositoryFailureKind.isOfflineFriendlyFailure(): Boolean {
     return this == RepositoryFailureKind.Offline ||
         this == RepositoryFailureKind.Timeout ||

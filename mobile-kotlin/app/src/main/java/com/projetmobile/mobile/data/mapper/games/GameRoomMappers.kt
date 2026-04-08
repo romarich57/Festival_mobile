@@ -14,7 +14,11 @@ import kotlinx.serialization.builtins.ListSerializer
 // ── DTO réseau → Entité Room ─────────────────────────────────────────────────
 
 /**
- * Convertit un DTO réseau en entité Room (SYNCED = données fraîches du serveur).
+ * Rôle : Convertit un DTO réseau en entité Room (SYNCED = données fraîches du serveur).
+ * Sérialise notamment la liste des mécanismes au format JSON pour le stockage local.
+ * 
+ * Précondition : Le DTO `GameDto` reçu du backend doit être complet et valide.
+ * Postcondition : Retourne l'entité Room `GameRoomEntity` prête à être sauvegardée dans le cache local.
  */
 fun GameDto.toGameRoomEntity(
     syncStatus: String = SyncStatus.SYNCED,
@@ -50,10 +54,11 @@ fun GameDto.toGameRoomEntity(
 // ── Draft hors-ligne → Entité Room ──────────────────────────────────────────
 
 /**
- * Convertit un brouillon hors-ligne en entité Room avec un ID local temporaire.
+ * Rôle : Convertit un brouillon de jeu saisi hors-ligne en entité Room persistable de manière temporaire.
+ * L'identifiant généré est négatif en attendant la validation par le serveur.
  *
- * @param localId  ID négatif généré localement (sera remplacé par l'ID serveur après sync).
- * @param syncStatus  Statut de synchronisation (PENDING_CREATE ou PENDING_UPDATE).
+ * Précondition : Le brouillon `GameDraft` est valide pour la création ou l'édition locale, avec un `localId` et un état de synchronisation valides.
+ * Postcondition : Crée une entité `GameRoomEntity` contenant le brouillon sérialisé (`pendingDraftJson`) afin de reporter la requête réseau.
  */
 fun GameDraft.toGameRoomEntity(localId: Int, syncStatus: String): GameRoomEntity = GameRoomEntity(
     id = localId,
@@ -84,6 +89,12 @@ fun GameDraft.toGameRoomEntity(localId: Int, syncStatus: String): GameRoomEntity
 
 // ── Entité Room → Domaine ────────────────────────────────────────────────────
 
+/**
+ * Rôle : Décoder la chaîne JSON contenant les mécanismes (stockée localement dans Room).
+ *
+ * Précondition : La valeur courante `mechanismsJson` de `GameRoomEntity`.
+ * Postcondition : Retourne la liste de composants métiers `MechanismOption` ou une liste vide.
+ */
 private fun GameRoomEntity.parseMechanisms(): List<MechanismOption> =
     if (mechanismsJson.isBlank() || mechanismsJson == "[]") emptyList()
     else ApiJson.instance.decodeFromString(
@@ -91,6 +102,12 @@ private fun GameRoomEntity.parseMechanisms(): List<MechanismOption> =
         mechanismsJson,
     )
 
+/**
+ * Rôle : Mappe une entité Room locale complète de type `GameRoomEntity` vers une vue simplifiée (`GameListItem`).
+ * 
+ * Précondition : L'entité locale doit être initialisée avec un schéma de jeu valide.
+ * Postcondition : Retourne `GameListItem`, entité condensée qui alimentera une RecyclerView dans l'UI.
+ */
 fun GameRoomEntity.toGameListItem(): GameListItem = GameListItem(
     id = id,
     title = title,
@@ -110,6 +127,12 @@ fun GameRoomEntity.toGameListItem(): GameListItem = GameListItem(
     mechanisms = parseMechanisms(),
 )
 
+/**
+ * Rôle : Convertit une entité base de données (`GameRoomEntity`) pour fournir le modèle de domaine détaillé (`GameDetail`).
+ *
+ * Précondition : La classe entité comprend des paramètres détaillés de jeu et une liste sérialisée pour les sous-composants.
+ * Postcondition : Transforme l'ensemble dans une vue de domaine complète à destination des écrans descriptifs.
+ */
 fun GameRoomEntity.toGameDetail(): GameDetail = GameDetail(
     id = id,
     title = title,

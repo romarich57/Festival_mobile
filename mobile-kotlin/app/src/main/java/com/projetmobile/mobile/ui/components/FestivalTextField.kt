@@ -1,3 +1,9 @@
+/**
+ * Rôle : Champ de texte formaté avec les bordures et couleurs de l'application "Festival".
+ * Prise en charge des messages d'erreur, des icônes de fin (trailing) et du comportement clavier.
+ * Précondition : Appelé dans tout écran nécessitant un input textuel à l'utilisateur.
+ * Postcondition : Fournit une interface utilisateur homogène et alignée sur la charte graphique globale.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.text.KeyboardOptions

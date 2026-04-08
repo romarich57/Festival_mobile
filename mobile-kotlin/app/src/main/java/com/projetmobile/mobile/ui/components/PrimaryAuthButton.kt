@@ -1,3 +1,9 @@
+/**
+ * Rôle : Bouton principal standardisé pour l'ensemble des écrans d'authentification.
+ * Définit la forme, les couleurs et la gestion des états (actif/inactif).
+ * Précondition : Utilisable partout dans l'arborescence Compose (les vues `auth`).
+ * Postcondition : Affiche un bouton avec le style Material 3 de l'application Festival.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape

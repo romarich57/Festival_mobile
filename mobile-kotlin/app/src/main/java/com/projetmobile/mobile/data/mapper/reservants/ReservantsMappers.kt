@@ -16,6 +16,12 @@ import com.projetmobile.mobile.data.remote.reservants.ReservantDeleteWorkflowSum
 import com.projetmobile.mobile.data.remote.reservants.ReservantDto
 import com.projetmobile.mobile.data.remote.reservants.ReservantEditorDto
 
+/**
+ * Rôle : Modéliser un objet Reservant du format d'échange API (DTO) vers son composant graphique léger en liste.
+ * 
+ * Précondition : DTO contenant les données JSON obligatoires minimums mappées.
+ * Postcondition : Un résultat propre et confiné pour les Data Classes du domaine UI (liste).
+ */
 fun ReservantDto.toReservantListItem(): ReservantListItem = ReservantListItem(
     id = id,
     name = name,
@@ -28,6 +34,12 @@ fun ReservantDto.toReservantListItem(): ReservantListItem = ReservantListItem(
     notes = notes,
 )
 
+/**
+ * Rôle : Transformer un DTO Reservant vers l'objet descriptif global du Réservant (Domaine/Métier).
+ * 
+ * Précondition : DTO contenant toutes les données nécessaires issues du profil détaillé.
+ * Postcondition : Composant `ReservantDetail` complet prêt pour l'écran de consultation.
+ */
 fun ReservantDto.toReservantDetail(): ReservantDetail = ReservantDetail(
     id = id,
     name = name,
@@ -40,6 +52,12 @@ fun ReservantDto.toReservantDetail(): ReservantDetail = ReservantDetail(
     notes = notes,
 )
 
+/**
+ * Rôle : Assure le mapping un-à-un d'un contact d'exposant avec l'entité interne de domaine de ce contact.
+ * 
+ * Précondition : Objet JSON contact dé-sérialisé de façon valide en `ReservantContactDto`.
+ * Postcondition : `ReservantContact` encapsulé indépendamment de la couche réseau.
+ */
 fun ReservantContactDto.toReservantContact(): ReservantContact = ReservantContact(
     id = id,
     name = name,
@@ -49,6 +67,13 @@ fun ReservantContactDto.toReservantContact(): ReservantContact = ReservantContac
     priority = priority,
 )
 
+/**
+ * Rôle : Traduire la pré-requête complexe envoyée lors de la suppression d'un réservant serveur (liste des choses supprimées en cascade)
+ * vers l'outil d'avertissement métier Android.
+ * 
+ * Précondition : Le DTO `ReservantDeleteSummaryDto` regroupe des listes complètes des contacts, résas et modérations corollaires à la suppression du compte.
+ * Postcondition : Map la réponse globale et cascade le mapping sur chacune de ses sous-listes (workflows, reservations, contacts).
+ */
 fun ReservantDeleteSummaryDto.toReservantDeleteSummary(): ReservantDeleteSummary {
     return ReservantDeleteSummary(
         reservantId = reservantId,
@@ -60,6 +85,12 @@ fun ReservantDeleteSummaryDto.toReservantDeleteSummary(): ReservantDeleteSummary
     )
 }
 
+/**
+ * Rôle : Transformer un éditeur "parent" (du coté `Reservant` - API Exposant) pour qu'il soit sélectionnable.
+ * 
+ * Précondition : Le DTO inclut les flags isExhibitor/Distributor entre autres informations d'entreprise.
+ * Postcondition : `ReservantEditorOption` prêt pour remplir le Spinner/Dropdown.
+ */
 fun ReservantEditorDto.toReservantEditorOption(): ReservantEditorOption = ReservantEditorOption(
     id = id,
     name = name,
@@ -71,6 +102,12 @@ fun ReservantEditorDto.toReservantEditorOption(): ReservantEditorOption = Reserv
     isDistributor = isDistributor,
 )
 
+/**
+ * Rôle : Extraire les composantes simples d'un contact censé disparaître (cascade SQL).
+ * 
+ * Précondition : Réception d'un objet réseau statuant le contact visé par la suppression.
+ * Postcondition : Map et retourne le `ReservantDeleteContactSummary`.
+ */
 fun ReservantDeleteContactSummaryDto.toReservantDeleteContactSummary(): ReservantDeleteContactSummary {
     return ReservantDeleteContactSummary(
         id = id,
@@ -79,6 +116,13 @@ fun ReservantDeleteContactSummaryDto.toReservantDeleteContactSummary(): Reservan
     )
 }
 
+/**
+ * Rôle : Traduire et formater un flux de modération (workflow de réservation) voué à s'annuler
+ * dans le contexte de suppression d'un utilisateur.
+ * 
+ * Précondition : Le DTO contient l'association workflow-référence festival.
+ * Postcondition : `ReservantDeleteWorkflowSummary` pour alerter l'utilisateur de l'ampleur de la suppression.
+ */
 fun ReservantDeleteWorkflowSummaryDto.toReservantDeleteWorkflowSummary(): ReservantDeleteWorkflowSummary {
     return ReservantDeleteWorkflowSummary(
         id = id,
@@ -88,6 +132,13 @@ fun ReservantDeleteWorkflowSummaryDto.toReservantDeleteWorkflowSummary(): Reserv
     )
 }
 
+/**
+ * Rôle : Expliciter et rendre lisible les données relatives à une réservation d'exposant
+ * qui sautera inévitablement lors du delete cascade.
+ * 
+ * Précondition : `ReservantDeleteReservationSummaryDto` avec les données festival + statut de facturation.
+ * Postcondition : Un record métier `ReservantDeleteReservationSummary` avertissant des conséquences métier.
+ */
 fun ReservantDeleteReservationSummaryDto.toReservantDeleteReservationSummary(): ReservantDeleteReservationSummary {
     return ReservantDeleteReservationSummary(
         id = id,

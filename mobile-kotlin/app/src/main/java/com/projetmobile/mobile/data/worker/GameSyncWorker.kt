@@ -15,7 +15,10 @@ import com.projetmobile.mobile.data.sync.resolveRetryAction
 import kotlin.math.abs
 
 /**
- * Worker chargé de synchroniser les jeux en attente avec le serveur.
+ * Rôle : Worker délégué responsable de propager de manière asynchrone toutes les créations, modifications ou suppressions physiques de tables `Jeux` saisies sans réseau.
+ * 
+ * Précondition : Planifié par Android WorkManager. Le DAO local des jeux (`GameDao`) liste un ou plusieurs champs dont l'ID < 0 ou le tag n'est pas SYNCED.
+ * Postcondition : Répète chaque action (POST, PUT, DELETE) vers l'API, intercepte les conflits logiques (404), et efface les métadonnées d'attente s'il y a succès.
  */
 class GameSyncWorker(
     context: Context,

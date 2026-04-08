@@ -1,3 +1,9 @@
+/**
+ * Rôle : Manipulateur d'état concernant la page de renvoi d'email (PendingVerification).
+ * Assure la résolution asynchrone du dernier email enregistré par l'app en cas d'absence.
+ * Précondition : Hérite du couplage à `AuthRepository` pour piloter la source de données distante.
+ * Postcondition : Soumet la demande de re-transmission de mail au backend et capte la réponse en Live-data.
+ */
 package com.projetmobile.mobile.ui.screens.auth.emailverification
 
 import androidx.lifecycle.ViewModel

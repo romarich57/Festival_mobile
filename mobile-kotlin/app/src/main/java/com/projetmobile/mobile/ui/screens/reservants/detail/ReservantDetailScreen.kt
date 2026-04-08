@@ -45,6 +45,13 @@ import com.projetmobile.mobile.ui.components.PrimaryAuthButton
 import com.projetmobile.mobile.ui.screens.games.toAbsoluteBackendUrl
 import kotlinx.coroutines.delay
 
+/**
+ * Rôle : Présente l'entièreté des onglets et informations disponibles sur une fiche "Réservant".
+ *
+ * Précondition : Appliqué lorsque l'utilisateur a cliqué sur un contact depuis le catalogue.
+ *
+ * Postcondition : Construit et répartit les Scaffold, Tabs, Modifier, ainsi que les grilles de jeux alloués ou des informations basiques.
+ */
 @Composable
 internal fun ReservantDetailScreen(
     uiState: ReservantDetailUiState,

@@ -1,3 +1,9 @@
+/**
+ * Rôle : Composant visuel affichant un résumé individuel pour une réservation listée dans un dashboard.
+ * Présente le nom du réservant, son type, et l'état d'avancement de la réservation, ainsi qu'un bouton de suppression.
+ * Précondition : La classe `ReservationDashboardRowEntity` d'entrée doit posséder des données non manquantes.
+ * Postcondition : Affiche une carte interactive naviguant vers les détails au clic principal, ou demandant une suppression.
+ */
 package com.projetmobile.mobile.ui.components
 
 import android.graphics.Color

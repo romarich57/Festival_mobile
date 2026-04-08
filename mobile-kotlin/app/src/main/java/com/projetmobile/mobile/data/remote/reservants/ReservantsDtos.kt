@@ -5,6 +5,18 @@ import com.projetmobile.mobile.data.entity.reservants.ReservantDraft
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Rôle : Fichier regroupant les "Data Transfer Objects" (DTOs) en rapport aux échanges 
+ * sur la route des Réservants, ainsi que les méthodes mappant des instances de 
+ * brouillons (Draft) depuis le domaine métier Kotlin vers les requêtes API (Dto).
+ */
+
+/**
+ * Rôle : Modélise la réponse JSON de définition propre d'un Réservant retourné par l'API.
+ * 
+ * Précondition : Converti automatiquement de snake_case vers camelCase via `SerialName`.
+ * Postcondition : Exploitable en Kotlin via le Repository.
+ */
 @Serializable
 data class ReservantDto(
     val id: Int,
@@ -18,6 +30,10 @@ data class ReservantDto(
     val notes: String? = null,
 )
 
+/**
+ * Rôle : Payload qui encapsule les champs obligatoires et facultatifs pour 
+ * sauvegarder de façon permanente un réservant (Post / Put).
+ */
 @Serializable
 data class ReservantUpsertRequestDto(
     val name: String,
@@ -30,11 +46,13 @@ data class ReservantUpsertRequestDto(
     val notes: String? = null,
 )
 
+/** Rôle : Modèle abstrait en réponse d'une commande Delete (e.g. { "message": "Deleted" }). */
 @Serializable
 data class DeleteReservantResponseDto(
     val message: String,
 )
 
+/** Rôle : Réceptionne l'information complète décrivant un point de contact sous-jacent. */
 @Serializable
 data class ReservantContactDto(
     val id: Int,
@@ -45,6 +63,7 @@ data class ReservantContactDto(
     val priority: Int,
 )
 
+/** Rôle : Payload assembant la requête d'ajout de point de contact. */
 @Serializable
 data class ReservantContactUpsertRequestDto(
     val name: String,
@@ -54,6 +73,10 @@ data class ReservantContactUpsertRequestDto(
     val priority: Int,
 )
 
+/**
+ * Rôle : DTO du rapport d'incident : récapitule les entités qui vont mourir 
+ * en cascade en cas de suppression forcée du Réservant.
+ */
 @Serializable
 data class ReservantDeleteSummaryDto(
     @SerialName("reservant_id") val reservantId: Int,
@@ -98,6 +121,13 @@ data class ReservantEditorDto(
     @SerialName("is_distributor") val isDistributor: Boolean = false,
 )
 
+/**
+ * Rôle : Convertit le cache ou brouillon métier ([ReservantDraft]) en un format
+ * conforme pour une requête de synchronisation avec l'API ([ReservantUpsertRequestDto]).
+ * 
+ * Précondition : Extension Kotlin attachée à la classe métier `ReservantDraft`.
+ * Postcondition : Assainit les libellés via un trim, cast en lowercase, et rend null les champs invalides.
+ */
 internal fun ReservantDraft.toRequestDto(): ReservantUpsertRequestDto {
     val normalizedType = type.trim().lowercase()
     return ReservantUpsertRequestDto(
@@ -112,6 +142,9 @@ internal fun ReservantDraft.toRequestDto(): ReservantUpsertRequestDto {
     )
 }
 
+/**
+ * Rôle : Fomate de même un draft de contact métier vers un payload API pour l'envoi réseau.
+ */
 internal fun ReservantContactDraft.toRequestDto(): ReservantContactUpsertRequestDto {
     return ReservantContactUpsertRequestDto(
         name = name.trim(),
@@ -122,6 +155,10 @@ internal fun ReservantContactDraft.toRequestDto(): ReservantContactUpsertRequest
     )
 }
 
+/** 
+ * Rôle : Méthode outil pour effacer le vide d'une String si elle est purement invisible.
+ * Évite d'envoyer " " en backend pour l'annuler en "null".
+ */
 private fun String?.trimmedOrNull(): String? {
     return this?.trim()?.takeIf { value -> value.isNotEmpty() }
 }

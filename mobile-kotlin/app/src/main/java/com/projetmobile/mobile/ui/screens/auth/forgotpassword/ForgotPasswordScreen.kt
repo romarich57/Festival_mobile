@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche l'écran permettant à l'utilisateur de demander la réinitialisation de son mot de passe.
+ * Affiche un texte explicatif, un unique champ email et les bandeaux de succès ou d'erreur consécutifs à l'envoi.
+ * Précondition : Appelé par le graphe de navigation depuis la mire de login.
+ * Postcondition : Affiche les champs de saisie et met à jour l'UI avec les bannières adéquates selon l'état `ForgotPasswordUiState`.
+ */
 package com.projetmobile.mobile.ui.screens.auth.forgotpassword
 
 import androidx.compose.foundation.layout.Arrangement

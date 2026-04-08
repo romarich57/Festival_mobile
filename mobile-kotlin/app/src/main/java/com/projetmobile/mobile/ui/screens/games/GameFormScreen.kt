@@ -21,6 +21,13 @@ import androidx.compose.ui.unit.dp
 import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 
+/**
+ * Rôle : Composant d'interface utilisateur pour la création ou la modification des détails d'un jeu (formulaire).
+ *
+ * Précondition : Le ViewModel de formulaire (via action et uiState) dicte l'état actuel des champs.
+ *
+ * Postcondition : Affiche les entrées texte (nom, éditeur, joueurs, âges, mechanisms, types) et remonte les changements ou la validation du formulaire.
+ */
 @Composable
 internal fun GameFormScreen(
     uiState: GameFormUiState,

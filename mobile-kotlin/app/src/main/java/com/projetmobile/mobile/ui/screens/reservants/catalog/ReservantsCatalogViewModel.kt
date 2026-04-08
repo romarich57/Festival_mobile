@@ -13,6 +13,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * Rôle : Logique d'affichage et filtrage des réservants affichés dans l'Annuaire.
+ *
+ * Précondition : Construit par la factory pour charger les filtres et initialiser le repository.
+ *
+ * Postcondition : Pousse l'état Reactif côté Compose sans couplage UI direct via le StateFlow [uiState].
+ */
 internal class ReservantsCatalogViewModel(
     private val loadReservants: ReservantsLoader,
     private val observeReservants: Flow<List<ReservantListItem>>,

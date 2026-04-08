@@ -1,3 +1,9 @@
+/**
+ * Rôle : Affiche sous forme de carte un résumé des stocks restants et potentiellement en pénurie pour un festival.
+ * Affiche la répartition des tables (Standards, Grandes, Mairies) et des chaises globalement réservées.
+ * Précondition : Un état `StockState` à jour doit être fourni en paramètre contenant les totaux et occupations.
+ * Postcondition : Affiche les jauges textuelles, en marquant en rouge les valeurs dépassant la capacité limite.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +47,12 @@ fun StockSummaryCard(stock: StockState) {
     }
 }
 
+/**
+ * Rôle : Affiche l'état partiel d'un item du stock (disponible/total).
+ * Met en évidence textuellement toute jauge de ressource négative (sur-réservation).
+ * Précondition : Appelé à l'intérieur du conteneur parent `StockSummaryCard`.
+ * Postcondition : Affiche un couple Clé/Valeur textuel stylisé.
+ */
 @Composable
 fun StockItem(label: String, available: Int, total: Int) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {

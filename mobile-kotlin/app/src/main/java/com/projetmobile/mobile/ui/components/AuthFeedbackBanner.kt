@@ -1,3 +1,9 @@
+/**
+ * Rôle : Composant visuel affichant un bandeau de retour (erreur ou succès) pour les actions d'authentification.
+ * Aligne les couleurs du texte et de l'arrière-plan en fonction du ton spécifié.
+ * Précondition : Doit recevoir un message non vide et une valeur de `AuthFeedbackTone`.
+ * Postcondition : Affiche un encadré de confirmation coloré dans l'UI.
+ */
 package com.projetmobile.mobile.ui.components
 
 import androidx.compose.foundation.background

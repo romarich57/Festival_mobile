@@ -1,3 +1,9 @@
+/**
+ * Rôle : DTO (Data Transfer Object) immuable modélisant l'état de la vue de pending verification.
+ * Capture l'email vers lequel le lien a été envoyé, et les variables pour l'UI de chargement.
+ * Précondition : Mis à jour exclusivement par le bloc métier.
+ * Postcondition : Utilisé par la vue pour afficher/masquer le loader et les labels d'erreur.
+ */
 package com.projetmobile.mobile.ui.screens.auth.emailverification
 
 data class PendingVerificationUiState(

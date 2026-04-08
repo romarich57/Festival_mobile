@@ -57,6 +57,13 @@ data class GameFormFields(
     val selectedMechanismIds: Set<Int> = emptySet(),
 )
 
+/**
+ * Rôle : Représente l'état du formulaire de création/modification de jeu.
+ *
+ * Précondition : Centralise les options disponibles (types, éditeurs, mécanismes) et les valeurs saisies.
+ *
+ * Postcondition : Garantit que l'interface reflète l'état validé ou en cours sous forme de données immuables.
+ */
 data class GameFormUiState(
     val mode: GameFormMode,
     val fields: GameFormFields = GameFormFields(),

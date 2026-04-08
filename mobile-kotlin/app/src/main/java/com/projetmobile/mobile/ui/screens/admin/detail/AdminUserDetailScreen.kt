@@ -32,6 +32,13 @@ import com.projetmobile.mobile.ui.components.AuthFeedbackBanner
 import com.projetmobile.mobile.ui.components.AuthFeedbackTone
 import com.projetmobile.mobile.ui.screens.admin.shared.roleDisplayName
 
+/**
+ * Rôle : Composant pour l'affichage public ou privé d'une fiche d'informations globale de l'utilisateur (Pseudo, Email, Role).
+ *
+ * Précondition : Récupère les données depuis [uiState] et nécessite un contact/admin valide.
+ *
+ * Postcondition : Construit la vue en Scrolled Column et offre les boutons d'action Edit ou Delete à l'admin.
+ */
 @Composable
 internal fun AdminUserDetailScreen(
     uiState: AdminUserDetailUiState,

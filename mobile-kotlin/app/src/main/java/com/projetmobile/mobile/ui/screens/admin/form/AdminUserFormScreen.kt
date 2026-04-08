@@ -43,6 +43,13 @@ import com.projetmobile.mobile.ui.components.FestivalTextField
 import com.projetmobile.mobile.ui.screens.admin.shared.ADMIN_AVAILABLE_ROLES
 import com.projetmobile.mobile.ui.screens.admin.shared.roleDisplayName
 
+/**
+ * Rôle : Affiche le formulaire en tant qu'écran d'édition ou création d'une fiche utilisateur administrateur.
+ *
+ * Précondition : Des données initiales issues de [uiState] ou un éditeur vierge.
+ *
+ * Postcondition : Affiche les champs de login, email, role, et transmet les modifications via les callbacks associés.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AdminUserFormScreen(
