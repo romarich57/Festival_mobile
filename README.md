@@ -26,5 +26,48 @@ Voir les directives d'installation dans `BACKEND_FRONTEND_SETUP.md` et le dossie
 
 Le projet est configuré avec des conteneurs via `docker-compose.dev.yml` et `docker-compose.prod.yml` pour le déploiement du backend et de ses bases de données.
 
+## Android Kotlin Setup
+ 
+### 1) Démarrer le backend
+ 
+Depuis la racine `Projet_mobile` :
+ 
+```bash
+docker compose -f docker-compose.dev.yml up -d db
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+```
+ 
+Vérification API :
+ 
+```bash
+curl http://localhost:4000/api/health
+```
+ 
+### 2) Configurer l'app Android
+ 
+Depuis la racine `Projet_mobile/mobile-kotlin` :
+ 
+```bash
+cp local.properties.example local.properties
+```
+ 
+Ajuste `API_BASE_URL_DEBUG` si nécessaire :
+ 
+- Émulateur Android : `http://10.0.2.2:4000/api/`
+### 3) Build Android
+ 
+```bash
+cd mobile-kotlin
+./gradlew assembleDebug
+```
+ 
+APK debug attendu :
+```
+app/build/outputs/apk/debug/app-debug.apk
+```
+
 ---
 *Projet universitaire (IG4 - Semestre 8)*
